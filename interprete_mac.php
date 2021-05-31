@@ -14,7 +14,7 @@
 
 <pre><?php
 
-include_once __DIR__ . '/includes/mac_utils.inc.phps';
+include_once __DIR__ . '/includes/mac_utils.inc.php';
 
 $mac = isset($_GET['mac']) ? trim($_GET['mac']) : '';
 

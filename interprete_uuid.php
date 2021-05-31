@@ -24,9 +24,9 @@ if ($uuid == 'CREATE') {
 
 <pre><?php
 
-require_once __DIR__ . '/includes/uuid_utils.inc.phps';
-require_once __DIR__ . '/includes/mac_utils.inc.phps';
-require_once __DIR__ . '/includes/OidDerConverter.class.phps';
+require_once __DIR__ . '/includes/uuid_utils.inc.php';
+require_once __DIR__ . '/includes/mac_utils.inc.php';
+require_once __DIR__ . '/includes/OidDerConverter.class.php';
 
 if ($uuid == 'CREATE') {
 	if (!isset($_REQUEST['version'])) $_REQUEST['version'] = '1'; // default: Version 1 / time based
