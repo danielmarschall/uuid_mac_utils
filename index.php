@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -165,4 +166,3 @@ nb_ns_choose();
 </body>
 
 </html>
-
