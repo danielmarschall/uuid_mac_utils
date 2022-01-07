@@ -2,7 +2,7 @@
 
 /*
  * OidDerConverter.class.php, Version 1.1; Based on version 1.11 of oid.c
- * Copyright 2014-2015 Daniel Marschall, ViaThinkSoft
+ * Copyright 2014-2022 Daniel Marschall, ViaThinkSoft
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ class OidDerConverter {
 	}
 
 	/**
-	 * @return string Outputs .<oid> for an absolute OID and <oid> for a relative OID.
+	 * @return string|false Outputs .<oid> for an absolute OID and <oid> for a relative OID.
 	 */
 	public static function derToOID($abBinary, $verbose=false) {
 		$output_oid = array();
@@ -71,6 +71,8 @@ class OidDerConverter {
 		$lengthfinished = false;
 
 		$arcBeginning = true;
+
+		$isRelative = null; // to avoid that phpstan complains
 
 		foreach ($abBinary as $nn => &$pb) {
 			if ($part == 0) { // Class Tag
@@ -352,7 +354,7 @@ class OidDerConverter {
 
 			$nBinaryWork = $nBinary;
 			do {
-				$output[] = nBinaryWork & 0xFF;
+				$output[] = $nBinaryWork & 0xFF;
 				$nBinaryWork /= 0x100;
 			} while ($nBinaryWork > 0);
 		}
