@@ -191,7 +191,7 @@ class OidDerConverter {
 						// 2.48 and up => 2+ octets
 						// Output in "part 3"
 
-						if ($arcBeginning && ($pb == 0x80)) {
+						if ($pb == 0x80) {
 							if ($verbose) fprintf(STDERR, "Encoding error. Illegal 0x80 paddings. (See Rec. ITU-T X.690, clause 8.19.2)\n");
 							return false;
 						} else {
