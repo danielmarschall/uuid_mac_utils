@@ -11,7 +11,8 @@
 
 <h1>UUID &amp; MAC Utils by Daniel Marschall</h1>
 
-<p><a href="https://svn.viathinksoft.com/cgi-bin/viewvc.cgi/uuid_mac_utils/">View the source code</a></p>
+<!-- <p><a href="https://svn.viathinksoft.com/cgi-bin/viewvc.cgi/uuid_mac_utils/">View the source code</a></p> -->
+<p><a href="https://github.com/danielmarschall/uuid_mac_utils/">View the source code</a></p>
 
 <h2>Generate an UUID (according to RFC 4122)</h2>
 
