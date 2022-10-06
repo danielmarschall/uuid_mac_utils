@@ -1,7 +1,11 @@
-<html>
+<?php
+
+header('Content-Type:text/html; charset=utf-8');
+
+?><html>
 
 <head>
-	<meta charset="iso-8859-1">
+	<meta charset="UTF-8">
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<title>Interprete a MAC address</title>
 </head>
