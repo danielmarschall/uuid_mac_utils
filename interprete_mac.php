@@ -25,7 +25,7 @@ $mac = isset($_GET['mac']) ? trim($_GET['mac']) : '';
 if (!mac_valid($mac)) {
 	echo 'This is not a valid MAC address.';
 } else {
-	echo decode_mac($mac);
+	decode_mac($mac);
 }
 
 ?></pre>
@@ -33,4 +33,3 @@ if (!mac_valid($mac)) {
 </body>
 
 </html>
-
