@@ -1,7 +1,7 @@
 <?php
 
 /*
- * MAC utils for PHP
+ * MAC (EUI-48 and EUI-64) utils for PHP
  * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
  * Version 2023-04-29
  *
@@ -25,14 +25,35 @@ const IEEE_MAC_REGISTRY = __DIR__ . '/../web-data';
  * @return bool
  */
 function mac_valid(string $mac): bool {
+	$tmp = ipv6linklocal_to_eui64($mac);
+	if ($tmp !== false) $mac = $tmp;
+
 	$mac = str_replace(array('-', ':'), '', $mac);
 	$mac = strtoupper($mac);
 
-	if (strlen($mac) != 12) return false;
+	if ((strlen($mac) != 12) && (strlen($mac) != 16)) return false;
 
 	$mac = preg_replace('@[0-9A-F]@', '', $mac);
 
-	return ($mac == '');
+	return ($mac === '');
+}
+
+/**
+ * @param string $mac
+ * @param string $delimiter
+ * @return string|false
+ */
+function mac_canonize(string $mac, string $delimiter="-") {
+	if (!mac_valid($mac)) return false;
+
+	$tmp = ipv6linklocal_to_eui64($mac);
+	if ($tmp !== false) $mac = $tmp;
+
+	$mac = strtoupper($mac);
+	$mac = preg_replace('@[^0-9A-F]@', '', $mac);
+	if ((strlen($mac) != 12) && (strlen($mac) != 16)) return false;
+	$mac = preg_replace('@^(..)(..)(..)(..)(..)(..)(..)(..)$@', '\\1'.$delimiter.'\\2'.$delimiter.'\\3'.$delimiter.'\\4'.$delimiter.'\\5'.$delimiter.'\\6'.$delimiter.'\\7'.$delimiter.'\\8', $mac);
+	return preg_replace('@^(..)(..)(..)(..)(..)(..)$@', '\\1'.$delimiter.'\\2'.$delimiter.'\\3'.$delimiter.'\\4'.$delimiter.'\\5'.$delimiter.'\\6', $mac);
 }
 
 /**
@@ -42,6 +63,8 @@ function mac_valid(string $mac): bool {
  * @return false|string
  */
 function _lookup_ieee_registry(string $file, string $oui_name, string $mac) {
+	$mac = mac_canonize($mac, '');
+	if ($mac === false) return false;
 	$begin = substr($mac, 0, 2).'-'.substr($mac, 2, 2).'-'.substr($mac, 4, 2);
 	$f = file_get_contents($file);
 
@@ -89,6 +112,85 @@ function _lookup_ieee_registry(string $file, string $oui_name, string $mac) {
 }
 
 /**
+ * @param string $eui64
+ * @return false|string If EUI-64 can be converted into EUI-48 (if it has FFFE in the middle), returns EUI-48, otherwise returns EUI-64. On invalid input, return false.
+ */
+function eui64_to_eui48(string $eui64) {
+	if (!mac_valid($eui64)) return false;
+	$eui64 = mac_canonize($eui64, '');
+	if (eui_bits($eui64) == 48) return mac_canonize($eui64);
+
+	if (substr($eui64, 6, 4) == 'FFFE') {
+		return mac_canonize(substr($eui64, 0, 6).substr($eui64, 10, 6));
+	} else {
+		return mac_canonize($eui64);
+	}
+}
+
+/**
+ * @param string $eui48
+ * @return false|string
+ */
+function eui48_to_eui64(string $eui48) {
+	if (!mac_valid($eui48)) return false;
+	$eui48 = mac_canonize($eui48, '');
+	if (eui_bits($eui48) == 64) return mac_canonize($eui48);
+
+	$eui64 = substr($eui48, 0, 6).'FFFE'.substr($eui48, 6, 6);
+	return mac_canonize($eui64);
+}
+
+/**
+ * @param string $ipv6
+ * @return false|string
+ */
+function ipv6linklocal_to_eui64(string $ipv6) {
+	// https://stackoverflow.com/questions/12095835/quick-way-of-expanding-ipv6-addresses-with-php (modified)
+	$tmp = inet_pton($ipv6);
+	if ($tmp === false) return false;
+	$hex = unpack("H*hex", $tmp);
+	$ipv6 = substr(preg_replace("/([A-f0-9]{4})/", "$1:", $hex['hex']), 0, -1);
+
+	// Remove "fe80::" to convert IPv6 Link Local address back to EUI-64
+	// see https://support.lenovo.com/de/de/solutions/ht509925-how-to-convert-a-mac-address-into-an-ipv6-link-local-address-eui-64
+	$cnt = 0;
+	$mac = preg_replace('@^fe80:0000:0000:0000:@i', '', $ipv6, -1, $cnt);
+	if ($cnt == 0) return false;
+
+	// Set LAA to UAA again
+	$mac[1] = dechex(hexdec($mac[1]) & 253);
+
+	return eui64_to_eui48($mac);
+}
+
+/**
+ * @param string $mac
+ * @return false|int
+ */
+function eui_bits(string $mac) {
+	if (!mac_valid($mac)) return false;
+	$mac = mac_canonize($mac, '');
+	return (int)(strlen($mac)*4);
+}
+
+/**
+ * @param string $mac
+ * @return false|string
+ */
+function eui_to_ipv6linklocal(string $mac) {
+	if (!mac_valid($mac)) return false;
+	if (eui_bits($mac) == 48) {
+		$mac = eui48_to_eui64($mac);
+	}
+	$mac = mac_canonize($mac, '');
+
+	$mac[1] = dechex(hexdec($mac[1]) | 2);
+
+	$mac = str_pad($mac, 16, '0', STR_PAD_LEFT);
+	return strtolower('fe80::'.substr($mac,0, 4).':'.substr($mac,4, 4).':'.substr($mac,8, 4).':'.substr($mac,12, 4));
+}
+
+/**
  * @param string $mac
  * @return void
  * @throws Exception
@@ -96,40 +198,56 @@ function _lookup_ieee_registry(string $file, string $oui_name, string $mac) {
 function decode_mac(string $mac) {
 	// Amazing website about MAC addresses: https://mac-address.alldatafeeds.com/faq#how-to-recognise-mac-address-application
 
+	echo sprintf("%-32s %s\n", "Input:", $mac);
+
+	$type = '';
+	$tmp = ipv6linklocal_to_eui64($mac);
+	if ($tmp !== false) {
+		$mac = $tmp;
+		$type = 'IPv6-Link-Local';
+	}
 	if (!mac_valid($mac)) throw new Exception("Invalid MAC address");
+	if ($tmp === false) {
+		// Size
+		$type = eui_bits($mac)==48 ? 'EUI-48 (6 Byte)' : 'EUI-64 (8 Byte)';
+	}
+	echo sprintf("%-32s %s\n", "Type:", $type);
+
+	echo "\n";
 
 	// Format MAC
-	$mac = strtoupper($mac);
-	$mac = preg_replace('@[^0-9A-F]@', '', $mac);
-	if (strlen($mac) != 12) {
-		throw new Exception("Invalid MAC address");
-	}
-	$mac_ = preg_replace('@^(..)(..)(..)(..)(..)(..)$@', '\\1-\\2-\\3-\\4-\\5-\\6', $mac);
-	echo sprintf("%-32s %s\n", "MAC address:", $mac_);
+	$mac = mac_canonize($mac, '');
 
-	// Empfaengergruppe
-	$ig = hexdec($mac[1]) & 1; // Bit #LSB+0 of Byte 1
-	$ig_ = ($ig == 0) ? '[0] Individual (Unicast)' : '[1] Group (Multicast)';
-	echo sprintf("%-32s %s\n", "Transmission type (I/G flag):", $ig_);
+	// Show various representations
+	$eui48 = eui64_to_eui48($mac);
+	echo sprintf("%-32s %s\n", "EUI-48:", (eui_bits($eui48) != 48) ? 'Not available' : $eui48);
+	$eui64 = eui48_to_eui64($mac);
+	echo sprintf("%-32s %s\n", "EUI-64:", (eui_bits($eui64) != 64) ? 'Not available' : $eui64);
+	$ipv6 = eui_to_ipv6linklocal($mac);
+	echo sprintf("%-32s %s\n", "IPv6 link local address:", $ipv6);
 
 	// Vergabestelle
 	$ul = hexdec($mac[1]) & 2; // Bit #LSB+1 of Byte 1
 	$ul_ = ($ul == 0) ? '[0] Universally Administered Address (UAA)' : '[1] Locally Administered Address (LAA)';
 	echo sprintf("%-32s %s\n", "Administration type (U/L flag):", $ul_);
 
+	// Empfaengergruppe
+	$ig = hexdec($mac[1]) & 1; // Bit #LSB+0 of Byte 1
+	$ig_ = ($ig == 0) ? '[0] Individual (Unicast)' : '[1] Group (Multicast)';
+	echo sprintf("%-32s %s\n", "Transmission type (I/G flag):", $ig_);
+
 	// Query IEEE registries
 	// TODO: gilt OUI nur bei Individual UAA?
 	if (count(glob(IEEE_MAC_REGISTRY.'/*.txt')) > 0) {
 		if (
-			($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . '/mam.txt', 'OUI-28 (MA-M)', $mac)) ||
-			($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . '/oui36.txt', 'OUI-36 (MA-S)', $mac)) ||
 			# The IEEE Registration Authority distinguishes between IABs and OUI-36 values. Both are 36-bit values which may be used to generate EUI-48 values, but IABs may not be used to generate EUI-64 values.[6]
 			# Note: The Individual Address Block (IAB) is an inactive registry activity, which has been replaced by the MA-S registry product as of January 1, 2014.
-			($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . '/iab.txt', 'IAB', $mac))
+			($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . '/iab.txt', 'IAB', $mac)) ||
+			($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . '/oui36.txt', 'OUI-36 (MA-S)', $mac)) ||
+			($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . '/mam.txt', 'OUI-28 (MA-M)', $mac)) ||
+			($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . '/oui.txt', 'OUI-24 (MA-L)', $mac))
 		) {
 			echo $x;
-		} else {
-			echo _lookup_ieee_registry(IEEE_MAC_REGISTRY . '/oui.txt', 'OUI-24 (MA-L)', $mac);
 		}
 	}
 
@@ -266,23 +384,23 @@ function decode_mac(string $mac) {
 	if (mac_between($mac, '01:00:5E:00:00:00', '01:00:5E:7F:FF:FF')) $app = 'IPv4 Multicast (EtherType is 0x0800)';
 	if (mac_between($mac, '33:33:00:00:00:00', '33:33:FF:FF:FF:FF')) $app = 'IPv6 Multicast. IPv6 neighbor discovery (EtherType is 0x86DD)'; // TODO: Dabei werden die untersten 32 Bit der IPv6-Multicast-Adresse in die MAC-Adresse eingebettet.
 	if (mac_between($mac, '00:00:5E:00:52:13', '00:00:5E:00:52:13')) $app = 'Proxy Mobile IPv6';
-	//if (mac_between($mac, '00:00:5E:FE:C0:00:02:00', '00:00:5E:FE:C0:00:02:FF')) $app = 'IPv4 derived documentation';
-	//if (mac_between($mac, '00:00:5E:FE:C6:33:64:00', '00:00:5E:FE:C6:33:64:FF')) $app = 'IPv4 derived documentation';
-	//if (mac_between($mac, '00:00:5E:FE:CB:00:71:00', '00:00:5E:FE:CB:00:71:FF')) $app = 'IPv4 derived documentation';
-	//if (mac_equals($mac, '00:00:5E:FE:EA:C0:00:02')) $app = 'IPv4 multicast derived documentation';
-	//if (mac_equals($mac, '00:00:5E:FE:EA:C6:33:64')) $app = 'IPv4 multicast derived documentation';
-	//if (mac_equals($mac, '00:00:5E:FE:EA:CB:00:71')) $app = 'IPv4 multicast derived documentation';
-	//if (mac_between($mac, '01:00:5E:FE:C0:00:02:00', '01:00:5E:FE:C0:00:02:FF')) $app = 'IPv4 derived documentation';
-	//if (mac_between($mac, '01:00:5E:FE:C6:33:64:00', '01:00:5E:FE:C6:33:64:FF')) $app = 'IPv4 derived documentation';
-	//if (mac_between($mac, '01:00:5E:FE:CB:00:71:00', '01:00:5E:FE:CB:00:71:FF')) $app = 'IPv4 derived documentation';
-	//if (mac_equals($mac, '01:00:5E:FE:EA:C0:00:02')) $app = 'IPv4 multicast derived documentation';
-	//if (mac_equals($mac, '01:00:5E:FE:EA:C6:33:64')) $app = 'IPv4 multicast derived documentation';
-	//if (mac_equals($mac, '01:00:5E:FE:EA:CB:00:71')) $app = 'IPv4 multicast derived documentation';
+	if (mac_between($mac, '00:00:5E:FE:C0:00:02:00', '00:00:5E:FE:C0:00:02:FF')) $app = 'IPv4 derived documentation';
+	if (mac_between($mac, '00:00:5E:FE:C6:33:64:00', '00:00:5E:FE:C6:33:64:FF')) $app = 'IPv4 derived documentation';
+	if (mac_between($mac, '00:00:5E:FE:CB:00:71:00', '00:00:5E:FE:CB:00:71:FF')) $app = 'IPv4 derived documentation';
+	if (mac_equals($mac, '00:00:5E:FE:EA:C0:00:02')) $app = 'IPv4 multicast derived documentation';
+	if (mac_equals($mac, '00:00:5E:FE:EA:C6:33:64')) $app = 'IPv4 multicast derived documentation';
+	if (mac_equals($mac, '00:00:5E:FE:EA:CB:00:71')) $app = 'IPv4 multicast derived documentation';
+	if (mac_between($mac, '01:00:5E:FE:C0:00:02:00', '01:00:5E:FE:C0:00:02:FF')) $app = 'IPv4 derived documentation';
+	if (mac_between($mac, '01:00:5E:FE:C6:33:64:00', '01:00:5E:FE:C6:33:64:FF')) $app = 'IPv4 derived documentation';
+	if (mac_between($mac, '01:00:5E:FE:CB:00:71:00', '01:00:5E:FE:CB:00:71:FF')) $app = 'IPv4 derived documentation';
+	if (mac_equals($mac, '01:00:5E:FE:EA:C0:00:02')) $app = 'IPv4 multicast derived documentation';
+	if (mac_equals($mac, '01:00:5E:FE:EA:C6:33:64')) $app = 'IPv4 multicast derived documentation';
+	if (mac_equals($mac, '01:00:5E:FE:EA:CB:00:71')) $app = 'IPv4 multicast derived documentation';
 	if (mac_between($mac, '01:80:C2:00:00:20', '01:80:C2:00:00:2F')) $app = 'Reserved for use by Multiple Registration Protocol (MRP) applications';
-	//if (mac_between($mac, '02:00:5E:FE:00:00:00:00', '02:00:5E:FE:FF:FF:FF:FF')) $app = 'IPv4 Addr Holders';
+	if (mac_between($mac, '02:00:5E:FE:00:00:00:00', '02:00:5E:FE:FF:FF:FF:FF')) $app = 'IPv4 Addr Holders';
 	if (mac_equals($mac, '03:00:00:20:00:00')) $app = 'IP multicast address';
 	if (mac_equals($mac, 'C0:00:00:04:00:00')) $app = 'IP multicast address';
-	//if (mac_between($mac, '03:00:5E:FE:00:00:00:00', '03:00:5E:FE:FF:FF:FF:FF')) $app = 'IPv4 Addr Holders';
+	if (mac_between($mac, '03:00:5E:FE:00:00:00:00', '03:00:5E:FE:FF:FF:FF:FF')) $app = 'IPv4 Addr Holders';
 
 	// === FAQ "How to recognise a MPLS multicast frame by MAC address?" ===
 	// http://www.iana.org/go/rfc5332
@@ -449,8 +567,8 @@ function decode_mac(string $mac) {
 	if (mac_between($mac, '00:00:5E:00:53:00', '00:00:5E:00:53:FF')) $app = 'Assigned for use in documentation';
 	if (mac_between($mac, '00:00:5E:00:54:00', '00:00:5E:90:00:FF')) $app = 'Unassigned';
 	if (mac_between($mac, '00:00:5E:90:01:01', '00:00:5E:90:01:FF')) $app = 'Unassigned (small allocations requiring both unicast and multicast)';
-	//if (mac_between($mac, '00:00:5E:EF:10:00:00:00', '00:00:5E:EF:10:00:00:FF')) $app = 'General documentation';
-	//if (mac_between($mac, '00:00:5E:FF:FE:00:53:00', '00:00:5E:FF:FE:00:53:FF')) $app = 'EUI-48 derived documentation';
+	if (mac_between($mac, '00:00:5E:EF:10:00:00:00', '00:00:5E:EF:10:00:00:FF')) $app = 'General documentation';
+	if (mac_between($mac, '00:00:5E:FF:FE:00:53:00', '00:00:5E:FF:FE:00:53:FF')) $app = 'EUI-48 derived documentation';
 	if (mac_between($mac, '01:00:5E:00:00:00', '01:00:5E:7F:FF:FF')) $app = 'DoD Internet Multicast (EtherType is 0x0800)'; // TODO: IPv4-Multicast  (Dabei werden dann die unteren 23 Bit der IP-Multicast-Adresse direkt auf die untersten 23 Bit der MAC-Adresse abgebildet. Der IP-Multicast-Adresse 224.0.0.1 ist somit die Multicast-MAC-Adresse 01-00-5e-00-00-01 fest zugeordnet.)
 	if (mac_between($mac, '01:00:5E:80:00:00', '01:00:5E:FF:FF:FF')) $app = 'DoD Internet';
 	if (mac_equals($mac, '01:00:5E:90:00:02')) $app = 'AllL1MI-ISs';
@@ -461,22 +579,22 @@ function decode_mac(string $mac) {
 	if (mac_between($mac, '01:00:5E:90:02:00', '00:00:5E:FF:FF:FF')) $app = 'Unassigned';
 	if (mac_between($mac, '01:00:5E:90:10:00', '01:00:5E:90:10:FF')) $app = 'Documentation';
 	if (mac_between($mac, '01:00:5E:90:11:00', '01:00:5E:FF:FF:FF')) $app = 'Unassigned';
-	//if (mac_between($mac, '01:00:5E:EF:10:00:00:00', '01:00:5E:EF:10:00:00:FF')) $app = 'General documentation';
-	//if (mac_between($mac, '02:00:5E:00:00:00:00:00', '02:00:5E:0F:FF:FF:FF:FF')) $app = 'Reserved';
-	//if (mac_between($mac, '02:00:5E:10:00:00:00:00', '02:00:5E:10:00:00:00:FF')) $app = 'Documentation';
-	//if (mac_between($mac, '02:00:5E:10:00:00:01:00', '02:00:5E:EF:FF:FF:FF:FF')) $app = 'Unassigned';
-	//if (mac_between($mac, '02:00:5E:F0:00:00:00:00', '02:00:5E:FD:FF:FF:FF:FF')) $app = 'Reserved';
-	//if (mac_between($mac, '02:00:5E:FE:00:00:00:00', '02:00:5E:FE:FF:FF:FF:FF')) $app = 'IPv4 Addr Holders';
-	//if (mac_between($mac, '02:00:5E:FF:00:00:00:00', '02:00:5E:FF:FD:FF:FF:FF')) $app = 'Reserved';
-	//if (mac_between($mac, '02:00:5E:FF:FE:00:00:00', '02:00:5E:FF:FE:FF:FF:FF')) $app = 'IANA EUI-48 Holders';
-	//if (mac_between($mac, '02:00:5E:FF:FF:00:00:00', '02:00:5E:FF:FF:FF:FF:FF')) $app = 'Reserved';
-	//if (mac_between($mac, '03:00:5E:00:00:00:00:00', '03:00:5E:0F:FF:FF:FF:FF')) $app = 'Reserved';
-	//if (mac_between($mac, '03:00:5E:10:00:00:00:00', '03:00:5E:10:00:00:00:FF')) $app = 'Documentation';
-	//if (mac_between($mac, '03:00:5E:10:00:00:01:00', '03:00:5E:EF:FF:FF:FF:FF')) $app = 'Unassigned';
-	//if (mac_between($mac, '03:00:5E:F0:00:00:00:00', '03:00:5E:FD:FF:FF:FF:FF')) $app = 'Reserved';
-	//if (mac_between($mac, '03:00:5E:FF:00:00:00:00', '03:00:5E:FF:FD:FF:FF:FF')) $app = 'Reserved';
-	//if (mac_between($mac, '03:00:5E:FF:FE:00:00:00', '03:00:5E:FF:FE:FF:FF:FF')) $app = 'IANA EUI-48 Holders';
-	//if (mac_between($mac, '03:00:5E:FF:FF:00:00:00', '03:00:5E:FF:FF:FF:FF:FF')) $app = 'Reserved';
+	if (mac_between($mac, '01:00:5E:EF:10:00:00:00', '01:00:5E:EF:10:00:00:FF')) $app = 'General documentation';
+	if (mac_between($mac, '02:00:5E:00:00:00:00:00', '02:00:5E:0F:FF:FF:FF:FF')) $app = 'Reserved';
+	if (mac_between($mac, '02:00:5E:10:00:00:00:00', '02:00:5E:10:00:00:00:FF')) $app = 'Documentation';
+	if (mac_between($mac, '02:00:5E:10:00:00:01:00', '02:00:5E:EF:FF:FF:FF:FF')) $app = 'Unassigned';
+	if (mac_between($mac, '02:00:5E:F0:00:00:00:00', '02:00:5E:FD:FF:FF:FF:FF')) $app = 'Reserved';
+	if (mac_between($mac, '02:00:5E:FE:00:00:00:00', '02:00:5E:FE:FF:FF:FF:FF')) $app = 'IPv4 Addr Holders';
+	if (mac_between($mac, '02:00:5E:FF:00:00:00:00', '02:00:5E:FF:FD:FF:FF:FF')) $app = 'Reserved';
+	if (mac_between($mac, '02:00:5E:FF:FE:00:00:00', '02:00:5E:FF:FE:FF:FF:FF')) $app = 'IANA EUI-48 Holders';
+	if (mac_between($mac, '02:00:5E:FF:FF:00:00:00', '02:00:5E:FF:FF:FF:FF:FF')) $app = 'Reserved';
+	if (mac_between($mac, '03:00:5E:00:00:00:00:00', '03:00:5E:0F:FF:FF:FF:FF')) $app = 'Reserved';
+	if (mac_between($mac, '03:00:5E:10:00:00:00:00', '03:00:5E:10:00:00:00:FF')) $app = 'Documentation';
+	if (mac_between($mac, '03:00:5E:10:00:00:01:00', '03:00:5E:EF:FF:FF:FF:FF')) $app = 'Unassigned';
+	if (mac_between($mac, '03:00:5E:F0:00:00:00:00', '03:00:5E:FD:FF:FF:FF:FF')) $app = 'Reserved';
+	if (mac_between($mac, '03:00:5E:FF:00:00:00:00', '03:00:5E:FF:FD:FF:FF:FF')) $app = 'Reserved';
+	if (mac_between($mac, '03:00:5E:FF:FE:00:00:00', '03:00:5E:FF:FE:FF:FF:FF')) $app = 'IANA EUI-48 Holders';
+	if (mac_between($mac, '03:00:5E:FF:FF:00:00:00', '03:00:5E:FF:FF:FF:FF:FF')) $app = 'Reserved';
 
 	// === FAQ "How to recognise a Cisco's MAC address application?" ===
 	// https://www.cisco.com/c/en/us/support/docs/switches/catalyst-4500-series-switches/13414-103.html
@@ -528,7 +646,7 @@ function decode_mac(string $mac) {
 	if (mac_between($mac, 'AB:00:00:05:00:00', 'AB:00:03:FF:FF:FF')) $app = 'Reserved DEC';
 	if (mac_equals($mac, 'AB:00:03:00:00:00')) $app = 'DEC Local Area Transport (LAT) - old, EtherType is 0x6004';
 	if (mac_between($mac, 'AB:00:04:00:00:00', 'AB:00:04:00:FF:FF')) $app = 'Reserved DEC customer private use';
-	if (mac_between($mac, 'AB:00:04:01:00:00', 'AB:00:04:01:FF:FF')) $app = 'DEC Local Area VAX Cluster groups System Communication Architecture (SCA) EtherType is 0x6007';
+	if (mac_between($mac, 'AB:00:04:01:00:00', 'AB:00:04:01:FF:FF')) $app = 'DEC Local Area VAX Cluster groups System Communication Architecture (SCA), EtherType is 0x6007';
 
 	if ($app) {
 		echo sprintf("%-32s %s\n", "Special use:", $app);
@@ -540,10 +658,19 @@ function decode_mac(string $mac) {
  * @param string $mac1
  * @param string $mac2
  * @return bool
- * @throws Exception
  */
 function mac_equals(string $mac1, string $mac2): bool {
-	return mac_between($mac1, $mac2, $mac2);
+	$mac1test = eui64_to_eui48($mac1);
+	if ($mac1test === false) return false;
+	$mac2test = eui64_to_eui48($mac2);
+	if ($mac2test === false) return false;
+
+	if (eui_bits($mac1test) != eui_bits($mac2test)) {
+		$mac1test = eui48_to_eui64($mac1);
+		$mac2test = eui48_to_eui64($mac2);
+	}
+
+	return mac_canonize($mac1test) == mac_canonize($mac2test);
 }
 
 /**
@@ -551,22 +678,28 @@ function mac_equals(string $mac1, string $mac2): bool {
  * @param string $low
  * @param string $high
  * @return bool
- * @throws Exception
  */
 function mac_between(string $mac, string $low, string $high): bool {
-	if (empty($high)) $high = $low;
+	$mactest = eui64_to_eui48($mac);
+	if ($mactest === false) return false;
+	$lowtest = eui64_to_eui48($low);
+	if ($lowtest === false) return false;
+	$hightest = eui64_to_eui48($high);
+	if ($hightest === false) return false;
 
-	if (!mac_valid($mac)) throw new Exception("Invalid MAC: $mac");
-	if (!mac_valid($low)) throw new Exception("Invalid MAC: $low");
-	if (!mac_valid($high)) throw new Exception("Invalid MAC: $high");
+	if ((eui_bits($mactest) != eui_bits($lowtest)) || (eui_bits($lowtest) != eui_bits($hightest))) {
+		$mactest = eui48_to_eui64($mac);
+		$lowtest = eui48_to_eui64($low);
+		$hightest = eui48_to_eui64($high);
+	}
 
-	$mac = strtoupper(preg_replace('@[^0-9A-F]@', '', $mac));
-	$low = strtoupper(preg_replace('@[^0-9A-F]@', '', $low));
-	$high = strtoupper(preg_replace('@[^0-9A-F]@', '', $high));
+	$mactest = strtoupper(preg_replace('@[^0-9A-F]@', '', $mactest));
+	$lowtest = strtoupper(preg_replace('@[^0-9A-F]@', '', $lowtest));
+	$hightest = strtoupper(preg_replace('@[^0-9A-F]@', '', $hightest));
 
-	$mac = gmp_init($mac, 16);
-	$low = gmp_init($low, 16);
-	$high = gmp_init($high, 16);
+	$mactest = gmp_init($mactest, 16);
+	$lowtest = gmp_init($lowtest, 16);
+	$hightest = gmp_init($hightest, 16);
 
-	return (gmp_cmp($mac, $low) >= 0) && (gmp_cmp($mac, $high) <= 0);
+	return (gmp_cmp($mactest, $lowtest) >= 0) && (gmp_cmp($mactest, $hightest) <= 0);
 }

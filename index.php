@@ -140,7 +140,7 @@ nb_ns_choose();
 	<input type="text" name="uuid" value="" style="width:500px"> <input type="submit" value="Go">
 </form>
 
-<h2>Interprete a MAC address</h2>
+<h2>Interprete a MAC address (EUI-48 or EUI-64)</h2>
 
 <p>You can enter an UUID in the following notations:</p>
 
@@ -148,6 +148,9 @@ nb_ns_choose();
 	<li><code>AA-BB-CC-DD-EE-FF</code></li>
 	<li><code>AA:BB:CC:DD:EE:FF</code></li>
 	<li><code>AABBCC.DDEEFF</code> (case insensitive)</li>
+	<li><code>AA-BB-CC-DD-EE-FF-11-22</code> (EUI-64)</li>
+	<li><code>AA:BB:CC:DD:EE:FF-11-22</code> (EUI-64)</li>
+	<li><code>fe80::1322:33ff:fe44:5566</code> (IPv6 Link Local / EUI-64)</li>
 </ul>
 
 <p>The script will output:</p>
