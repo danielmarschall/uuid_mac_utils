@@ -26,8 +26,8 @@
 const IEEE_MAC_REGISTRY = __DIR__ . '/../web-data';
 
 /**
- * Checks if a MAC, EUI, ELI, or IPv6-LinkLocal address is valid
- * @param string $mac MAC, EUI, or IPv6-LinkLocal Address
+ * Checks if a MAC, EUI, ELI, or IPv6-Link-Local address is valid
+ * @param string $mac MAC, EUI, or IPv6-Link-Local Address
  * @return bool True if it is valid
  */
 function mac_valid(string $mac): bool {
@@ -56,10 +56,10 @@ function eui_bits(string $mac) {
 }
 
 /**
- * Canonizes a MAC, EUI, ELI, or IPv6-LinkLocal address
- * @param string $mac MAC, EUI, ELI, or IPv6-LinkLocal Address
+ * Canonizes a MAC, EUI, ELI, or IPv6-Link-Local address
+ * @param string $mac MAC, EUI, ELI, or IPv6-Link-Local Address
  * @param string $delimiter Desired delimiter for inserting between each octet
- * @return string|false The canonized address (Note: IPv6-Linklocal becomes EUI-64)
+ * @return string|false The canonized address (Note: IPv6-Link-Local becomes EUI-64)
  */
 function mac_canonize(string $mac, string $delimiter="-") {
 	if (!mac_valid($mac)) return false;
@@ -212,8 +212,8 @@ function maceui48_to_modeui64(string $eui48) {
 }
 
 /**
- * Try to convert IPv6-LinkLocal address to MAC-48
- * @param string $ipv6 IPv6-LinkLocal address
+ * Try to convert IPv6-Link-Local address to MAC-48
+ * @param string $ipv6 IPv6-Link-Local address
  * @return false|string MAC-48 (or IPv6 if it was no LinkLocal address, or Modified EUI-64 if it decapsulation failed)
  */
 function ipv6linklocal_to_mac48(string $ipv6) {
@@ -223,7 +223,7 @@ function ipv6linklocal_to_mac48(string $ipv6) {
 	$hex = unpack("H*hex", $tmp);
 	$ipv6 = substr(preg_replace("/([A-f0-9]{4})/", "$1:", $hex['hex']), 0, -1);
 
-	// Remove "fe80::" to convert IPv6 Link Local address back to EUI-64
+	// Remove "fe80::" to convert IPv6-Link-Local address back to EUI-64
 	// see https://support.lenovo.com/de/de/solutions/ht509925-how-to-convert-a-mac-address-into-an-ipv6-link-local-address-eui-64
 	$cnt = 0;
 	$mac = preg_replace('@^fe80:0000:0000:0000:@i', '', $ipv6, -1, $cnt);
@@ -242,7 +242,7 @@ function ipv6linklocal_to_mac48(string $ipv6) {
 }
 
 /**
- * Converts MAC-48 or EUI-48 to IPv6-LinkLocal (based on Modified EUI-64)
+ * Converts MAC-48 or EUI-48 to IPv6-Link-Local (based on Modified EUI-64)
  * @param string $mac
  * @return false|string
  */
@@ -257,8 +257,8 @@ function maceui_to_ipv6linklocal(string $mac) {
 }
 
 /**
- * Prints information about an IPv6-LinkLocal address, MAC, EUI, or ELI.
- * @param string $mac IPv6-LinkLocal address, MAC, EUI, or ELI
+ * Prints information about an IPv6-Link-Local address, MAC, EUI, or ELI.
+ * @param string $mac IPv6-Link-Local address, MAC, EUI, or ELI
  * @return void
  * @throws Exception
  */
@@ -309,9 +309,11 @@ function decode_mac(string $mac) {
 	if ($mac[1] == 'A') {
 		// Note: There does not seem to exist an algorithm for converting ELI-48 <=> ELI-64
 		echo sprintf("%-32s %s\n", "ELI-".eui_bits($mac).":", mac_canonize($mac));
+		$mac48 = eui64_to_eui48($mac);
+		echo sprintf("%-32s %s\n", "MAC-48 (Local):", (eui_bits($mac48) != 48) ? 'Not available' : $mac48);
 	} else {
 		$eui48 = eui64_to_eui48($mac);
-		echo sprintf("%-32s %s\n", "EUI-48:", (eui_bits($eui48) != 48) ? 'Not available' : $eui48);
+		echo sprintf("%-32s %s\n", "EUI-48 or MAC-48:", (eui_bits($eui48) != 48) ? 'Not available' : $eui48);
 		if (eui_bits($mac) == 48) {
 			$eui64 = mac48_to_eui64($mac);
 			echo sprintf("%-32s %s\n", "EUI-64:", ((eui_bits($eui64) != 64) ? 'Not available' : $eui64).' (MAC-48 to EUI-64 Encapsulation)');
@@ -320,7 +322,7 @@ function decode_mac(string $mac) {
 			$eui64 = maceui48_to_modeui64($mac);
 			echo sprintf("%-32s %s\n", "", ((eui_bits($eui64) != 64) ? 'Not available' : $eui64).' (MAC/EUI-48 to Modified EUI-64 Encapsulation)');
 			$ipv6 = maceui_to_ipv6linklocal($mac);
-			echo sprintf("%-32s %s\n", "IPv6 link local address:", $ipv6);
+			echo sprintf("%-32s %s\n", "IPv6-Link-Local address:", $ipv6);
 		} else {
 			$eui64 = mac_canonize($mac);
 			echo sprintf("%-32s %s\n", "EUI-64:", $eui64);
@@ -478,7 +480,8 @@ function decode_mac(string $mac) {
 	if (mac_equals($mac, 'CF:00:00:00:00:00')) $app = 'Used for Ethernet loopback tests';
 
 	// === FAQ "How to recognise a Broadcast MAC address application?" ===
-	if (mac_equals($mac, 'FF:FF:FF:FF:FF:FF')) echo sprintf("%-32s %s\n", "Special use:", "Broadcast messaging");
+	// According to https://standards.ieee.org/wp-content/uploads/import/documents/tutorials/eui.pdf FFFFFFFFFFFF can be used as NULL EUI
+	if (mac_equals($mac, 'FF:FF:FF:FF:FF:FF')) echo sprintf("%-32s %s\n", "Special use:", "Broadcast messaging or Null-EUI");
 
 	// === FAQ "How to recognise a Virtual Router ID by MAC address?" ===
 	// https://tools.ietf.org/html/rfc7042#section-5.1
