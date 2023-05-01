@@ -140,7 +140,7 @@ nb_ns_choose();
 	<input type="text" name="uuid" value="" style="width:500px"> <input type="submit" value="Go">
 </form>
 
-<h2>Interprete a MAC address (EUI-48 or EUI-64)</h2>
+<h2>Interprete a MAC address (MAC/EUI/ELI)</h2>
 
 <p>You can enter an UUID in the following notations:</p>
 
@@ -161,7 +161,7 @@ nb_ns_choose();
 	<li>Information about the registrant, if available.</li>
 </ul>
 
-<p>Please enter a MAC address:</p>
+<p>Please enter a MAC, EUI, ELI, or IPv6-Link-Local address:</p>
 
 <form method="GET" action="interprete_mac.php">
 	<input type="text" name="mac" value=""> <input type="submit" value="Go">
