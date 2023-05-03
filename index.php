@@ -9,7 +9,7 @@
 
 <body>
 
-<h1>UUID &amp; MAC Utils by Daniel Marschall</h1>
+<h1>UUID &amp;amp; MAC Utils by Daniel Marschall</h1>
 
 <!-- <p><a href="https://svn.viathinksoft.com/cgi-bin/viewvc.cgi/uuid_mac_utils/">View the source code</a></p> -->
 <p><a href="https://github.com/danielmarschall/uuid_mac_utils/">View the source code</a></p>
@@ -161,7 +161,7 @@ nb_ns_choose();
 	<li>Information about the registrant, if available.</li>
 </ul>
 
-<p>Please enter a MAC, EUI, ELI, or IPv6-Link-Local address:</p>
+<p>Please enter a MAC/EUI, ELI, SAI, AAI, or IPv6-Link-Local address:</p>
 
 <form method="GET" action="interprete_mac.php">
 	<input type="text" name="mac" value=""> <input type="submit" value="Go">
