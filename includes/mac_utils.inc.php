@@ -3,7 +3,7 @@
 /*
  * MAC (EUI-48 and EUI-64) utils for PHP
  * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-05-03
+ * Version 2023-05-04
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -375,6 +375,10 @@ function mac_type(string $mac): string {
  * @throws Exception
  */
 function decode_mac(string $mac) {
+	
+	// TODO: Should we decode Multicast MAC to its IP (see https://ipcisco.com/lesson/multicast-mac-addresses/)?
+	// TODO: Is an ELI with M=1 a Multicast-ELI, or isn't it an ELI anymore? Same question for SAI and AAI
+	
 	echo sprintf("%-32s %s\n", "Input:", $mac);
 
 	// Format MAC for machine readability
@@ -841,6 +845,74 @@ function decode_mac(string $mac) {
 	if (mac_equals($mac, 'AB:00:03:00:00:00')) $app = 'DEC Local Area Transport (LAT) - old, EtherType is 0x6004';
 	if (mac_between($mac, 'AB:00:04:00:00:00', 'AB:00:04:00:FF:FF')) $app = 'Reserved DEC customer private use';
 	if (mac_between($mac, 'AB:00:04:01:00:00', 'AB:00:04:01:FF:FF')) $app = 'DEC Local Area VAX Cluster groups System Communication Architecture (SCA), EtherType is 0x6007';
+
+	// https://standards.ieee.org/products-programs/regauth/grpmac/public/
+	// TODO: Check for duplicates between these and the ones at the top
+	// IEEE Std 802.1D and IEEE Std 802.1Q Reserved Addresses
+	if (mac_equals($mac, '01-80-C2-00-00-00')) $app = 'IEEE Std 802.1Q / Bridge Group address, Nearest Customer Bridge group address';
+	if (mac_equals($mac, '01-80-C2-00-00-01')) $app = 'IEEE Std 802.1Q / IEEE MAC-specific Control Protocols group address';
+	if (mac_equals($mac, '01-80-C2-00-00-02')) $app = 'IEEE Std 802.1Q / IEEE 802.3 Slow_Protocols_Multicast address';
+	if (mac_equals($mac, '01-80-C2-00-00-03')) $app = 'IEEE Std 802.1Q / Nearest non-TPMR Bridge group address, IEEE Std 802.1X PAE address';
+	if (mac_equals($mac, '01-80-C2-00-00-04')) $app = 'IEEE Std 802.1Q / IEEE MAC-specific Control Protocols group address';
+	if (mac_equals($mac, '01-80-C2-00-00-05')) $app = 'IEEE Std 802.1Q / Reserved for future standardization';
+	if (mac_equals($mac, '01-80-C2-00-00-06')) $app = 'IEEE Std 802.1Q / Reserved for future standardization';
+	if (mac_equals($mac, '01-80-C2-00-00-07')) $app = 'IEEE Std 802.1Q / MEF Forum ELMI protocol group address';
+	if (mac_equals($mac, '01-80-C2-00-00-08')) $app = 'IEEE Std 802.1Q / Provider Bridge group address';
+	if (mac_equals($mac, '01-80-C2-00-00-09')) $app = 'IEEE Std 802.1Q / Reserved for future standardization';
+	if (mac_equals($mac, '01-80-C2-00-00-0A')) $app = 'IEEE Std 802.1Q / Reserved for future standardization';
+	if (mac_equals($mac, '01-80-C2-00-00-0B')) $app = 'IEEE Std 802.1Q / EDE-SS PEP Address';
+	if (mac_equals($mac, '01-80-C2-00-00-0C')) $app = 'IEEE Std 802.1Q / Reserved for future standardization';
+	if (mac_equals($mac, '01-80-C2-00-00-0D')) $app = 'IEEE Std 802.1Q / Provider Bridge MVRP address';
+	if (mac_equals($mac, '01-80-C2-00-00-0E')) $app = 'IEEE Std 802.1Q / Individual LAN Scope group address, Nearest Bridge group address';
+	if (mac_equals($mac, '01-80-C2-00-00-0F')) $app = 'IEEE Std 802.1Q / Reserved for future standardization';
+	// Standard Group MAC Addresses
+	if (mac_equals($mac, '01-80-C2-00-00-10')) $app = 'All LANs Bridge Management Group Address (deprecated)';
+	if (mac_equals($mac, '01-80-C2-00-00-11')) $app = 'Load Server Generic Address';
+	if (mac_equals($mac, '01-80-C2-00-00-12')) $app = 'Loadable Device Generic Address';
+	if (mac_equals($mac, '01-80-C2-00-00-13')) $app = 'Transmission of IEEE 1905.1 control packets';
+	if (mac_equals($mac, '01-80-C2-00-00-14')) $app = 'All Level 1 Intermediate Systems Address';
+	if (mac_equals($mac, '01-80-C2-00-00-15')) $app = 'All Level 2 Intermediate Systems Address';
+	if (mac_equals($mac, '01-80-C2-00-00-16')) $app = 'All CONS End Systems Address';
+	if (mac_equals($mac, '01-80-C2-00-00-17')) $app = 'All CONS SNARES Address';
+	if (mac_equals($mac, '01-80-C2-00-00-18')) $app = 'Generic Address for All Manager Stations';
+	if (mac_equals($mac, '01-80-C2-00-00-19')) $app = 'Groupcast with retries (GCR) MAC Group Address';
+	if (mac_equals($mac, '01-80-C2-00-00-1A')) $app = 'Generic Address for All Agent Stations';
+	if (mac_equals($mac, '01-80-C2-00-00-1B')) $app = 'All Multicast Capable End Systems Address';
+	if (mac_equals($mac, '01-80-C2-00-00-1C')) $app = 'All Multicast Announcements Address';
+	if (mac_equals($mac, '01-80-C2-00-00-1D')) $app = 'All Multicast Capable Intermediate Systems Address';
+	if (mac_equals($mac, '01-80-C2-00-00-1E')) $app = 'All DTR Concentrators MAC Group Address';
+	if (mac_equals($mac, '01-80-C2-00-00-1F')) $app = 'EDE-CC PEP Address';
+	if (mac_between($mac, '01-80-C2-00-00-20','01-80-C2-00-00-2F')) $app = 'Reserved for use by Multiple Registration Protocol (MRP) applications';
+	if (mac_between($mac, '01-80-C2-00-00-30','01-80-C2-00-00-3F')) $app = 'Destination group MAC addresses for CCM and Linktrace messages';
+	if (mac_between($mac, '01-80-C2-00-00-40','01-80-C2-00-00-4F')) $app = 'Group MAC addresses used by the TRILL protocols';
+	if (mac_between($mac, '01-80-C2-00-00-50','01-80-C2-00-00-FF')) $app = 'unassigned';
+	if (mac_equals($mac, '01-80-C2-00-01-00')) $app = 'Ring Management Directed Beacon Multicast Address';
+	if (mac_between($mac, '01-80-C2-00-01-01','01-80-C2-00-01-0F')) $app = 'Assigned to ISO/IEC JTC1/SC25 for future use';
+	if (mac_equals($mac, '01-80-C2-00-01-10')) $app = 'Status Report Frame Status Report Protocol Multicast Address';
+	if (mac_between($mac, '01-80-C2-00-01-11','01-80-C2-00-01-1F')) $app = 'Assigned to ISO/IEC JTC1/SC25 for future use';
+	if (mac_equals($mac, '01-80-C2-00-01-20')) $app = 'ISO/IEC 9314-2 All FDDI Concentrator MACs';
+	if (mac_between($mac, '01-80-C2-00-01-21','01-80-C2-00-01-2F')) $app = 'Assigned to ISO/IEC JTC1/SC25 for future use';
+	if (mac_equals($mac, '01-80-C2-00-01-30')) $app = 'ISO/IEC 9314-6 Synchronous Bandwidth Allocation Address';
+	if (mac_between($mac, '01-80-C2-00-01-31','01-80-C2-00-01-FF')) $app = 'Assigned to ISO/IEC JTC1/SC25 for future use';
+	if (mac_between($mac, '01-80-C2-00-02-00','01-80-C2-00-02-FF')) $app = 'Assigned to ETSI for future use';
+	if (mac_between($mac, '01-80-C2-00-03-00', '01-80-C2-FF-FF-FF')) $app = 'unassigned';
+	if (mac_equals($mac, '09-00-2B-00-00-04')) $app = 'ISO 9542 All End System Network Entities Address';
+	if (mac_equals($mac, '09-00-2B-00-00-05')) $app = 'ISO 9542 All Intermediate System Network Entities Address';
+	// Group MAC Addresses Used in ISO 9542 ES-IS Protocol
+	if (mac_equals($mac, '09-00-2B-00-00-04')) $app = 'ISO 9542 All End System Network Entities Address';
+	if (mac_equals($mac, '09-00-2B-00-00-05')) $app = 'ISO 9542 All Intermediate System Network Entities Address';
+	// Locally Administered Group MAC Addresses Used by IEEE Std 802.5 (IEEE Std 802.5 Functional Addresses)
+	if (mac_equals($mac, '03-00-00-00-00-08')) $app = 'Configuration Report Server (CRS) MAC Group Address';
+	if (mac_equals($mac, '03-00-00-00-00-10')) $app = 'Ring Error Monitor (REM) MAC Group Address';
+	if (mac_equals($mac, '03-00-00-00-00-40')) $app = 'Ring Parameter Server (RPS) MAC Group Address';
+	if (mac_equals($mac, '03-00-00-00-01-00')) $app = 'All Intermediate System Network Entities Address';
+	if (mac_equals($mac, '03-00-00-00-02-00')) $app = 'All End System Network Entities Address, and Lobe Media Test (LMT) MAC Group Address';
+	if (mac_equals($mac, '03-00-00-00-04-00')) $app = 'Generic Address for all Manager Stations';
+	if (mac_equals($mac, '03-00-00-00-08-00')) $app = 'All CONs SNARES Address';
+	if (mac_equals($mac, '03-00-00-00-10-00')) $app = 'All CONs End System Address';
+	if (mac_equals($mac, '03-00-00-00-20-00')) $app = 'Loadable Device Generic Address';
+	if (mac_equals($mac, '03-00-00-00-40-00')) $app = 'Load Server Generic Address';
+	if (mac_equals($mac, '03-00-00-40-00-00')) $app = 'Generic Address for all Agent Stations';
 
 	if ($app) {
 		echo sprintf("%-32s %s\n", "Special use:", $app);
