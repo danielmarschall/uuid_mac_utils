@@ -3,7 +3,7 @@
 /*
  * MAC (EUI-48 and EUI-64) utils for PHP
  * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-05-04
+ * Version 2023-05-05
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,8 +112,8 @@ function _lookup_ieee_registry(string $file, string $oui_name, string $mac) {
 
 		$ra_len = strlen(dechex($end-$beg));
 
-		$out = sprintf("%-32s 0x%s\n", "IEEE $oui_name part:", substr($mac, 0, 12-$ra_len));
-		$out .= sprintf("%-32s 0x%s\n", "NIC specific part:", substr($mac, 12-$ra_len));
+		$out = sprintf("%-32s 0x%s\n", "IEEE $oui_name:", substr($mac, 0, 12-$ra_len));
+		$out .= sprintf("%-32s 0x%s\n", "Vendor-specific part:", substr($mac, 12-$ra_len));
 		$out .= sprintf("%-32s %s\n", "Registrant:", $x[0]);
 		foreach ($x as $n => $y) {
 			if ($n == 0) continue;
@@ -267,21 +267,21 @@ function mac_type(string $mac): string {
 	 *
 	 *  	ZYXM
 	 * 0	0000	EUI (OUI)
-	 * 1	0001
+	 * 1	0001	[Multicast]
 	 * 2	0010	AAI
-	 * 3	0011
+	 * 3	0011	[Multicast]
 	 * 4	0100	EUI (OUI)
-	 * 5	0101
+	 * 5	0101	[Multicast]
 	 * 6	0110	Reserved
-	 * 7	0111
+	 * 7	0111	[Multicast]
 	 * 8	1000	EUI (OUI)
-	 * 9	1001
+	 * 9	1001	[Multicast]
 	 * A	1010	ELI (CID)
-	 * B	1011
+	 * B	1011	[Multicast]
 	 * C	1100	EUI (OUI)
-	 * D	1101
+	 * D	1101	[Multicast]
 	 * E	1110	SAI
-	 * F	1111
+	 * F	1111	[Multicast]
 	 *
 	 */
 
@@ -293,7 +293,7 @@ function mac_type(string $mac): string {
 	}
 	if (!mac_valid($mac)) throw new Exception("Invalid MAC address");
 	if ($tmp === false) {
-		if ($mac[1] == '2') {
+		if (($mac[1] == '2') || ($mac[1] == '3')) {
 			/*
 			 * AAI: Administratively Assigned Identifier
 			 * Administrators who wish to assign local MAC addresses in an
@@ -302,7 +302,7 @@ function mac_type(string $mac): string {
 			 * SLAP on the same LAN may assign a local MAC address as AAI.
 			 */
 			$type = 'AAI-' . eui_bits($mac).' (Administratively Assigned Identifier)';
-		} else if ($mac[1] == '6') {
+		} else if (($mac[1] == '6') || ($mac[1] == '7')) {
 			/*
 			 * Reserved
 			 * may be administratively used and assigned in accordance with the
@@ -312,7 +312,7 @@ function mac_type(string $mac): string {
 			 * assignment incompatible with the SLAP.
 			 */
 			$type = 'Reserved-' . eui_bits($mac);
-		} else if ($mac[1] == 'A') {
+		} else if (($mac[1] == 'A') || ($mac[1] == 'B')) {
 			/*
 			 * ELI: Extended Local Identifier
 			 * An ELI is based on a 24 bit CID
@@ -320,7 +320,7 @@ function mac_type(string $mac): string {
 			 * Since X=1 (U/L=1), the CID cannot be used to form a universal UAA MAC (only a local LAA MAC)
 			 */
 			$type = 'ELI-' . eui_bits($mac).' (Extended Local Identifier)';
-		} else if ($mac[1] == 'E') {
+		} else if (($mac[1] == 'E') || ($mac[1] == 'F')) {
 			/*
 			 * SAI: Standard Assigned Identifier
 			 * Specification of the use of the SAI quadrant for SLAP address
@@ -337,9 +337,7 @@ function mac_type(string $mac): string {
 			 * and bridges that do not recognize the protocol is not affected.
 			 */
 			$type = 'SAI-' . eui_bits($mac).' (Standard Assigned Identifier)';
-		} else if ((hexdec($mac[1])&1) == 1) {
-			$type = 'Multicast MAC-'.eui_bits($mac);
-		} else if (($mac[1] == '0') || ($mac[1] == '4') || ($mac[1] == '8') || ($mac[1] == 'C')) {
+		} else {
 			/*
 			 * Extended Unique Identifier
 			 * Based on an OUI-24, OUI-28, or OUI-36
@@ -365,6 +363,26 @@ function mac_type(string $mac): string {
 			}
 		}
 	}
+
+	if ((hexdec($mac[1])&1) == 1) {
+		// Question: https://networkengineering.stackexchange.com/questions/83121/can-eli-aai-sai-addresses-be-multicast
+		// Are there "Multicast ELI", "Multicast AAI", "Multicast SAI"?
+		// Some documents of IEEE suggest this, but I am not 100% sure!
+
+		/* https://standards.ieee.org/wp-content/uploads/import/documents/tutorials/eui.pdf writes:
+		 * - The assignee of an OUI or OUI-36 is exclusively authorized to assign group
+		 *   MAC addresses, with I/G=1, by extending a modified version of the assigned
+		 *   OUI or OUI-36 in which the M bit is set to 1. Such addresses are not EUIs and
+		 *   do not globally identify hardware instances, even though U/L=0.
+		 * - The assignee of a CID may assign local group MAC addresses by extending a modified version of
+		 *   the assigned CID by setting the M bit to 1 (so that I/G=1). The resulting
+		 *   extended identifier is an ELI.
+		 */
+
+		// TODO: If "Multicast EUI" is not an EUI, how should we name it instead?!
+		$type = "Multicast $type";
+	}
+
 	return $type;
 }
 
@@ -375,10 +393,9 @@ function mac_type(string $mac): string {
  * @throws Exception
  */
 function decode_mac(string $mac) {
-	
+
 	// TODO: Should we decode Multicast MAC to its IP (see https://ipcisco.com/lesson/multicast-mac-addresses/)?
-	// TODO: Is an ELI with M=1 a Multicast-ELI, or isn't it an ELI anymore? Same question for SAI and AAI
-	
+
 	echo sprintf("%-32s %s\n", "Input:", $mac);
 
 	// Format MAC for machine readability
@@ -425,23 +442,30 @@ function decode_mac(string $mac) {
 
 	// Query IEEE registries
 	if (count(glob(IEEE_MAC_REGISTRY.DIRECTORY_SEPARATOR.'*.txt')) > 0) {
+		$alt_mac = $mac;
+		$alt_mac[1] = dechex(hexdec($alt_mac[1])^1); // switch Unicat<=>Multicast in order to find the vendor
+
 		if ($mac[1] == 'A') {
 			// Query the CID registry
 			if (
-				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'cid.txt', 'CID', $mac))
+				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'cid.txt', 'CID', $mac)) ||
+				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'cid.txt', 'CID', $alt_mac))
 			) {
 				echo $x;
 			}
 		} else {
 			// Query the OUI registries
-			// TODO: Should we try to convert Unicast<=>Multicast if one of them can't be found?
 			if (
 				# The IEEE Registration Authority distinguishes between IABs and OUI-36 values. Both are 36-bit values which may be used to generate EUI-48 values, but IABs may not be used to generate EUI-64 values.[6]
 				# Note: The Individual Address Block (IAB) is an inactive registry activity, which has been replaced by the MA-S registry product as of January 1, 2014.
 				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'iab.txt', 'IAB', $mac)) ||
 				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'oui36.txt', 'OUI-36 (MA-S)', $mac)) ||
-				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'mam.txt', 'OUI-28 (MA-M)', $mac)) ||
-				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'oui.txt', 'OUI-24 (MA-L)', $mac))
+				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'mam.txt', '28 bit identifier (MA-M)', $mac)) ||
+				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'oui.txt', 'OUI (MA-L)', $mac)) ||
+				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'iab.txt', 'IAB', $alt_mac)) ||
+				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'oui36.txt', 'OUI-36 (MA-S)', $alt_mac)) ||
+				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'mam.txt', '28 bit identifier (MA-M)', $alt_mac)) ||
+				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'oui.txt', 'OUI (MA-L)', $alt_mac))
 			) {
 				echo $x;
 			}

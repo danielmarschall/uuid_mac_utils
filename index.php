@@ -167,6 +167,8 @@ nb_ns_choose();
 	<input type="text" name="mac" value=""> <input type="submit" value="Go">
 </form>
 
+<br><br><br>
+
 </body>
 
 </html>
