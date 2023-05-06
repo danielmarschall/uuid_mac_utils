@@ -3,7 +3,7 @@
 /*
  * MAC (EUI-48 and EUI-64) utils for PHP
  * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-05-05
+ * Version 2023-05-06
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -216,7 +216,7 @@ function maceui48_to_modeui64(string $eui48) {
  */
 function ipv6linklocal_to_mac48(string $ipv6) {
 	// https://stackoverflow.com/questions/12095835/quick-way-of-expanding-ipv6-addresses-with-php (modified)
-	$tmp = inet_pton($ipv6);
+	$tmp = @inet_pton($ipv6);
 	if ($tmp === false) return false;
 	$hex = unpack("H*hex", $tmp);
 	$ipv6 = substr(preg_replace("/([A-f0-9]{4})/", "$1:", $hex['hex']), 0, -1);
