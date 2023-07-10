@@ -30,6 +30,8 @@ if (!mac_valid($mac)) {
 
 ?></pre>
 
+<br>
+
 </body>
 
 </html>

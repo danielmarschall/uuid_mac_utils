@@ -77,20 +77,23 @@ if (!uuid_valid($uuid)) {
 	echo 'This is not a valid UUID.';
 } else {
 	$oid  = uuid_to_oid($uuid);
-	echo sprintf("%-24s %s\n", "Your input:", $uuid);
+	echo sprintf("%-32s %s\n", "Your input:", $uuid);
 	echo "\n";
-	echo sprintf("%-24s %s\n", "URI:", 'uuid:'.strtolower(oid_to_uuid(uuid_to_oid($uuid))));
-	echo sprintf("%-24s %s\n", "Microsoft GUID syntax:", '{'.strtoupper(oid_to_uuid(uuid_to_oid($uuid))).'}');
-	echo sprintf("%-24s %s\n", "C++ struct syntax:", uuid_c_syntax($uuid));
+	echo sprintf("%-32s %s\n", "URN:", 'urn:uuid:'.strtolower(oid_to_uuid(uuid_to_oid($uuid))));
+	echo sprintf("%-32s %s\n", "URI:", 'uuid:'.strtolower(oid_to_uuid(uuid_to_oid($uuid))));
+	echo sprintf("%-32s %s\n", "Microsoft GUID syntax:", '{'.strtoupper(oid_to_uuid(uuid_to_oid($uuid))).'}');
+	echo sprintf("%-32s %s\n", "C++ struct syntax:", uuid_c_syntax($uuid));
 	echo "\n";
-	echo sprintf("%-24s %s\n", "As OID:", $oid);
-	echo sprintf("%-24s %s\n", "DER encoding of OID:", OidDerConverter::hexarrayToStr(OidDerConverter::oidToDER($oid)));
+	echo sprintf("%-32s %s\n", "As OID:", $oid);
+	echo sprintf("%-32s %s\n", "DER encoding of OID:", OidDerConverter::hexarrayToStr(OidDerConverter::oidToDER($oid)));
 	echo "\n";
-	echo "Interpration of the UUID:\n";
+	echo "Interpration of the UUID:\n\n";
 	uuid_info($uuid);
 }
 
 ?></pre>
+
+<br>
 
 </body>
 

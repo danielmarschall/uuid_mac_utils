@@ -9,7 +9,7 @@
 
 <body>
 
-<h1>UUID &amp;amp; MAC Utils by Daniel Marschall</h1>
+<h1>UUID &amp; MAC Utils by Daniel Marschall</h1>
 
 <!-- <p><a href="https://svn.viathinksoft.com/cgi-bin/viewvc.cgi/uuid_mac_utils/">View the source code</a></p> -->
 <p><a href="https://github.com/danielmarschall/uuid_mac_utils/">View the source code</a></p>

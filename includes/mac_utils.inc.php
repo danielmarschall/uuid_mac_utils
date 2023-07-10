@@ -3,7 +3,7 @@
 /*
  * MAC (EUI-48 and EUI-64) utils for PHP
  * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-05-06
+ * Version 2023-07-11
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,11 +76,11 @@ function mac_canonize(string $mac, string $delimiter="-") {
 
 /**
  * @param string $file
- * @param string $oui_name
+ * @param string $registry_name
  * @param string $mac
  * @return false|string
  */
-function _lookup_ieee_registry(string $file, string $oui_name, string $mac) {
+function _lookup_ieee_registry(string $file, string $registry_name, string $mac) {
 	$mac = mac_canonize($mac, '');
 	if ($mac === false) return false;
 	$begin = substr($mac, 0, 2).'-'.substr($mac, 2, 2).'-'.substr($mac, 4, 2);
@@ -110,11 +110,17 @@ function _lookup_ieee_registry(string $file, string $oui_name, string $mac) {
 
 		$x = explode("\n", $x);
 
-		$ra_len = strlen(dechex($end-$beg));
+		// The 12 is hardcoded and is valid for MAC-48 and MAC-64!
+		// Reason: The length of the prefix is calculated from MAC-48. MAC-64 just extends the vendor-specific part
+		// end-beg (= range)  OUI24 0xFFFFFF  len=6    12-6 = 6 nibbles prefix
+		//                    OUI28 0xFFFFF   len=5    12-5 = 7 nibbles prefix
+		//                    OUI36 0xFFF     len=3    12-3 = 9 nibbles prefix
+		$prefix_len = 12-strlen(dechex($end-$beg));
 
-		$out = sprintf("%-32s 0x%s\n", "IEEE $oui_name:", substr($mac, 0, 12-$ra_len));
-		$out .= sprintf("%-32s 0x%s\n", "Vendor-specific part:", substr($mac, 12-$ra_len));
+		$out = sprintf("%-32s 0x%s\n", "IEEE $registry_name:", substr($mac, 0, $prefix_len));
+		$out .= sprintf("%-32s 0x%s\n", "Vendor-specific part:", substr($mac, $prefix_len));
 		$out .= sprintf("%-32s %s\n", "Registrant:", $x[0]);
+
 		foreach ($x as $n => $y) {
 			if ($n == 0) continue;
 			else if ($n == 1) $out .= sprintf("%-32s %s\n", "Address of registrant:", $y);
@@ -263,7 +269,7 @@ function mac_type(string $mac): string {
 	// Format MAC for machine readability
 	$mac = mac_canonize($mac, '');
 
-	/**
+	/*
 	 *
 	 *  	ZYXM
 	 * 0	0000	EUI (OUI)
@@ -365,9 +371,7 @@ function mac_type(string $mac): string {
 	}
 
 	if ((hexdec($mac[1])&1) == 1) {
-		// Question: https://networkengineering.stackexchange.com/questions/83121/can-eli-aai-sai-addresses-be-multicast
-		// Are there "Multicast ELI", "Multicast AAI", "Multicast SAI"?
-		// Some documents of IEEE suggest this, but I am not 100% sure!
+		// see also https://networkengineering.stackexchange.com/questions/83121/can-eli-aai-sai-addresses-be-multicast
 
 		/* https://standards.ieee.org/wp-content/uploads/import/documents/tutorials/eui.pdf writes:
 		 * - The assignee of an OUI or OUI-36 is exclusively authorized to assign group
@@ -379,7 +383,7 @@ function mac_type(string $mac): string {
 		 *   extended identifier is an ELI.
 		 */
 
-		// TODO: If "Multicast EUI" is not an EUI, how should we name it instead?!
+		// TODO: If "Multicast EUI" is not an EUI (as tutorials/eui.pdf states), how should we name it instead?!
 		$type = "Multicast $type";
 	}
 
@@ -406,13 +410,19 @@ function decode_mac(string $mac) {
 
 	echo "\n";
 
+	$is_eli_unicast = (hexdec($mac[1]) & 0xF) == 0xA;  // ELI = 1010 (unicast)
+	$is_eli         = (hexdec($mac[1]) & 0xE) == 0xA;  // ELI = 101x (unicast and multicast)
+
+	$is_eui_unicast = (hexdec($mac[1]) & 0x3) == 0x0;  // EUI = xx00 (unicast)
+	$is_eui         = (hexdec($mac[1]) & 0x2) == 0x0;  // EUI = xx0x (unicast and multicast)
+
 	// Show various representations
-	if ($mac[1] == 'A') {
+	if ($is_eli) {
 		// Note: There does not seem to exist an algorithm for encapsulating/converting ELI-48 <=> ELI-64
 		echo sprintf("%-32s %s\n", "ELI-".eui_bits($mac).":", mac_canonize($mac));
 		$mac48 = eui64_to_eui48($mac);
 		echo sprintf("%-32s %s\n", "MAC-48 (Local):", (eui_bits($mac48) != 48) ? 'Not available' : $mac48);
-	} else if (($mac[1] == '0') || ($mac[1] == '4') || ($mac[1] == '8') || ($mac[1] == 'C')) {
+	} else if ($is_eui) {
 		$eui48 = eui64_to_eui48($mac);
 		echo sprintf("%-32s %s\n", "EUI-48 or MAC-48:", (eui_bits($eui48) != 48) ? 'Not available' : $eui48);
 		if (eui_bits($mac) == 48) {
@@ -443,31 +453,59 @@ function decode_mac(string $mac) {
 	// Query IEEE registries
 	if (count(glob(IEEE_MAC_REGISTRY.DIRECTORY_SEPARATOR.'*.txt')) > 0) {
 		$alt_mac = $mac;
-		$alt_mac[1] = dechex(hexdec($alt_mac[1])^1); // switch Unicat<=>Multicast in order to find the vendor
+		$alt_mac[1] = dechex(hexdec($alt_mac[1])^1); // switch Unicast<=>Multicast in order to find the vendor
 
-		if ($mac[1] == 'A') {
-			// Query the CID registry
-			if (
-				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'cid.txt', 'CID', $mac)) ||
-				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'cid.txt', 'CID', $alt_mac))
-			) {
-				echo $x;
-			}
-		} else {
-			// Query the OUI registries
-			if (
-				# The IEEE Registration Authority distinguishes between IABs and OUI-36 values. Both are 36-bit values which may be used to generate EUI-48 values, but IABs may not be used to generate EUI-64 values.[6]
-				# Note: The Individual Address Block (IAB) is an inactive registry activity, which has been replaced by the MA-S registry product as of January 1, 2014.
-				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'iab.txt', 'IAB', $mac)) ||
-				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'oui36.txt', 'OUI-36 (MA-S)', $mac)) ||
-				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'mam.txt', '28 bit identifier (MA-M)', $mac)) ||
-				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'oui.txt', 'OUI (MA-L)', $mac)) ||
-				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'iab.txt', 'IAB', $alt_mac)) ||
-				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'oui36.txt', 'OUI-36 (MA-S)', $alt_mac)) ||
-				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'mam.txt', '28 bit identifier (MA-M)', $alt_mac)) ||
-				($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'oui.txt', 'OUI (MA-L)', $alt_mac))
-			) {
-				echo $x;
+		if (is_dir(IEEE_MAC_REGISTRY)) {
+			if ($is_eli) {
+				// Query the CID registry
+				if (
+					($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'cid.txt', 'CID', $mac)) ||
+					($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'cid.txt', 'CID', $alt_mac))
+				) {
+					echo "\n";
+					echo $x;
+				} else {
+					$registry_name = 'CID';
+					echo "\n";
+					echo sprintf("%-32s 0x%s\n", "IEEE $registry_name:", substr($mac, 0, 6));
+					echo sprintf("%-32s 0x%s\n", "Vendor-specific part:", substr($mac, 6));
+					echo sprintf("%-32s %s\n", "Registrant:", "$registry_name not found in database");
+				}
+			} else if ($is_eui) {
+				// Query the OUI registries
+				if (
+					# The IEEE Registration Authority distinguishes between IABs and OUI-36 values. Both are 36-bit values which may be used to generate EUI-48 values, but IABs may not be used to generate EUI-64 values.[6]
+					# Note: The Individual Address Block (IAB) is an inactive registry activity, which has been replaced by the MA-S registry product as of January 1, 2014.
+					($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'iab.txt', 'IAB', $mac)) ||
+					($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'oui36.txt', 'OUI-36 (MA-S)', $mac)) ||
+					($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'mam.txt', '28 bit identifier (MA-M)', $mac)) ||
+					($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'oui.txt', 'OUI (MA-L)', $mac)) ||
+					($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'iab.txt', 'IAB', $alt_mac)) ||
+					($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'oui36.txt', 'OUI-36 (MA-S)', $alt_mac)) ||
+					($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'mam.txt', '28 bit identifier (MA-M)', $alt_mac)) ||
+					($x = _lookup_ieee_registry(IEEE_MAC_REGISTRY . DIRECTORY_SEPARATOR . 'oui.txt', 'OUI (MA-L)', $alt_mac))
+				) {
+					echo "\n";
+					echo $x;
+				} else {
+					$registry_name = 'OUI (MA-L)?';
+					echo "\n";
+					echo sprintf("%-32s 0x%s\n", "IEEE $registry_name:", substr($mac, 0, 6));
+					echo sprintf("%-32s 0x%s\n", "Vendor-specific part:", substr($mac, 6));
+					echo sprintf("%-32s %s\n", "Registrant:", "$registry_name not found in database");
+
+					$registry_name = '28 bit identifier (MA-M)?';
+					echo "\n";
+					echo sprintf("%-32s 0x%s\n", "IEEE $registry_name:", substr($mac, 0, 7));
+					echo sprintf("%-32s 0x%s\n", "Vendor-specific part:", substr($mac, 7));
+					echo sprintf("%-32s %s\n", "Registrant:", "$registry_name not found in database");
+
+					$registry_name = 'OUI-36 (MA-S)?';
+					echo "\n";
+					echo sprintf("%-32s 0x%s\n", "IEEE $registry_name:", substr($mac, 0, 9));
+					echo sprintf("%-32s 0x%s\n", "Vendor-specific part:", substr($mac, 9));
+					echo sprintf("%-32s %s\n", "Registrant:", "$registry_name not found in database");
+				}
 			}
 		}
 	}

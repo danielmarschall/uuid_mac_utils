@@ -67,7 +67,7 @@ function uuid_info($uuid) {
 
 	switch ($variant) {
 		case 0:
-			echo sprintf("%-24s %s\n", "Variant:", "[0xx] NCS (reserved for backward compatibility)");
+			echo sprintf("%-32s %s\n", "Variant:", "[0xx] NCS (reserved for backward compatibility)");
 
 			/*
 			 * Internal structure of variant #0 UUIDs
@@ -112,10 +112,10 @@ function uuid_info($uuid) {
 			$ts = gmp_strval($ts);
 			$ms = gmp_strval($ms);
 			$ts = gmdate('Y-m-d H:i:s', intval($ts))."'".str_pad($ms, 7, '0', STR_PAD_LEFT).' GMT';
-			echo sprintf("%-24s %s\n", "Timestamp:", "[0x$timestamp] $ts");
+			echo sprintf("%-32s %s\n", "Timestamp:", "[0x$timestamp] $ts");
 
 			$reserved = substr($uuid, 12, 4);
-			echo sprintf("%-24s %s\n", "Reserved:", "0x$reserved");
+			echo sprintf("%-32s %s\n", "Reserved:", "0x$reserved");
 
 			# Family 13 (dds) looks like node is 00 | nnnnnn 000000.
 			# Family 2 is presumably (ip).
@@ -129,20 +129,20 @@ function uuid_info($uuid) {
 			} else {
 				$family_ = "Unknown ($family_dec)"; # There are probably no more families
 			}
-			echo sprintf("%-24s %s\n", "Family:", "[0x$family_hex = $family_dec] $family_");
+			echo sprintf("%-32s %s\n", "Family:", "[0x$family_hex = $family_dec] $family_");
 
 			$nodeid = substr($uuid, 18, 14);
-			echo sprintf("%-24s %s\n", "Node ID:", "0x$nodeid");
+			echo sprintf("%-32s %s\n", "Node ID:", "0x$nodeid");
 			# TODO: interprete node id (the family specifies it)
 
 			break;
 		case 1:
-			echo sprintf("%-24s %s\n", "Variant:", "[10x] RFC 4122 (Leach-Mealling-Salz)");
+			echo sprintf("%-32s %s\n", "Variant:", "[10x] RFC 4122 (Leach-Mealling-Salz)");
 
 			$version = hexdec(substr($uuid, 12, 1));
 			switch ($version) {
 				case 1:
-					echo sprintf("%-24s %s\n", "Version:", "[1] Time-based with unique random host identifier");
+					echo sprintf("%-32s %s\n", "Version:", "[1] Time-based with unique random host identifier");
 
 					# Timestamp: Count of 100ns intervals since 15 Oct 1582 00:00:00
 					# 1/0,0000001 = 10000000
@@ -154,40 +154,40 @@ function uuid_info($uuid) {
 					$ts = gmp_strval($ts);
 					$ms = gmp_strval($ms);
 					$ts = gmdate('Y-m-d H:i:s', intval($ts))."'".str_pad($ms, 7, '0', STR_PAD_LEFT).' GMT';
-					echo sprintf("%-24s %s\n", "Timestamp:", "[0x$timestamp] $ts");
+					echo sprintf("%-32s %s\n", "Timestamp:", "[0x$timestamp] $ts");
 
 					$x = hexdec(substr($uuid, 16, 4));
 					$dec = $x & 0x3FFF; // The highest 2 bits are used by "variant" (10x)
 					$hex = substr($uuid, 16, 4);
-					echo sprintf("%-24s %s\n", "Clock ID:", "[0x$hex] $dec");
+					echo sprintf("%-32s %s\n", "Clock ID:", "[0x$hex] $dec");
 
 					$x = substr($uuid, 20, 12);
 					$nodeid = '';
 					for ($i=0; $i<6; $i++) {
 						$nodeid .= substr($x, $i*2, 2);
-						if ($i != 5) $nodeid .= ':';
+						if ($i != 5) $nodeid .= '-';
 					}
-					echo sprintf("%-24s %s\n", "Node ID:", "$nodeid");
+					echo sprintf("%-32s %s\n", "Node ID:", "$nodeid");
 
 					if (function_exists('decode_mac')) {
-						echo "\nIn case that this Node ID is a MAC address, here is the interpretation of that MAC address:\n";
+						echo "\nIn case that this Node ID is a MAC address, here is the interpretation of that MAC address:\n\n";
 						decode_mac($nodeid);
 					}
 
 					break;
 				case 2:
-					echo sprintf("%-24s %s\n", "Version:", "[2] DCE Security version");
+					echo sprintf("%-32s %s\n", "Version:", "[2] DCE Security version");
 
 					# The time_low field (which represents an integer in the range [0, 232-1]) is interpreted as a local-ID; that is, an identifier (within the domain specified by clock_seq_low) meaningful to the local host. In the particular case of a POSIX host, when combined with a POSIX UID or POSIX GID domain in the clock_seq_low field (above), the time_low field represents a POSIX UID or POSIX GID, respectively.
 					$x = substr($uuid, 0, 8);
-					echo sprintf("%-24s %s\n", "Local ID:", "0x$x");
+					echo sprintf("%-32s %s\n", "Local ID:", "0x$x");
 
 					# The clock_seq_low field (which represents an integer in the range [0, 28-1]) is interpreted as a local domain (as represented by sec_rgy_domain_t; see sec_rgy_domain_t ); that is, an identifier domain meaningful to the local host. (Note that the data type sec_rgy_domain_t can potentially hold values outside the range [0, 28-1]; however, the only values currently registered are in the range [0, 2], so this type mismatch is not significant.) In the particular case of a POSIX host, the value sec_rgy_domain_person is to be interpreted as the "POSIX UID domain", and the value sec_rgy_domain_group is to be interpreted as the "POSIX GID domain".
 					$x = substr($uuid, 18, 2);
 					if ($x == '00') $domain_info = 'POSIX: User-ID / Non-POSIX: site-defined';
 					else if ($x == '01') $domain_info = 'POSIX: Group-ID / Non-POSIX: site-defined';
 					else $domain_info = 'site-defined';
-					echo sprintf("%-24s %s\n", "Local Domain:", "0x$x ($domain_info)");
+					echo sprintf("%-32s %s\n", "Local Domain:", "0x$x ($domain_info)");
 
 					# Timestamp: Count of 100ns intervals since 15 Oct 1582 00:00:00
 					# 1/0,0000001 = 10000000
@@ -210,86 +210,91 @@ function uuid_info($uuid) {
 					$ts_max = gmdate('Y-m-d H:i:s', intval($ts))."'".str_pad($ms, 7, '0', STR_PAD_LEFT).' GMT';
 
 					$timestamp = substr($uuid, 13, 3).substr($uuid, 8, 4).'xxxxxxxx';
-					echo sprintf("%-24s %s\n", "Timestamp:", "[0x$timestamp] $ts_min - $ts_max");
+					echo sprintf("%-32s %s\n", "Timestamp:", "[0x$timestamp] $ts_min - $ts_max");
 
 					$x = hexdec(substr($uuid, 16, 2).'00');
 					$dec_min = $x & 0x3FFF; // The highest 2 bits are used by "variant" (10x)
 					$x = hexdec(substr($uuid, 16, 2).'FF');
 					$dec_max = $x & 0x3FFF; // The highest 2 bits are used by "variant" (10x)
 					$hex = substr($uuid, 16, 2).'xx';
-					echo sprintf("%-24s %s\n", "Clock ID:", "[0x$hex] $dec_min - $dec_max");
+					echo sprintf("%-32s %s\n", "Clock ID:", "[0x$hex] $dec_min - $dec_max");
 
 					$x = substr($uuid, 20, 12);
 					$nodeid = '';
 					for ($i=0; $i<6; $i++) {
 						$nodeid .= substr($x, $i*2, 2);
-						if ($i != 5) $nodeid .= ':';
+						if ($i != 5) $nodeid .= '-';
 					}
-					echo sprintf("%-24s %s\n", "Node ID:", "$nodeid");
+					echo sprintf("%-32s %s\n", "Node ID:", "$nodeid");
 
 					if (function_exists('decode_mac')) {
-						echo "\nIn case that this Node ID is a MAC address, here is the interpretation of that MAC address:\n";
+						echo "\nIn case that this Node ID is a MAC address, here is the interpretation of that MAC address:\n\n";
 						decode_mac($nodeid);
 					}
 
 					break;
 				case 3:
-					echo sprintf("%-24s %s\n", "Version:", "[3] Name-based (MD5 hash)");
+					echo sprintf("%-32s %s\n", "Version:", "[3] Name-based (MD5 hash)");
 
 					$hash = str_replace('-', '', strtolower($uuid));
 					$hash[12] = '?'; // was overwritten by version
 					$hash[16] = '?'; // was partially overwritten by variant
 
-					echo sprintf("%-24s %s\n", "MD5(Namespace+Subject):", "$hash");
+					echo sprintf("%-32s %s\n", "MD5(Namespace+Subject):", "$hash");
 
 					break;
 				case 4:
-					echo sprintf("%-24s %s\n", "Version:", "[4] Random");
+					echo sprintf("%-32s %s\n", "Version:", "[4] Random");
 
-					$rand = '';
+					$rand_line1 = '';
+					$rand_line2 = '';
 					for ($i=0; $i<16; $i++) {
 						$bin = base_convert(substr($uuid, $i*2, 2), 16, 2);
 						$bin = str_pad($bin, 8, "0", STR_PAD_LEFT);
 
 						if ($i == 6) {
-							$bin[0] = 'x';
-							$bin[1] = 'x';
+							// was overwritten by version
+							$bin[0] = '?';
+							$bin[1] = '?';
+							$bin[2] = '?';
+							$bin[3] = '?';
 						} else if ($i == 8) {
-							$bin[0] = 'x';
-							$bin[1] = 'x';
-							$bin[2] = 'x';
-							$bin[3] = 'x';
+							// was partially overwritten by variant
+							$bin[0] = '?';
+							$bin[1] = '?';
 						}
 
-						$rand .= "$bin ";
+						if ($i<8) $rand_line1 .= "$bin ";
+						if ($i>=8) $rand_line2 .= "$bin ";
 					}
 
-					echo sprintf("%-24s %s\n", "Random bits:", trim($rand));
+					echo sprintf("%-32s %s\n", "Random bits:", trim($rand_line1));
+					echo sprintf("%-32s %s\n", "",             trim($rand_line2));
 
 					break;
 				case 5:
-					echo sprintf("%-24s %s\n", "Version:", "[5] Name-based (SHA-1 hash)");
+					echo sprintf("%-32s %s\n", "Version:", "[5] Name-based (SHA-1 hash)");
 
 					$hash = str_replace('-', '', strtolower($uuid));
 					$hash[12] = '?'; // was overwritten by version
 					$hash[16] = '?'; // was partially overwritten by variant
 					$hash .= '????????'; // was cut off
 
-					echo sprintf("%-24s %s\n", "SHA1(Namespace+Subject):", "$hash");
+					echo sprintf("%-32s %s\n", "SHA1(Namespace+Subject):", "$hash");
 
 
 					break;
 				default:
-					echo sprintf("%-24s %s\n", "Version:", "[$version] Unknown");
+					echo sprintf("%-32s %s\n", "Version:", "[$version] Unknown");
 					break;
 			}
 
 			break;
 		case 2:
-			echo sprintf("%-24s %s\n", "Variant:", "[110] Reserved for Microsoft Corporation");
+			echo sprintf("%-32s %s\n", "Variant:", "[110] Reserved for Microsoft Corporation");
 			break;
 		case 3:
-			echo sprintf("%-24s %s\n", "Variant:", "[111] Reserved for future use");
+			echo sprintf("%-32s %s\n", "Variant:", "[111] Reserved for future use");
 			break;
 	}
 }
@@ -425,7 +430,7 @@ function gen_uuid_timebased() {
 	 */
 	$mac = get_mac_address();
 	if ($mac) {
-		$node = str_replace(':','',$mac);
+		$node = str_replace('-','',str_replace(':','',$mac));
 		for ($i = 0; $i < 6; $i++) {
 			$uuid['node'][$i] = hexdec(substr($node, $i*2, 2));
 		}
@@ -468,7 +473,7 @@ function get_mac_address() {
 				$out = implode("\n",$out);
 				$m = array();
 				if (preg_match("/([0-9a-f]{2}\\-[0-9a-f]{2}\\-[0-9a-f]{2}\\-[0-9a-f]{2}\\-[0-9a-f]{2}\\-[0-9a-f]{2})/ismU", $out, $m)) {
-					$detected_mac = str_replace('-', ':', strtolower($m[1]));
+					$detected_mac = strtolower($m[1]);
 					return $detected_mac;
 				}
 			}
