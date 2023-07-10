@@ -69,8 +69,8 @@ dce_domain_choose();
 		<option value="url">URL</option>
 		<option value="oid">OID</option>
 		<option value="x500">X.500 DN</option>
-		<option value="oidplus_ns">OIDplus 1.x ns only</option>
-		<option value="oidplus_ns_val">OIDplus 1.x ns+val</option>
+		<option value="oidplus_ns">OIDplus ns only</option>
+		<option value="oidplus_ns_val">OIDplus ns+val</option>
 		<option value="other">Other</option>
 	</select> <input type="text" name="nb_ns" value="" id="nb_ns" style="width:300px"><br>
 	Value: <input type="text" name="nb_val" value="" id="nb_val" style="width:300px"><br><br>
@@ -140,7 +140,11 @@ nb_ns_choose();
 	<input type="text" name="uuid" value="" style="width:500px"> <input type="submit" value="Go">
 </form>
 
-<h2>Interprete a MAC address (MAC/EUI/ELI)</h2>
+<h2>Interprete a MAC address (<abbr title="Media Access Control">MAC</abbr> /
+<abbr title="Extended Unique Identifier">EUI</abbr> /
+<abbr title="Extended Local Identifier">ELI</abbr> /
+<abbr title="Standard Assigned Identifier">SAI</abbr> /
+<abbr title="Administratively Assigned Identifier">AAI</abbr>)</h2>
 
 <p>You can enter an UUID in the following notations:</p>
 
