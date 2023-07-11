@@ -55,6 +55,7 @@ if ($uuid == 'CREATE') {
 
 	if ($_REQUEST['version'] == '2') {
 
+		// TODO: these things should be checked in gen_uuid_* and thrown as Exception! (LengthException, UnexpectedValueException)
 		if (!isset($_REQUEST['dce_domain'])) die("Domain ID missing");
 		if ($_REQUEST['dce_domain'] == '') die("Domain ID missing");
 		$domain = $_REQUEST['dce_domain'];

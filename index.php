@@ -172,7 +172,7 @@ nb_ns_choose();
 	<li>Information about the registrant, if available.</li>
 </ul>
 
-<p>Please enter a MAC/EUI, ELI, SAI, AAI, or IPv6-Link-Local address:</p>
+<p>Please enter a MAC (EUI, ELI, SAI, AAI), or IPv6-Link-Local address:</p>
 
 <form method="GET" action="interprete_mac.php">
 	<input type="text" name="mac" value=""> <input type="submit" value="Go">
