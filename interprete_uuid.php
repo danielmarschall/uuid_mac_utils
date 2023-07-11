@@ -53,7 +53,7 @@ if ($uuid == 'CREATE') {
 		$uuid = gen_uuid_timebased();
 	}
 
-	if ($_REQUEST['version'] == '2') {
+	else if ($_REQUEST['version'] == '2') {
 
 		// TODO: these things should be checked in gen_uuid_* and thrown as Exception! (LengthException, UnexpectedValueException)
 		if (!isset($_REQUEST['dce_domain'])) die("Domain ID missing");
@@ -71,7 +71,7 @@ if ($uuid == 'CREATE') {
 		$uuid = gen_uuid_dce($domain, $id);
 	}
 
-	if (($_REQUEST['version'] == '3') || ($_REQUEST['version'] == '5')) {
+	else if (($_REQUEST['version'] == '3') || ($_REQUEST['version'] == '5')) {
 		if (!isset($_REQUEST['nb_ns'])) die("Namespace UUID missing");
 		if ($_REQUEST['nb_ns'] == '') die("Namespace UUID missing");
 		$ns = $_REQUEST['nb_ns'];
@@ -84,8 +84,20 @@ if ($uuid == 'CREATE') {
 		}
 	}
 
-	if ($_REQUEST['version'] == '4') {
+	else if ($_REQUEST['version'] == '4') {
 		$uuid = gen_uuid_random();
+	}
+
+	else if ($_REQUEST['version'] == '6') {
+		$uuid = gen_uuid_reordered();
+	}
+
+	else if ($_REQUEST['version'] == '7') {
+		$uuid = gen_uuid_unix_epoch();
+	}
+
+	else {
+		echo "Unexpected version number\n";
 	}
 }
 if (is_uuid_oid($uuid)) {

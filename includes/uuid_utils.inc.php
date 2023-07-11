@@ -101,7 +101,7 @@ function uuid_info($uuid, $echo=true) {
 			/*
 			NOTE: A generator is not possible, because there are no timestamps left!
 			The last possible timestamp was:
-			    [0xFFFFFFFFFFFF] 2015-09-05 05:58:26'0210655 GMT
+			    [0xFFFFFFFFFFFF] 2015-09-05 05:58:26'210655 GMT
 			That is in the following UUID:
 			    ffffffff-ffff-0000-027f-000001000000
 			Current timestamp generator:
@@ -114,12 +114,12 @@ function uuid_info($uuid, $echo=true) {
 			# 250000*315532800=78883200000000
 			$timestamp = substr($uuid, 0, 12);
 			$ts = gmp_init($timestamp, 16);
-			$ts = gmp_add($ts, gmp_init("78883200000000"));
-			$ms = gmp_mod($ts, gmp_init("250000"));
-			$ts = gmp_div($ts, gmp_init("250000"));
-			$ts = gmp_strval($ts);
-			$ms = gmp_strval($ms);
-			$ts = gmdate('Y-m-d H:i:s', intval($ts))."'".str_pad($ms, 7, '0', STR_PAD_LEFT).' GMT';
+			$ts = gmp_add($ts, gmp_init("78883200000000", 10));
+			$ms = gmp_mod($ts, gmp_init("250000", 10));
+			$ts = gmp_div($ts, gmp_init("250000", 10));
+			$ts = gmp_strval($ts, 10);
+			$ms = gmp_strval($ms, 10);
+			$ts = gmdate('Y-m-d H:i:s', intval($ts))."'".str_pad($ms, 6/*us*/, '0', STR_PAD_LEFT).' GMT';
 			echo sprintf("%-32s %s\n", "Timestamp:", "[0x$timestamp] $ts");
 
 			$reserved = substr($uuid, 12, 4);
@@ -177,9 +177,18 @@ function uuid_info($uuid, $echo=true) {
 
 			break;
 		case 1:
-			echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122 (Leach-Mealling-Salz) / DCE 1.1");
-
 			$version = hexdec(substr($uuid, 12, 1));
+
+			if ($version <= 2) {
+				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122 (Leach-Mealling-Salz) / DCE 1.1");
+			} else if (($version >= 3) && ($version <= 5)) {
+				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122 (Leach-Mealling-Salz)");
+			} else if (($version >= 6) && ($version <= 8)) {
+				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122bis (Leach-Mealling-Peabody-Davis)");
+			} else {
+				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122 ?");
+			}
+
 			switch ($version) {
 				case 6:
 					/*
@@ -221,12 +230,12 @@ function uuid_info($uuid, $echo=true) {
 					# 1/0,0000001 = 10000000
 					$timestamp = substr($uuid, 13, 3).substr($uuid, 8, 4).substr($uuid, 0, 8);
 					$ts = gmp_init($timestamp, 16);
-					$ts = gmp_sub($ts, gmp_init("122192928000000000"));
-					$ms = gmp_mod($ts, gmp_init("10000000"));
-					$ts = gmp_div($ts, gmp_init("10000000"));
-					$ts = gmp_strval($ts);
-					$ms = gmp_strval($ms);
-					$ts = gmdate('Y-m-d H:i:s', intval($ts))."'".str_pad($ms, 7, '0', STR_PAD_LEFT).' GMT';
+					$ts = gmp_sub($ts, gmp_init("122192928000000000", 10));
+					$ms = gmp_mod($ts, gmp_init("10000000", 10));
+					$ts = gmp_div($ts, gmp_init("10000000", 10));
+					$ts = gmp_strval($ts, 10);
+					$ms = gmp_strval($ms, 10);
+					$ts = gmdate('Y-m-d H:i:s', intval($ts))."'".str_pad($ms, 7/*0.1us*/, '0', STR_PAD_LEFT).' GMT';
 					echo sprintf("%-32s %s\n", "Timestamp:", "[0x$timestamp] $ts");
 
 					$x = hexdec(substr($uuid, 16, 4));
@@ -240,6 +249,7 @@ function uuid_info($uuid, $echo=true) {
 						$nodeid .= substr($x, $i*2, 2);
 						if ($i != 5) $nodeid .= '-';
 					}
+					$nodeid = strtoupper($nodeid);
 					echo sprintf("%-32s %s\n", "Node ID:", "[0x$x] $nodeid");
 
 					if (function_exists('decode_mac')) {
@@ -282,21 +292,21 @@ function uuid_info($uuid, $echo=true) {
 					# 1/0,0000001 = 10000000
 					$timestamp = substr($uuid, 13, 3).substr($uuid, 8, 4).'00000000';
 					$ts = gmp_init($timestamp, 16);
-					$ts = gmp_sub($ts, gmp_init("122192928000000000"));
-					$ms = gmp_mod($ts, gmp_init("10000000"));
-					$ts = gmp_div($ts, gmp_init("10000000"));
-					$ts = gmp_strval($ts);
-					$ms = gmp_strval($ms);
-					$ts_min = gmdate('Y-m-d H:i:s', intval($ts))."'".str_pad($ms, 7, '0', STR_PAD_LEFT).' GMT';
+					$ts = gmp_sub($ts, gmp_init("122192928000000000", 10));
+					$ms = gmp_mod($ts, gmp_init("10000000", 10));
+					$ts = gmp_div($ts, gmp_init("10000000", 10));
+					$ts = gmp_strval($ts, 10);
+					$ms = gmp_strval($ms, 10);
+					$ts_min = gmdate('Y-m-d H:i:s', intval($ts))."'".str_pad($ms, 7/*0.1us*/, '0', STR_PAD_LEFT).' GMT';
 
 					$timestamp = substr($uuid, 13, 3).substr($uuid, 8, 4).'FFFFFFFF';
 					$ts = gmp_init($timestamp, 16);
-					$ts = gmp_sub($ts, gmp_init("122192928000000000"));
-					$ms = gmp_mod($ts, gmp_init("10000000"));
-					$ts = gmp_div($ts, gmp_init("10000000"));
-					$ts = gmp_strval($ts);
-					$ms = gmp_strval($ms);
-					$ts_max = gmdate('Y-m-d H:i:s', intval($ts))."'".str_pad($ms, 7, '0', STR_PAD_LEFT).' GMT';
+					$ts = gmp_sub($ts, gmp_init("122192928000000000", 10));
+					$ms = gmp_mod($ts, gmp_init("10000000", 10));
+					$ts = gmp_div($ts, gmp_init("10000000", 10));
+					$ts = gmp_strval($ts, 10);
+					$ms = gmp_strval($ms, 10);
+					$ts_max = gmdate('Y-m-d H:i:s', intval($ts))."'".str_pad($ms, 7/*0.1us*/, '0', STR_PAD_LEFT).' GMT';
 
 					$timestamp = substr($uuid, 13, 3).substr($uuid, 8, 4)/*.'xxxxxxxx'*/;
 					echo sprintf("%-32s %s\n", "Timestamp:", "[0x$timestamp] $ts_min - $ts_max");
@@ -312,6 +322,7 @@ function uuid_info($uuid, $echo=true) {
 						$nodeid .= substr($x, $i*2, 2);
 						if ($i != 5) $nodeid .= '-';
 					}
+					$nodeid = strtoupper($nodeid);
 					echo sprintf("%-32s %s\n", "Node ID:", "[0x$x] $nodeid");
 
 					if (function_exists('decode_mac')) {
@@ -437,12 +448,14 @@ function uuid_info($uuid, $echo=true) {
 					echo sprintf("%-32s %s\n", "Version:", "[$version] Unix Epoch Time");
 
 					$timestamp = substr($uuid, 0, 12);
+
+					// Timestamp: Split into seconds and milliseconds
 					$ts = gmp_init($timestamp, 16);
-					$ts = gmp_div($ts, gmp_init("1000"));
-					$ms = gmp_mod($ts, gmp_init("1000"));
-					$ts = gmp_strval($ts);
-					$ms = gmp_strval($ms);
-					$ts = gmdate('Y-m-d H:i:s', intval($ts))."'".str_pad($ms, 7, '0', STR_PAD_LEFT).' GMT';
+					$ms = gmp_mod($ts, gmp_init("1000", 10));
+					$ts = gmp_div($ts, gmp_init("1000", 10));
+					$ts = gmp_strval($ts, 10);
+					$ms = gmp_strval($ms, 10);
+					$ts = gmdate('Y-m-d H:i:s', intval($ts))."'".str_pad($ms, 3/*ms*/, '0', STR_PAD_LEFT).' GMT';
 					echo sprintf("%-32s %s\n", "Timestamp:", "[0x$timestamp] $ts");
 
 					$rand = '';
@@ -522,38 +535,6 @@ function uuid_info($uuid, $echo=true) {
 	}
 }
 
-function uuid6_to_uuid1($hex) {
-	$hex = uuid_canonize($hex);
-	if ($hex === false) return false;
-	$hex = preg_replace('@[^0-9A-F]@i', '', $hex);
-	$hex = substr($hex, 7, 5).
-	       substr($hex, 13, 3).
-	       substr($hex, 3, 4).
-	       '1' . substr($hex, 0, 3).
-	       substr($hex, 16);
-	return substr($hex,  0, 8).'-'.
-	       substr($hex,  8, 4).'-'.
-	       substr($hex, 12, 4).'-'.
-	       substr($hex, 16, 4).'-'.
-	       substr($hex, 20, 12);
-}
-
-function uuid1_to_uuid6($hex) {
-	$hex = uuid_canonize($hex);
-	if ($hex === false) return false;
-	$hex = preg_replace('@[^0-9A-F]@i', '', $hex);
-	$hex = substr($hex, 13, 3).
-	       substr($hex, 8, 4).
-	       substr($hex, 0, 5).
-	       '6' . substr($hex, 5, 3).
-	       substr($hex, 16);
-	return substr($hex,  0, 8).'-'.
-	       substr($hex,  8, 4).'-'.
-	       substr($hex, 12, 4).'-'.
-	       substr($hex, 16, 4).'-'.
-	       substr($hex, 20, 12);
-}
-
 function uuid_canonize($uuid) {
 	if (!uuid_valid($uuid)) return false;
 	return oid_to_uuid(uuid_to_oid($uuid));
@@ -616,17 +597,19 @@ function uuid_to_oid($uuid) {
 	return '2.25.'.gmp_strval($x, 10);
 }
 
-function gen_uuid($prefer_timebased = true) {
-	$uuid = $prefer_timebased ? gen_uuid_timebased() : false;
-	if ($uuid === false) $uuid = gen_uuid_random();
+function gen_uuid($prefer_mac_address_based = true) {
+	$uuid = $prefer_mac_address_based ? gen_uuid_reordered()/*UUIDv6*/ : false;
+	if ($uuid === false) $uuid = gen_uuid_unix_epoch()/*UUIDv7*/;
 	return $uuid;
 }
 
-// TODO: Generator for Version 6 (wait 1ms)
-// TODO: Generator for Version 7 (wait 1ms to make sure that new id will be generated)
-// TODO: Generator for Version 8
-
+# --------------------------------------
 // Variant 1, Version 1 (Time based) UUID
+# --------------------------------------
+
+function gen_uuid_v1() {
+	return gen_uuid_timebased();
+}
 function gen_uuid_timebased() {
 	# On Debian: apt-get install php-uuid
 	# extension_loaded('uuid')
@@ -709,7 +692,6 @@ function gen_uuid_timebased() {
 	# We cannot generate the timebased UUID!
 	return false;
 }
-
 function get_mac_address() {
 	static $detected_mac = false;
 
@@ -789,10 +771,16 @@ function get_mac_address() {
 	return $detected_mac;
 }
 
+# --------------------------------------
 // Variant 1, Version 2 (DCE Security) UUID
+# --------------------------------------
+
 define('DCE_DOMAIN_PERSON', 0);
 define('DCE_DOMAIN_GROUP', 1);
 define('DCE_DOMAIN_ORG', 2);
+function gen_uuid_v2($domain, $id) {
+	return gen_uuid_dce($domain, $id);
+}
 function gen_uuid_dce($domain, $id) {
 	# Start with a version 1 UUID
 	$uuid = gen_uuid_timebased();
@@ -809,7 +797,13 @@ function gen_uuid_dce($domain, $id) {
 	return $uuid;
 }
 
+# --------------------------------------
 // Variant 1, Version 3 (MD5 name based) UUID
+# --------------------------------------
+
+function gen_uuid_v3($namespace_uuid, $name) {
+	return gen_uuid_md5_namebased($namespace_uuid, $name);
+}
 function gen_uuid_md5_namebased($namespace_uuid, $name) {
 	if (!uuid_valid($namespace_uuid)) return false;
 	$namespace_uuid = uuid_canonize($namespace_uuid);
@@ -827,14 +821,23 @@ function gen_uuid_md5_namebased($namespace_uuid, $name) {
 	       substr($hash, 20, 12);
 }
 
+# --------------------------------------
 // Variant 1, Version 4 (Random) UUID
+# --------------------------------------
+
+function gen_uuid_v4() {
+	return gen_uuid_random();
+}
 function gen_uuid_random() {
 	# On Windows: Requires
 	#    extension_dir = "C:\php-8.0.3-nts-Win32-vs16-x64\ext"
 	#    extension=com_dotnet
+	// TODO: can we trust that it always outputs UUIDv4?
+	/*
 	if (function_exists('com_create_guid')) {
 		return strtolower(trim(com_create_guid(), '{}'));
 	}
+	*/
 
 	# On Debian: apt-get install php-uuid
 	# extension_loaded('uuid')
@@ -875,7 +878,13 @@ function gen_uuid_random() {
 	);
 }
 
+# --------------------------------------
 // Variant 1, Version 5 (SHA1 name based) UUID
+# --------------------------------------
+
+function gen_uuid_v5($namespace_uuid, $name) {
+	return gen_uuid_sha1_namebased($namespace_uuid, $name);
+}
 function gen_uuid_sha1_namebased($namespace_uuid, $name) {
 	$namespace_uuid = str_replace('-', '', $namespace_uuid);
 	$namespace_uuid = hex2bin($namespace_uuid);
@@ -890,6 +899,84 @@ function gen_uuid_sha1_namebased($namespace_uuid, $name) {
 	       substr($hash, 16, 4).'-'.
 	       substr($hash, 20, 12);
 }
+
+# --------------------------------------
+// Variant 1, Version 6 (Reordered) UUID
+# --------------------------------------
+
+function gen_uuid_v6() {
+	return gen_uuid_reordered();
+}
+function gen_uuid_reordered() {
+	// Start with a UUIDv1
+	$uuid = gen_uuid_timebased();
+
+	// Convert to UUIDv6
+	return uuid1_to_uuid6($uuid);
+}
+function uuid6_to_uuid1($hex) {
+	$hex = uuid_canonize($hex);
+	if ($hex === false) return false;
+	$hex = preg_replace('@[^0-9A-F]@i', '', $hex);
+	$hex = substr($hex, 7, 5).
+	       substr($hex, 13, 3).
+	       substr($hex, 3, 4).
+	       '1' . substr($hex, 0, 3).
+	       substr($hex, 16);
+	return substr($hex,  0, 8).'-'.
+	       substr($hex,  8, 4).'-'.
+	       substr($hex, 12, 4).'-'.
+	       substr($hex, 16, 4).'-'.
+	       substr($hex, 20, 12);
+}
+function uuid1_to_uuid6($hex) {
+	$hex = uuid_canonize($hex);
+	if ($hex === false) return false;
+	$hex = preg_replace('@[^0-9A-F]@i', '', $hex);
+	$hex = substr($hex, 13, 3).
+	       substr($hex, 8, 4).
+	       substr($hex, 0, 5).
+	       '6' . substr($hex, 5, 3).
+	       substr($hex, 16);
+	return substr($hex,  0, 8).'-'.
+	       substr($hex,  8, 4).'-'.
+	       substr($hex, 12, 4).'-'.
+	       substr($hex, 16, 4).'-'.
+	       substr($hex, 20, 12);
+}
+
+# --------------------------------------
+// Variant 1, Version 7 (Unix Epoch) UUID
+# --------------------------------------
+
+function gen_uuid_v7() {
+	return gen_uuid_unix_epoch();
+}
+function gen_uuid_unix_epoch() {
+	// Start with an UUIDv4
+	$uuid = gen_uuid_random();
+
+	// Add the timestamp
+	usleep(1); // make sure the timestamp is not repeated
+	if (function_exists('gmp_init')) {
+		list($ms,$sec) = explode(' ', microtime(false));
+		$sec = gmp_init($sec, 10);
+		$ms = gmp_init(substr($ms,2,3), 10);
+		$unix_ts = gmp_strval(gmp_add(gmp_mul($sec, '1000'), $ms),16);
+	} else {
+		$unix_ts = dechex((int)round(microtime(true)*1000));
+	}
+	$unix_ts = str_pad($unix_ts, 12, '0', STR_PAD_LEFT);
+	for ($i=0;$i<8;$i++) $uuid[$i] = substr($unix_ts, $i, 1);
+	for ($i=0;$i<4;$i++) $uuid[9+$i] = substr($unix_ts, 8+$i, 1);
+
+	// set version
+	$uuid[14] = '7';
+
+	return $uuid;
+}
+
+# --------------------------------------
 
 function uuid_numeric_value($uuid) {
 	$oid = uuid_to_oid($uuid);
@@ -912,7 +999,7 @@ function uuid_c_syntax($uuid) {
 		', 0x' . substr($uuid, 34, 2) . ' } }';
 }
 
-# ---
+# --------------------------------------
 
 // http://php.net/manual/de/function.hex2bin.php#113057
 if ( !function_exists( 'hex2bin' ) ) {
