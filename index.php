@@ -82,7 +82,7 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
 </form>
 
-<h3 id="gen_uuidv6"><font color="green">New:</font> Generate reordered time-based (version 6) UUID</h3>
+<h3 id="gen_uuidv6"><font color="green">New:</font> Generate reordered time-based (version 6) UUID &#9200;</h3>
 
 <p><i>Like UUIDv1, this kind of UUID is made of the MAC address of the generating computer,
         the time, and a clock sequence. However, the components in UUIDv6 are reordered (time is at the beginning),
@@ -128,7 +128,7 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
 </form>
 
-<h3 id="gen_uuidv1">Generate time-based (version 1) UUID</h3>
+<h3 id="gen_uuidv1">Generate time-based (version 1) UUID &#9200;</h3>
 
 <p><i>A UUIDv1 is made of the MAC address of the generating computer,
 the time, and a clock sequence.</i></p>
@@ -279,7 +279,7 @@ nb_ns_choose();
 <p>Please enter a UUID or UUID OID:</p>
 
 <form method="GET" action="interprete_uuid.php">
-	<input type="text" name="uuid" value="" style="width:500px"> <input type="submit" value="Go">
+	<input type="text" name="uuid" value="" style="width:300px"> <input type="submit" value="Interprete">
 </form>
 
 <h2 id="interpret_mac">Interpret a MAC address (<abbr title="Media Access Control">MAC</abbr> /
@@ -310,7 +310,7 @@ nb_ns_choose();
 <p>Please enter a MAC (EUI, ELI, SAI, AAI), or IPv6-Link-Local address:</p>
 
 <form method="GET" action="interprete_mac.php">
-	<input type="text" name="mac" value="" style="width:250px"> <input type="submit" value="Go">
+	<input type="text" name="mac" value="" style="width:250px"> <input type="submit" value="Interprete">
 </form>
 
 <br><br><br>

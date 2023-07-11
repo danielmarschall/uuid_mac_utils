@@ -347,10 +347,10 @@ function uuid_info($uuid, $echo=true) {
 
 					$hash[12] = '?'; // was overwritten by version
 
-					$var16a = dechex((hexdec($hash[16])&3) + 0x0/*00__*/);
-					$var16b = dechex((hexdec($hash[16])&3) + 0x4/*01__*/);
-					$var16c = dechex((hexdec($hash[16])&3) + 0x8/*10__*/);
-					$var16d = dechex((hexdec($hash[16])&3) + 0xC/*11__*/);
+					$var16a = strtoupper(dechex((hexdec($hash[16])&3) + 0x0/*00__*/));
+					$var16b = strtoupper(dechex((hexdec($hash[16])&3) + 0x4/*01__*/));
+					$var16c = strtoupper(dechex((hexdec($hash[16])&3) + 0x8/*10__*/));
+					$var16d = strtoupper(dechex((hexdec($hash[16])&3) + 0xC/*11__*/));
 					$hash[16] = '?'; // was partially overwritten by variant
 
 					echo sprintf("%-32s %s\n", "MD5(Namespace+Subject):", "[0x$hash]");
@@ -396,10 +396,10 @@ function uuid_info($uuid, $echo=true) {
 
 					$rand_bytes = str_replace('-', '', strtolower($uuid));
 					$rand_bytes[12] = '?'; // was overwritten by version
-					$var16a = dechex((hexdec($rand_bytes[16])&3) + 0x0/*00__*/);
-					$var16b = dechex((hexdec($rand_bytes[16])&3) + 0x4/*01__*/);
-					$var16c = dechex((hexdec($rand_bytes[16])&3) + 0x8/*10__*/);
-					$var16d = dechex((hexdec($rand_bytes[16])&3) + 0xC/*11__*/);
+					$var16a = strtoupper(dechex((hexdec($rand_bytes[16])&3) + 0x0/*00__*/));
+					$var16b = strtoupper(dechex((hexdec($rand_bytes[16])&3) + 0x4/*01__*/));
+					$var16c = strtoupper(dechex((hexdec($rand_bytes[16])&3) + 0x8/*10__*/));
+					$var16d = strtoupper(dechex((hexdec($rand_bytes[16])&3) + 0xC/*11__*/));
 					$rand_bytes[16] = '?'; // was partially overwritten by variant
 					echo sprintf("%-32s %s\n", "Random bytes:", "[0x$rand_bytes]");
 					echo sprintf("%-32s %s\n", "", "                   ^");
@@ -422,10 +422,10 @@ function uuid_info($uuid, $echo=true) {
 
 					$hash[12] = '?'; // was overwritten by version
 
-					$var16a = dechex((hexdec($hash[16])&3) + 0x0/*00__*/);
-					$var16b = dechex((hexdec($hash[16])&3) + 0x4/*01__*/);
-					$var16c = dechex((hexdec($hash[16])&3) + 0x8/*10__*/);
-					$var16d = dechex((hexdec($hash[16])&3) + 0xC/*11__*/);
+					$var16a = strtoupper(dechex((hexdec($hash[16])&3) + 0x0/*00__*/));
+					$var16b = strtoupper(dechex((hexdec($hash[16])&3) + 0x4/*01__*/));
+					$var16c = strtoupper(dechex((hexdec($hash[16])&3) + 0x8/*10__*/));
+					$var16d = strtoupper(dechex((hexdec($hash[16])&3) + 0xC/*11__*/));
 					$hash[16] = '?'; // was partially overwritten by variant
 
 					$hash .= '????????'; // was cut off
@@ -480,10 +480,10 @@ function uuid_info($uuid, $echo=true) {
 					echo sprintf("%-32s %s\n", "Random bits:", trim($rand));
 
 					$rand_bytes = substr(str_replace('-', '', strtolower($uuid)),13);
-					$var16a = dechex((hexdec($rand_bytes[3])&3) + 0x0/*00__*/);
-					$var16b = dechex((hexdec($rand_bytes[3])&3) + 0x4/*01__*/);
-					$var16c = dechex((hexdec($rand_bytes[3])&3) + 0x8/*10__*/);
-					$var16d = dechex((hexdec($rand_bytes[3])&3) + 0xC/*11__*/);
+					$var16a = strtoupper(dechex((hexdec($rand_bytes[3])&3) + 0x0/*00__*/));
+					$var16b = strtoupper(dechex((hexdec($rand_bytes[3])&3) + 0x4/*01__*/));
+					$var16c = strtoupper(dechex((hexdec($rand_bytes[3])&3) + 0x8/*10__*/));
+					$var16d = strtoupper(dechex((hexdec($rand_bytes[3])&3) + 0xC/*11__*/));
 					$rand_bytes[3] = '?'; // was partially overwritten by variant
 					echo sprintf("%-32s %s\n", "Random bytes:", "[0x$rand_bytes]");
 					echo sprintf("%-32s %s\n", "", "      ^");

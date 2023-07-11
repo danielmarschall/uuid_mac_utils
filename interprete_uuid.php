@@ -20,8 +20,11 @@
 
 $uuid = isset($_GET['uuid']) ? trim($_GET['uuid']) : 'CREATE';
 
+$version = $_REQUEST['version'] ?? null;
+if (!is_numeric($version) || (strlen($version)!=1)) $version = 1; // default: Version 1 / time based
+
 if ($uuid == 'CREATE') {
-	$title = 'Generate a UUID';
+	$title = 'Generate a UUIDv'.$version;
 } else {
 	$title = 'Interprete a UUID';
 }
@@ -40,7 +43,17 @@ if ($uuid == 'CREATE') {
 
 <p><a href="index.php">Back</a></p>
 
-<pre><?php
+<?php
+
+if ($uuid != 'CREATE') {
+	echo '<form method="GET" action="interprete_uuid.php">';
+	echo '	<input type="text" name="uuid" value="'.htmlentities($uuid).'" style="width:300px"> <input type="submit" value="Interprete">';
+	echo '</form>';
+} else {
+	echo '<p><i>Reload the page to receive another UUID.</i></p>';
+}
+
+echo '<pre>';
 
 require_once __DIR__ . '/includes/uuid_utils.inc.php';
 require_once __DIR__ . '/includes/mac_utils.inc.php';
@@ -48,21 +61,19 @@ require_once __DIR__ . '/includes/OidDerConverter.class.php';
 
 try {
 	if ($uuid == 'CREATE') {
-		if (!isset($_REQUEST['version'])) $_REQUEST['version'] = '1'; // default: Version 1 / time based
-
-		if ($_REQUEST['version'] == '1') {
+		if ($version == '1') {
 			$uuid = gen_uuid_timebased();
-		} else if ($_REQUEST['version'] == '2') {
+		} else if ($version == '2') {
 			$uuid = gen_uuid_dce($_REQUEST['dce_domain'] ?? '', $_REQUEST['dce_id'] ?? '');
-		} else if ($_REQUEST['version'] == '3') {
+		} else if ($version == '3') {
 			$uuid = gen_uuid_md5_namebased($_REQUEST['nb_ns'] ?? '', $_REQUEST['nb_val'] ?? '');
-		} else if ($_REQUEST['version'] == '4') {
+		} else if ($version == '4') {
 			$uuid = gen_uuid_random();
-		} else if ($_REQUEST['version'] == '5') {
+		} else if ($version == '5') {
 			$uuid = gen_uuid_sha1_namebased($_REQUEST['nb_ns'] ?? '', $_REQUEST['nb_val'] ?? '');
-		} else if ($_REQUEST['version'] == '6') {
+		} else if ($version == '6') {
 			$uuid = gen_uuid_reordered();
-		} else if ($_REQUEST['version'] == '7') {
+		} else if ($version == '7') {
 			$uuid = gen_uuid_unix_epoch();
 		} else {
 			throw new Exception("Unexpected version number");

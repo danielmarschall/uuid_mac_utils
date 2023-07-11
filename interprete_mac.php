@@ -20,6 +20,8 @@
 
 header('Content-Type:text/html; charset=utf-8');
 
+$mac = isset($_GET['mac']) ? trim($_GET['mac']) : '';
+
 ?><html>
 
 <head>
@@ -34,11 +36,15 @@ header('Content-Type:text/html; charset=utf-8');
 
 <p><a href="index.php">Back</a></p>
 
-<pre><?php
+<?php
+
+echo '<form method="GET" action="interprete_mac.php">';
+echo '	<input type="text" name="mac" value="'.htmlentities($mac).'" style="width:250px"> <input type="submit" value="Interprete">';
+echo '</form>';
+
+echo '<pre>';
 
 include_once __DIR__ . '/includes/mac_utils.inc.php';
-
-$mac = isset($_GET['mac']) ? trim($_GET['mac']) : '';
 
 if (!mac_valid($mac)) {
 	echo 'This is not a valid MAC address.';
