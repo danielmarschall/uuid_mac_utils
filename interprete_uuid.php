@@ -21,9 +21,9 @@
 $uuid = isset($_GET['uuid']) ? trim($_GET['uuid']) : 'CREATE';
 
 if ($uuid == 'CREATE') {
-	$title = 'Generate an UUID';
+	$title = 'Generate a UUID';
 } else {
-	$title = 'Interprete an UUID';
+	$title = 'Interprete a UUID';
 }
 
 ?><html>
@@ -46,80 +46,51 @@ require_once __DIR__ . '/includes/uuid_utils.inc.php';
 require_once __DIR__ . '/includes/mac_utils.inc.php';
 require_once __DIR__ . '/includes/OidDerConverter.class.php';
 
-if ($uuid == 'CREATE') {
-	if (!isset($_REQUEST['version'])) $_REQUEST['version'] = '1'; // default: Version 1 / time based
+try {
+	if ($uuid == 'CREATE') {
+		if (!isset($_REQUEST['version'])) $_REQUEST['version'] = '1'; // default: Version 1 / time based
 
-	if ($_REQUEST['version'] == '1') {
-		$uuid = gen_uuid_timebased();
-	}
-
-	else if ($_REQUEST['version'] == '2') {
-
-		// TODO: these things should be checked in gen_uuid_* and thrown as Exception! (LengthException, UnexpectedValueException)
-		if (!isset($_REQUEST['dce_domain'])) die("Domain ID missing");
-		if ($_REQUEST['dce_domain'] == '') die("Domain ID missing");
-		$domain = $_REQUEST['dce_domain'];
-		if (!is_numeric($domain)) die("Invalid Domain ID");
-		if (($domain < 0) || ($domain > 255)) die("Domain ID must be in range 0..255");
-
-		if (!isset($_REQUEST['dce_id'])) die("ID value missing");
-		if ($_REQUEST['dce_id'] == '') die("ID value missing");
-		$id = $_REQUEST['dce_id'];
-		if (!is_numeric($id)) die("Invalid ID value");
-		if (($id < 0) || ($id > 4294967295)) die("ID value must be in range 0..4294967295");
-
-		$uuid = gen_uuid_dce($domain, $id);
-	}
-
-	else if (($_REQUEST['version'] == '3') || ($_REQUEST['version'] == '5')) {
-		if (!isset($_REQUEST['nb_ns'])) die("Namespace UUID missing");
-		if ($_REQUEST['nb_ns'] == '') die("Namespace UUID missing");
-		$ns = $_REQUEST['nb_ns'];
-		if (!uuid_valid($ns)) die("Invalid namespace UUID '".htmlentities($ns)."'");
-		if (!isset($_REQUEST['nb_val'])) $_REQUEST['nb_val'] = '';
-		if ($_REQUEST['version'] == '3') {
-			$uuid = gen_uuid_md5_namebased($ns, $_REQUEST['nb_val']);
+		if ($_REQUEST['version'] == '1') {
+			$uuid = gen_uuid_timebased();
+		} else if ($_REQUEST['version'] == '2') {
+			$uuid = gen_uuid_dce($_REQUEST['dce_domain'] ?? '', $_REQUEST['dce_id'] ?? '');
+		} else if ($_REQUEST['version'] == '3') {
+			$uuid = gen_uuid_md5_namebased($_REQUEST['nb_ns'] ?? '', $_REQUEST['nb_val'] ?? '');
+		} else if ($_REQUEST['version'] == '4') {
+			$uuid = gen_uuid_random();
+		} else if ($_REQUEST['version'] == '5') {
+			$uuid = gen_uuid_sha1_namebased($_REQUEST['nb_ns'] ?? '', $_REQUEST['nb_val'] ?? '');
+		} else if ($_REQUEST['version'] == '6') {
+			$uuid = gen_uuid_reordered();
+		} else if ($_REQUEST['version'] == '7') {
+			$uuid = gen_uuid_unix_epoch();
 		} else {
-			$uuid = gen_uuid_sha1_namebased($ns, $_REQUEST['nb_val']);
+			throw new Exception("Unexpected version number");
 		}
 	}
-
-	else if ($_REQUEST['version'] == '4') {
-		$uuid = gen_uuid_random();
+	if (is_uuid_oid($uuid)) {
+		$uuid = oid_to_uuid($uuid);
 	}
 
-	else if ($_REQUEST['version'] == '6') {
-		$uuid = gen_uuid_reordered();
+	if (!uuid_valid($uuid)) {
+		echo 'This is not a valid UUID.';
+	} else {
+		$oid = uuid_to_oid($uuid);
+		echo sprintf("%-32s %s\n", "Your input:", $uuid);
+		echo "\n";
+		echo sprintf("%-32s %s\n", "URN:", 'urn:uuid:' . strtolower(oid_to_uuid(uuid_to_oid($uuid))));
+		echo sprintf("%-32s %s\n", "URI:", 'uuid:' . strtolower(oid_to_uuid(uuid_to_oid($uuid))));
+		echo sprintf("%-32s %s\n", "Microsoft GUID syntax:", '{' . strtoupper(oid_to_uuid(uuid_to_oid($uuid))) . '}');
+		echo sprintf("%-32s %s\n", "C++ struct syntax:", uuid_c_syntax($uuid));
+		echo "\n";
+		echo sprintf("%-32s %s\n", "As OID:", $oid);
+		echo sprintf("%-32s %s\n", "DER encoding of OID:", OidDerConverter::hexarrayToStr(OidDerConverter::oidToDER($oid)));
+		echo "\n";
+		echo "Interpration of the UUID:\n\n";
+		uuid_info($uuid);
 	}
-
-	else if ($_REQUEST['version'] == '7') {
-		$uuid = gen_uuid_unix_epoch();
-	}
-
-	else {
-		echo "Unexpected version number\n";
-	}
-}
-if (is_uuid_oid($uuid)) {
-	$uuid = oid_to_uuid($uuid);
-}
-
-if (!uuid_valid($uuid)) {
-	echo 'This is not a valid UUID.';
-} else {
-	$oid  = uuid_to_oid($uuid);
-	echo sprintf("%-32s %s\n", "Your input:", $uuid);
-	echo "\n";
-	echo sprintf("%-32s %s\n", "URN:", 'urn:uuid:'.strtolower(oid_to_uuid(uuid_to_oid($uuid))));
-	echo sprintf("%-32s %s\n", "URI:", 'uuid:'.strtolower(oid_to_uuid(uuid_to_oid($uuid))));
-	echo sprintf("%-32s %s\n", "Microsoft GUID syntax:", '{'.strtoupper(oid_to_uuid(uuid_to_oid($uuid))).'}');
-	echo sprintf("%-32s %s\n", "C++ struct syntax:", uuid_c_syntax($uuid));
-	echo "\n";
-	echo sprintf("%-32s %s\n", "As OID:", $oid);
-	echo sprintf("%-32s %s\n", "DER encoding of OID:", OidDerConverter::hexarrayToStr(OidDerConverter::oidToDER($oid)));
-	echo "\n";
-	echo "Interpration of the UUID:\n\n";
-	uuid_info($uuid);
+} catch (Exception $e) {
+    echo "Error: " . htmlentities($e->getMessage());
 }
 
 ?></pre>

@@ -1,5 +1,29 @@
-<!DOCTYPE html>
-<html>
+<?php
+
+/*
+* UUID & MAC Utils
+* Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
+* Version 2023-07-11
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
+include_once __DIR__.'/includes/uuid_utils.inc.php';
+
+const AUTO_NEW_UUIDS = 10;
+
+?><!DOCTYPE html>
+<html lang="en">
 
 <head>
 	<meta charset="iso-8859-1">
@@ -11,66 +35,135 @@
 
 <h1>UUID &amp; MAC Utils by Daniel Marschall</h1>
 
-<!-- <p><a href="https://svn.viathinksoft.com/cgi-bin/viewvc.cgi/uuid_mac_utils/">View the source code</a></p> -->
 <p><a href="https://github.com/danielmarschall/uuid_mac_utils/">View the source code</a></p>
 
-<h2>Generate random and/or time-based UUIDs</h2>
+<h2>Overview</h2>
 
-<h3>Generate time-based (version 1) UUID</h3>
+<ul>
+    <li><a href="#gen_uuid">Generate random and/or time-based UUIDs</a><ul>
+            <li><a href="#gen_uuidv7"><font color="green">New:</font> Generate Unix Epoch Time (version 7) UUID</a></li>
+            <li><a href="#gen_uuidv6"><font color="green">New:</font> Generate reordered time-based (version 6) UUID</a></li>
+            <li><a href="#gen_uuidv4">Generate random (version 4) UUID</a></li>
+            <li><a href="#gen_uuidv1">Generate time-based (version 1) UUID</a></li>
+        </ul></li>
+    <li><a href="#gen_other_uuid">Generate other UUID types</a><ul>
+            <li><a href="#gen_uuid_nce">NCE (variant 0) UUID</a></li>
+            <li><a href="#gen_uuidv2">Generate DCE Security (version 2) UUID</a></li>
+            <li><a href="#gen_uuidv35">Generate name-based (version 3/5) UUID</a></li>
+        </ul></li>
+    <li><a href="#interpret_uuid">Interpret a UUID</a></li>
+    <li><a href="#interpret_mac">Interpret a MAC address (MAC / EUI / ELI / SAI / AAI)</a></li>
+</ul>
+
+<h2 id="gen_uuid">Generate random and/or time-based UUIDs</h2>
+
+<h3 id="gen_uuidv7"><font color="green">New:</font> Generate Unix Epoch Time (version 7) UUID &#11088</h3>
+
+<p><i>A UUIDv7 is made of time and 74 random bits.
+        Since the time is at the beginning, the UUIDs are monotonically increasing.
+        Due to the missing MAC address, this UUID version is recommended due to
+        improved privacy.</i></p>
+
+<?php
+if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
+	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs which were created just for you! (Reload the page to get more)</p>';
+
+	echo '<pre>';
+	for ($i=0; $i<10; $i++) {
+		$uuid = gen_uuid_v7();
+		echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
+	}
+	echo '</pre>';
+}
+?>
+
+<form method="GET" action="interprete_uuid.php">
+    <input type="hidden" name="version" value="7">
+    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
+</form>
+
+<h3 id="gen_uuidv6"><font color="green">New:</font> Generate reordered time-based (version 6) UUID</h3>
+
+<p><i>Like UUIDv1, this kind of UUID is made of the MAC address of the generating computer,
+        the time, and a clock sequence. However, the components in UUIDv6 are reordered (time is at the beginning),
+        so that UUIDs are monotonically increasing.</i></p>
+
+<?php
+if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
+	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs which were created just for you! (Reload the page to get more)</p>';
+
+	echo '<pre>';
+	for ($i=0; $i<10; $i++) {
+		$uuid = gen_uuid_v6();
+		echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
+	}
+	echo '</pre>';
+}
+?>
+
+<form method="GET" action="interprete_uuid.php">
+    <input type="hidden" name="version" value="6">
+    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
+</form>
+
+<h3 id="gen_uuidv4">Generate random (version 4) UUID &#x1F3B2;</h3>
+
+<p><i>A UUIDv4 is made of 122 random bits. No other information is encoded in this kind of UUID.</i></p>
+
+<?php
+if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
+	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs which were created just for you! (Reload the page to get more)</p>';
+
+	echo '<pre>';
+	for ($i=0; $i<10; $i++) {
+		$uuid = gen_uuid_v4();
+		echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
+	}
+	echo '</pre>';
+}
+?>
+
+<form method="GET" action="interprete_uuid.php">
+    <input type="hidden" name="version" value="4">
+    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
+</form>
+
+<h3 id="gen_uuidv1">Generate time-based (version 1) UUID</h3>
 
 <p><i>A UUIDv1 is made of the MAC address of the generating computer,
 the time, and a clock sequence.</i></p>
 
-<form method="GET" action="interprete_uuid.php">
-	<input type="hidden" name="version" value="1">
-	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create a UUID">
-</form>
+<?php
+if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
+    echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs which were created just for you! (Reload the page to get more)</p>';
 
-<h3>Generate random (version 4) UUID &#x1F3B2;</h3>
-
-<p><i>A UUIDv4 is made of 122 random bits. No other information is encoded in this kind of UUID.</i></p>
-
-<form method="GET" action="interprete_uuid.php">
-	<input type="hidden" name="version" value="4">
-	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create a UUID">
-</form>
-
-<h3><font color="green">New:</font> Generate reordered time-based (version 6) UUID</h3>
-
-<p><i>Like UUIDv1, this kind of UUID is made of the MAC address of the generating computer,
-the time, and a clock sequence. However, the components in UUIDv6 are reordered (time is at the beginning),
-so that UUIDs are monotonically increasing.</i></p>
+    echo '<pre>';
+    for ($i=0; $i<10; $i++) {
+        $uuid = gen_uuid_v1();
+        echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
+    }
+    echo '</pre>';
+}
+?>
 
 <form method="GET" action="interprete_uuid.php">
-	<input type="hidden" name="version" value="6">
-	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create a UUID">
+    <input type="hidden" name="version" value="1">
+    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
 </form>
 
-<h3><font color="green">New:</font> Generate Unix Epoch Time (version 7) UUID &#11088</h3>
-
-<p><i>A UUIDv7 is made of time and 74 random bits.
-Since the time is at the beginning, the UUIDs are monotonically increasing.
-Due to the missing MAC address, this UUID version is recommended due to
-improved privacy.</i></p>
-
-<form method="GET" action="interprete_uuid.php">
-	<input type="hidden" name="version" value="7">
-	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create a UUID">
-</form>
-
-<h2>Generate other UUID types</h2>
+<h2 id="gen_other_uuid">Generate other UUID types</h2>
 
 <p><i>The following types of UUIDs are less common. Please only use the following
 generators if you know what you are doing.</i></p>
 
-<h3>NCE (variant 0) UUID</h3>
+<h3 id="gen_uuid_nce">NCE (variant 0) UUID</h3>
 
 <p>The NCE UUIDs are a legacy format that cannot be generated anymore, because the
 amount of available timestamp bits was exhausted on <strong>5 September 2015</strong>.
 Here is an example of the last possible NCE UUID (all bits of the timestamp are set to 1):
 <a href="interprete_uuid.php?uuid=ffffffff-ffff-0000-027f-000001000000">ffffffff-ffff-0000-027f-000001000000</a>.</p>
 
-<h3>Generate DCE Security (version 2) UUID</h3>
+<h3 id="gen_uuidv2">Generate DCE Security (version 2) UUID</h3>
 
 <form method="GET" action="interprete_uuid.php">
 	<input type="hidden" name="version" value="2">
@@ -104,10 +197,10 @@ function dce_domain_choose() {
 dce_domain_choose();
 </script>
 
-<h3>Generate name-based (version 3/5) UUID</h3>
+<h3 id="gen_uuidv35">Generate name-based (version 3/5) UUID</h3>
 
 <form method="GET" action="interprete_uuid.php">
-	Hash: <select name="version">
+	Hash algorithm: <select name="version">
 		<option value="3">MD5 (version 3 UUID)</option>
 		<option value="5">SHA1 (version 5 UUID)</option>
 	</select><br>
@@ -156,7 +249,7 @@ function nb_ns_choose() {
 	/*
 	if (ns == "oidplus_ns_pubkey") {
 		document.getElementById('nb_ns').value = "fd16965c-8bab-11ed-8744-3c4a92df8582";
-		document.getElementById('nb_val').value = "...........................";
+		document.getElementById('nb_val').value = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqg/PnsC1WX3C1/mUSLuk0DIaDHtEsxBnG0auYJRJ1hBtbUUvItbK0odlKrX2SFo1MJJpu/SSxTzAgqkKZsZe3cCFkgA1svfuH9i94oGLjJ4n0kRJEGlanCmGndJBfIqGDJaQE2BJ8tLxeBrpkd9l0KvJsjhRmqJAb9KYK3KYFsWvT+wyjD3UJ1eHcgLbF/Qb3cwMU/u7Fs7ZpsNMW4phDPlsYsk9XHFpJ1/UCj6G53mYRfOC/ouDdGShlbVLB15s0V95QpnU/7lL8mJ2lE+sTZekGNBA4XbJv2gs21cR4E8zc/z+NyZS7117DYZoJqrAN8sKz6xGoKgQF6wueCK5qQIDAQAB";
 	}
 	*/
 	if (ns == "other") {
@@ -167,7 +260,7 @@ function nb_ns_choose() {
 nb_ns_choose();
 </script>
 
-<h2>Interpret a UUID</h2>
+<h2 id="interpret_uuid">Interpret a UUID</h2>
 
 <p>You can enter a UUID in the following notations:</p>
 
@@ -189,7 +282,7 @@ nb_ns_choose();
 	<input type="text" name="uuid" value="" style="width:500px"> <input type="submit" value="Go">
 </form>
 
-<h2>Interpret a MAC address (<abbr title="Media Access Control">MAC</abbr> /
+<h2 id="interpret_mac">Interpret a MAC address (<abbr title="Media Access Control">MAC</abbr> /
 <abbr title="Extended Unique Identifier">EUI</abbr> /
 <abbr title="Extended Local Identifier">ELI</abbr> /
 <abbr title="Standard Assigned Identifier">SAI</abbr> /

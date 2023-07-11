@@ -23,10 +23,10 @@
 if (file_exists(__DIR__ . '/mac_utils.inc.phps')) include_once __DIR__ . '/mac_utils.inc.phps'; // optionally used for uuid_info()
 if (file_exists(__DIR__ . '/gmp_supplement.inc.php')) include_once __DIR__ . '/gmp_supplement.inc.php';
 
-define('UUID_NAMEBASED_NS_DNS',     '6ba7b810-9dad-11d1-80b4-00c04fd430c8'); // FQDN
-define('UUID_NAMEBASED_NS_URL',     '6ba7b811-9dad-11d1-80b4-00c04fd430c8');
-define('UUID_NAMEBASED_NS_OID',     '6ba7b812-9dad-11d1-80b4-00c04fd430c8');
-define('UUID_NAMEBASED_NS_X500_DN', '6ba7b814-9dad-11d1-80b4-00c04fd430c8'); // DER according to https://github.com/cjsv/uuid/blob/master/Doc ?!
+const UUID_NAMEBASED_NS_DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'; // FQDN
+const UUID_NAMEBASED_NS_URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
+const UUID_NAMEBASED_NS_OID = '6ba7b812-9dad-11d1-80b4-00c04fd430c8';
+const UUID_NAMEBASED_NS_X500_DN = '6ba7b814-9dad-11d1-80b4-00c04fd430c8'; // DER according to https://github.com/cjsv/uuid/blob/master/Doc ?!
 
 function _random_int($min, $max) {
 	// This function tries a CSRNG and falls back to a RNG if no CSRNG is available
@@ -201,7 +201,7 @@ function uuid_info($uuid, $echo=true) {
 					-  8 bit Clock Seq Low
 					- 48 bit MAC Address
 					*/
-					echo sprintf("%-32s %s\n", "Version:", "[$version] Reordered Time");
+					echo sprintf("%-32s %s\n", "Version:", "[6] Reordered Time");
 					$uuid = substr($uuid,  0, 8).'-'.
 					        substr($uuid,  8, 4).'-'.
 					        substr($uuid, 12, 4).'-'.
@@ -224,7 +224,7 @@ function uuid_info($uuid, $echo=true) {
 					- 48 bit MAC Address
 					*/
 
-					if ($version == 1) echo sprintf("%-32s %s\n", "Version:", "[1] Time-based with unique random host identifier");
+					if ($version == 1) echo sprintf("%-32s %s\n", "Version:", "[1] Time-based with unique host identifier");
 
 					# Timestamp: Count of 100ns intervals since 15 Oct 1582 00:00:00
 					# 1/0,0000001 = 10000000
@@ -445,7 +445,7 @@ function uuid_info($uuid, $echo=true) {
 					- 62 bit Random
 					*/
 
-					echo sprintf("%-32s %s\n", "Version:", "[$version] Unix Epoch Time");
+					echo sprintf("%-32s %s\n", "Version:", "[7] Unix Epoch Time");
 
 					$timestamp = substr($uuid, 0, 12);
 
@@ -504,7 +504,7 @@ function uuid_info($uuid, $echo=true) {
 					- 62 bit Custom format
 					*/
 
-					echo sprintf("%-32s %s\n", "Version:", "[$version] Custom implementation");
+					echo sprintf("%-32s %s\n", "Version:", "[8] Custom implementation");
 
 					$custom_data = substr($uuid,0,12).substr($uuid,13); // exclude version nibble
 					$custom_data[15] = dechex(hexdec($custom_data[15])&3); // nibble was partially overwritten by variant
@@ -521,6 +521,7 @@ function uuid_info($uuid, $echo=true) {
 
 			break;
 		case 2:
+			// TODO: Is there any scheme in that legacy Microsoft GUIDs?
 			echo sprintf("%-32s %s\n", "Variant:", "[0b110] Reserved for Microsoft Corporation");
 			break;
 		case 3:
@@ -532,6 +533,8 @@ function uuid_info($uuid, $echo=true) {
 		$out = ob_get_contents();
 		ob_end_clean();
 		return $out;
+	} else {
+		return true;
 	}
 }
 
@@ -595,6 +598,27 @@ function uuid_to_oid($uuid) {
 	$uuid = str_replace(array('-', '{', '}'), '', $uuid);
 	$x = gmp_init($uuid, 16);
 	return '2.25.'.gmp_strval($x, 10);
+}
+
+function uuid_numeric_value($uuid) {
+	$oid = uuid_to_oid($uuid);
+	if (!$oid) return false;
+	return substr($oid, strlen('2.25.'));
+}
+
+function uuid_c_syntax($uuid) {
+	$uuid = str_replace('{', '', $uuid);
+	return '{ 0x' . substr($uuid, 0, 8) .
+		', 0x' . substr($uuid, 9, 4) .
+		', 0x' . substr($uuid, 14, 4) .
+		', { 0x' . substr($uuid, 19, 2).
+		', 0x' . substr($uuid, 21, 2) .
+		', 0x' . substr($uuid, 24, 2) .
+		', 0x' . substr($uuid, 26, 2) .
+		', 0x' . substr($uuid, 28, 2) .
+		', 0x' . substr($uuid, 30, 2) .
+		', 0x' . substr($uuid, 32, 2) .
+		', 0x' . substr($uuid, 34, 2) . ' } }';
 }
 
 function gen_uuid($prefer_mac_address_based = true) {
@@ -714,7 +738,7 @@ function get_mac_address() {
 			if ($ec == 0) {
 				$out = implode("\n",$out);
 				$m = array();
-				if (preg_match("/([0-9a-f]{2}\\-[0-9a-f]{2}\\-[0-9a-f]{2}\\-[0-9a-f]{2}\\-[0-9a-f]{2}\\-[0-9a-f]{2})/ismU", $out, $m)) {
+				if (preg_match("/([0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2})/ismU", $out, $m)) {
 					$detected_mac = strtolower($m[1]);
 					return $detected_mac;
 				}
@@ -782,6 +806,14 @@ function gen_uuid_v2($domain, $id) {
 	return gen_uuid_dce($domain, $id);
 }
 function gen_uuid_dce($domain, $id) {
+	if (($domain ?? '') === '') throw new Exception("Domain ID missing");
+	if (!is_numeric($domain)) throw new Exception("Invalid Domain ID");
+	if (($domain < 0) || ($domain > 255)) throw new Exception("Domain ID must be in range 0..255");
+
+	if (($id ?? '') === '') throw new Exception("ID value missing");
+	if (!is_numeric($id)) throw new Exception("Invalid ID value");
+	if (($id < 0) || ($id > 4294967295)) throw new Exception("ID value must be in range 0..4294967295");
+
 	# Start with a version 1 UUID
 	$uuid = gen_uuid_timebased();
 
@@ -805,7 +837,9 @@ function gen_uuid_v3($namespace_uuid, $name) {
 	return gen_uuid_md5_namebased($namespace_uuid, $name);
 }
 function gen_uuid_md5_namebased($namespace_uuid, $name) {
-	if (!uuid_valid($namespace_uuid)) return false;
+	if (($namespace_uuid ?? '') === '') throw new Exception("Namespace UUID missing");
+	if (!uuid_valid($namespace_uuid)) throw new Exception("Invalid namespace UUID '$namespace_uuid'");
+
 	$namespace_uuid = uuid_canonize($namespace_uuid);
 	$namespace_uuid = str_replace('-', '', $namespace_uuid);
 	$namespace_uuid = hex2bin($namespace_uuid);
@@ -832,7 +866,7 @@ function gen_uuid_random() {
 	# On Windows: Requires
 	#    extension_dir = "C:\php-8.0.3-nts-Win32-vs16-x64\ext"
 	#    extension=com_dotnet
-	// TODO: can we trust that it always outputs UUIDv4?
+	// TODO: can we trust that com_create_guid() always outputs UUIDv4?
 	/*
 	if (function_exists('com_create_guid')) {
 		return strtolower(trim(com_create_guid(), '{}'));
@@ -886,6 +920,9 @@ function gen_uuid_v5($namespace_uuid, $name) {
 	return gen_uuid_sha1_namebased($namespace_uuid, $name);
 }
 function gen_uuid_sha1_namebased($namespace_uuid, $name) {
+	if (($namespace_uuid ?? '') === '') throw new Exception("Namespace UUID missing");
+	if (!uuid_valid($namespace_uuid)) throw new Exception("Invalid namespace UUID '$namespace_uuid'");
+
 	$namespace_uuid = str_replace('-', '', $namespace_uuid);
 	$namespace_uuid = hex2bin($namespace_uuid);
 
@@ -974,29 +1011,6 @@ function gen_uuid_unix_epoch() {
 	$uuid[14] = '7';
 
 	return $uuid;
-}
-
-# --------------------------------------
-
-function uuid_numeric_value($uuid) {
-	$oid = uuid_to_oid($uuid);
-	if (!$oid) return false;
-	return substr($oid, strlen('2.25.'));
-}
-
-function uuid_c_syntax($uuid) {
-	$uuid = str_replace('{', '', $uuid);
-	return '{ 0x' . substr($uuid, 0, 8) .
-		', 0x' . substr($uuid, 9, 4) .
-		', 0x' . substr($uuid, 14, 4) .
-		', { 0x' . substr($uuid, 19, 2).
-		', 0x' . substr($uuid, 21, 2) .
-		', 0x' . substr($uuid, 24, 2) .
-		', 0x' . substr($uuid, 26, 2) .
-		', 0x' . substr($uuid, 28, 2) .
-		', 0x' . substr($uuid, 30, 2) .
-		', 0x' . substr($uuid, 32, 2) .
-		', 0x' . substr($uuid, 34, 2) . ' } }';
 }
 
 # --------------------------------------
