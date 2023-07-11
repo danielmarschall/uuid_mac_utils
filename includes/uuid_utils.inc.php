@@ -68,7 +68,7 @@ function uuid_info($uuid, $echo=true) {
 
 	switch ($variant) {
 		case 0:
-			echo sprintf("%-32s %s\n", "Variant:", "[0b0__] NCS (reserved for backward compatibility)");
+			echo sprintf("%-32s %s\n", "Variant:", "[0b0__] Network Computing System (NCS)");
 
 			/*
 			 * Internal structure of variant #0 UUIDs
