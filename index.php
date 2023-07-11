@@ -71,6 +71,7 @@ dce_domain_choose();
 		<option value="x500">X.500 DN</option>
 		<option value="oidplus_ns">OIDplus ns only</option>
 		<option value="oidplus_ns_val">OIDplus ns+val</option>
+		<!-- <option value="oidplus_pubkey">OIDplus pubkey</option> -->
 		<option value="other">Other</option>
 	</select> <input type="text" name="nb_ns" value="" id="nb_ns" style="width:300px"><br>
 	Value: <input type="text" name="nb_val" value="" id="nb_val" style="width:300px"><br><br>
@@ -103,6 +104,12 @@ function nb_ns_choose() {
 		document.getElementById('nb_ns').value = "ad1654e6-7e15-11e4-9ef6-78e3b5fc7f22";
 		document.getElementById('nb_val').value = "ipv4:8.8.8.8";
 	}
+	/*
+	if (ns == "oidplus_ns_pubkey") {
+		document.getElementById('nb_ns').value = "fd16965c-8bab-11ed-8744-3c4a92df8582";
+		document.getElementById('nb_val').value = "...........................";
+	}
+	*/
 	if (ns == "other") {
 		document.getElementById('nb_ns').value = "";
 		document.getElementById('nb_val').value = "";

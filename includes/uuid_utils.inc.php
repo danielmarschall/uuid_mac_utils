@@ -23,10 +23,10 @@
 if (file_exists(__DIR__ . '/mac_utils.inc.phps')) include_once __DIR__ . '/mac_utils.inc.phps'; // optionally used for uuid_info()
 if (file_exists(__DIR__ . '/gmp_supplement.inc.php')) include_once __DIR__ . '/gmp_supplement.inc.php';
 
-define('UUID_NAMEBASED_NS_DNS',     '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+define('UUID_NAMEBASED_NS_DNS',     '6ba7b810-9dad-11d1-80b4-00c04fd430c8'); // FQDN
 define('UUID_NAMEBASED_NS_URL',     '6ba7b811-9dad-11d1-80b4-00c04fd430c8');
 define('UUID_NAMEBASED_NS_OID',     '6ba7b812-9dad-11d1-80b4-00c04fd430c8');
-define('UUID_NAMEBASED_NS_X500_DN', '6ba7b814-9dad-11d1-80b4-00c04fd430c8');
+define('UUID_NAMEBASED_NS_X500_DN', '6ba7b814-9dad-11d1-80b4-00c04fd430c8'); // DER according to https://github.com/cjsv/uuid/blob/master/Doc ?!
 
 function _random_int($min, $max) {
 	// This function tries a CSRNG and falls back to a RNG if no CSRNG is available
@@ -49,9 +49,10 @@ function uuid_valid($uuid) {
 	return ($uuid == '');
 }
 
-# TODO: Don't echo
-function uuid_info($uuid) {
+function uuid_info($uuid, $echo=true) {
 	if (!uuid_valid($uuid)) return false;
+
+	if (!$echo) ob_start();
 
 	#$uuid = trim($uuid);
 	# $uuid = str_replace(array('-', '{', '}'), '', $uuid);
@@ -59,10 +60,10 @@ function uuid_info($uuid) {
 	$uuid = preg_replace('@[^0-9A-F]@', '', $uuid);
 
 	$x = hexdec(substr($uuid, 16, 1));
-	     if ($x >= 14 /* 1110 */) $variant = 3;
-	else if ($x >= 12 /* 1100 */) $variant = 2;
-	else if ($x >=  8 /* 1000 */) $variant = 1;
-	else if ($x >=  0 /* 0000 */) $variant = 0;
+	     if ($x >= 14 /* 0b1110 */) $variant = 3;
+	else if ($x >= 12 /* 0b110_ */) $variant = 2;
+	else if ($x >=  8 /* 0b10__ */) $variant = 1;
+	else if ($x >=  0 /* 0b0___ */) $variant = 0;
 	else $variant = -1; // should not happen
 
 	switch ($variant) {
@@ -81,26 +82,23 @@ function uuid_info($uuid) {
 			 * of as being able to hold values in the range [0..255], only [0..13]
 			 * were ever used.  Thus, the 2 MSB of this field are always 0 and are
 			 * used to distinguish old and current UUID forms.
-			 *
-			 * +--------------------------------------------------------------+
-			 * |                    high 32 bits of time                      |  byte 0-3  .time_high
-			 * +-------------------------------+-------------------------------
-			 * |     low 16 bits of time       |  byte 4-5               .time_low
-			 * +-------+-----------------------+
-			 * |         reserved              |  byte 6-7               .reserved
-			 * +---------------+---------------+
-			 * |    family     |   byte 8                                .family
-			 * +---------------+----------...-----+
-			 * |            node ID               |  byte 9-16           .node
-			 * +--------------------------...-----+
-			 *
 			 */
+
+			/*
+			Variant 0 UUID
+			- 32 bit High Time
+			- 16 bit Low Time
+			- 16 bit Reserved
+			-  1 bit Variant (fix 0b0___)
+			-  7 bit Family
+			- 56 bit Node
+			*/
 
 			// Example of an UUID: 333a2276-0000-0000-0d00-00809c000000
 
-			# TODO: See https://github.com/cjsv/uuid/blob/master/Doc
+			# see also some notes at See https://github.com/cjsv/uuid/blob/master/Doc
 
-			// TODO: Make a generator !
+			// TODO: Make a generator for variant 0 UUIDs!
 
 			# Timestamp: Count of 4us intervals since 01 Jan 1980 00:00:00 GMT
 			# 1/0,000004 = 250000
@@ -119,23 +117,55 @@ function uuid_info($uuid) {
 			$reserved = substr($uuid, 12, 4);
 			echo sprintf("%-32s %s\n", "Reserved:", "[0x$reserved]");
 
-			# TODO: interprete node id (the family specifies it)
-			# Family 13 (dds) looks like node is 00 | nnnnnn 000000.
-			# Family 2 is presumably (ip).
-			# Not sure if anything else was used.
 			$family_hex = substr($uuid, 16, 2);
 			$family_dec = hexdec($family_hex);
+			$nodeid_hex = substr($uuid, 18, 14);
+			$nodeid_dec = hexdec($nodeid_hex);
 			if ($family_dec == 2) {
 				$family_ = 'IP';
+				// https://www.ibm.com/docs/en/aix/7.1?topic=u-uuid-gen-command-ncs (AIX 7.1) shows the following example output for /etc/ncs/uuid_gen -P
+				// := [
+				//    time_high := 16#458487df,
+				//    time_low := 16#9fb2,
+				//    reserved := 16#000,
+				//    family := chr(16#02),
+				//    host := [chr(16#c0), chr(16#64), chr(16#02), chr(16#03),
+				//             chr(16#00), chr(16#00), chr(16#00)]
+				//    ]
+				// This means that the IP address is 32 bits hex, and 32 bits are unused
+				$nodeid_desc = hexdec(substr($nodeid_hex,0,2)).'.'.
+				               hexdec(substr($nodeid_hex,2,2)).'.'.
+				               hexdec(substr($nodeid_hex,4,2)).'.'.
+				               hexdec(substr($nodeid_hex,6,2));
+				$rest = substr($nodeid_hex,8,6);
+				if ($rest != '000000') $nodeid_desc .= " + unexpected rest 0x$rest";
 			} else if ($family_dec == 13) {
 				$family_ = 'DDS (Data Link)';
+				// https://www.ibm.com/docs/en/aix/7.1?topic=u-uuid-gen-command-ncs (AIX 7.1) shows the following example output for /etc/ncs/uuid_gen -C
+				// = { 0x34dc23af,
+				//    0xf000,
+				//    0x0000,
+				//    0x0d,
+				//    {0x00, 0x00, 0x7c, 0x5f, 0x00, 0x00, 0x00} };
+				// https://github.com/cjsv/uuid/blob/master/Doc writes:
+				//    "Family 13 (dds) looks like node is 00 | nnnnnn 000000."
+
+				$nodeid_desc = '';
+
+				$start = substr($nodeid_hex,0,2);
+				if ($start != '00') $nodeid_desc .= "unexpected start 0x$start + ";
+
+				$nodeid_desc .= ($nodeid_dec >> 24) & 0xFFFFFF;
+
+				$rest = substr($nodeid_hex,8,6);
+				if ($rest != '000000') $nodeid_desc .= " + unexpected rest 0x$rest";
 			} else {
-				$family_ = "Unknown ($family_dec)"; # There are probably no more families
+				$family_ = "Unknown (Family $family_dec)"; # There are probably no more families
+				$nodeid_desc = 'Unknown';
 			}
 			echo sprintf("%-32s %s\n", "Family:", "[0x$family_hex = $family_dec] $family_");
 
-			$nodeid = substr($uuid, 18, 14);
-			echo sprintf("%-32s %s\n", "Node ID:", "[0x$nodeid]");
+			echo sprintf("%-32s %s\n", "Node ID:", "[0x$nodeid_hex] $nodeid_desc");
 
 			break;
 		case 1:
@@ -150,9 +180,9 @@ function uuid_info($uuid) {
 					- 16 bit Mid Time
 					-  4 bit Version (fix 0x1)
 					- 12 bit High Time
-					-  2 bit Variant (fix 0b10__)
-					-  2 bit Clock Seq High
-					-  4 bit Clock Seq Low
+					-  2 bit Variant (fix 0b10)
+					-  6 bit Clock Seq High
+					-  8 bit Clock Seq Low
 					- 48 bit MAC Address
 					*/
 
@@ -196,11 +226,13 @@ function uuid_info($uuid) {
 					- 16 bit Mid Time
 					-  4 bit Version (fix 0x2)
 					- 12 bit High Time
-					-  4 bit Variant (fix 0b10__; lower 2 bits not used)
-					-  4 bit Clock Seq
-					- 16 bit Local Domain
+					-  2 bit Variant (fix 0b10)
+					-  6 bit Clock Seq
+					-  8 bit Local Domain
 					- 48 bit MAC Address
 					*/
+
+					// see also https://unicorn-utterances.com/posts/what-happened-to-uuid-v2
 
 					echo sprintf("%-32s %s\n", "Version:", "[2] DCE Security version");
 
@@ -239,9 +271,9 @@ function uuid_info($uuid) {
 					$timestamp = substr($uuid, 13, 3).substr($uuid, 8, 4).'xxxxxxxx';
 					echo sprintf("%-32s %s\n", "Timestamp:", "[0x$timestamp] $ts_min - $ts_max");
 
-					$x = hexdec(substr($uuid, 16, 1));
-					$dec = $x & 0x3FFF; // The highest 2 bits are used by "variant" (10xx)
-					$hex = substr($uuid, 16, 1);
+					$x = hexdec(substr($uuid, 16, 2));
+					$dec = $x & 0x3F; // The highest 2 bits are used by "variant" (10xx)
+					$hex = substr($uuid, 16, 2);
 					echo sprintf("%-32s %s\n", "Clock ID:", "[0x$hex] $dec");
 
 					$x = substr($uuid, 20, 12);
@@ -259,6 +291,15 @@ function uuid_info($uuid) {
 
 					break;
 				case 3:
+					/*
+					Variant 1, Version 3 UUID
+					- 48 bit Hash High
+					-  4 bit Version (fix 0x2)
+					- 12 bit Hash Mid
+					-  2 bit Variant (fix 0b10)
+					- 62 bit Hash Low
+					*/
+
 					echo sprintf("%-32s %s\n", "Version:", "[3] Name-based (MD5 hash)");
 
 					$hash = str_replace('-', '', strtolower($uuid));
@@ -277,6 +318,15 @@ function uuid_info($uuid) {
 
 					break;
 				case 4:
+					/*
+					Variant 1, Version 4 UUID
+					- 48 bit Random High
+					-  4 bit Version (fix 0x2)
+					- 12 bit Random Mid
+					-  2 bit Variant (fix 0b10)
+					- 62 bit Random Low
+					*/
+
 					echo sprintf("%-32s %s\n", "Version:", "[4] Random");
 
 					$rand_line1 = '';
@@ -316,6 +366,15 @@ function uuid_info($uuid) {
 
 					break;
 				case 5:
+					/*
+					Variant 1, Version 5 UUID
+					- 48 bit Hash High
+					-  4 bit Version (fix 0x2)
+					- 12 bit Hash Mid
+					-  2 bit Variant (fix 0b10)
+					- 62 bit Hash Low
+					*/
+
 					echo sprintf("%-32s %s\n", "Version:", "[5] Name-based (SHA-1 hash)");
 
 					$hash = str_replace('-', '', strtolower($uuid));
@@ -336,13 +395,13 @@ function uuid_info($uuid) {
 
 					break;
 				case 6:
-					echo sprintf("%-32s %s\n", "Version:", "[$version] Reordered Time (NOT IMPLEMENTED YET)"); // TODO
+					echo sprintf("%-32s %s\n", "Version:", "[$version] Reordered Time (NOT IMPLEMENTED YET)"); // TODO: implement
 					break;
 				case 7:
-					echo sprintf("%-32s %s\n", "Version:", "[$version] Unix Epoch Time (NOT IMPLEMENTED YET)"); // TODO
+					echo sprintf("%-32s %s\n", "Version:", "[$version] Unix Epoch Time (NOT IMPLEMENTED YET)"); // TODO: implement
 					break;
 				case 8:
-					echo sprintf("%-32s %s\n", "Version:", "[$version] Custom (NOT IMPLEMENTED YET)"); // TODO
+					echo sprintf("%-32s %s\n", "Version:", "[$version] Custom (NOT IMPLEMENTED YET)"); // TODO: implement
 					break;
 				default:
 					echo sprintf("%-32s %s\n", "Version:", "[$version] Unknown");
@@ -356,6 +415,12 @@ function uuid_info($uuid) {
 		case 3:
 			echo sprintf("%-32s %s\n", "Variant:", "[0b111] Reserved for future use");
 			break;
+	}
+
+	if (!$echo) {
+		$out = ob_get_contents();
+		ob_end_clean();
+		return $out;
 	}
 }
 
@@ -427,7 +492,9 @@ function gen_uuid($prefer_timebased = true) {
 	return $uuid;
 }
 
-// Version 1 (Time based) UUID
+// Variant 0 (NCS) UUID
+
+// Variant 1, Version 1 (Time based) UUID
 function gen_uuid_timebased() {
 	# On Debian: apt-get install php-uuid
 	# extension_loaded('uuid')
@@ -589,7 +656,7 @@ function get_mac_address() {
 	return $detected_mac;
 }
 
-// Version 2 (DCE Security) UUID
+// Variant 1, Version 2 (DCE Security) UUID
 define('DCE_DOMAIN_PERSON', 0);
 define('DCE_DOMAIN_GROUP', 1);
 define('DCE_DOMAIN_ORG', 2);
@@ -609,7 +676,7 @@ function gen_uuid_dce($domain, $id) {
 	return $uuid;
 }
 
-// Version 3 (MD5 name based) UUID
+// Variant 1, Version 3 (MD5 name based) UUID
 function gen_uuid_md5_namebased($namespace_uuid, $name) {
 	if (!uuid_valid($namespace_uuid)) return false;
 	$namespace_uuid = uuid_canonize($namespace_uuid);
@@ -627,7 +694,7 @@ function gen_uuid_md5_namebased($namespace_uuid, $name) {
 	       substr($hash, 20, 12);
 }
 
-// Version 4 (Random) UUID
+// Variant 1, Version 4 (Random) UUID
 function gen_uuid_random() {
 	# On Windows: Requires
 	#    extension_dir = "C:\php-8.0.3-nts-Win32-vs16-x64\ext"
@@ -675,7 +742,7 @@ function gen_uuid_random() {
 	);
 }
 
-// Version 5 (SHA1 name based) UUID
+// Variant 1, Version 5 (SHA1 name based) UUID
 function gen_uuid_sha1_namebased($namespace_uuid, $name) {
 	$namespace_uuid = str_replace('-', '', $namespace_uuid);
 	$namespace_uuid = hex2bin($namespace_uuid);
