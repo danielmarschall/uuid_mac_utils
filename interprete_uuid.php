@@ -3,7 +3,7 @@
 /*
  * UUID interpreter for PHP
  * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-07-11
+ * Version 2023-07-12
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ if ($uuid != 'CREATE') {
 	echo '<form method="GET" action="interprete_uuid.php">';
 	echo '	<input type="text" name="uuid" value="'.htmlentities($uuid).'" style="width:300px"> <input type="submit" value="Interprete">';
 	echo '</form>';
-} else {
+} else if (($version!=3) && ($version!=5) && ($version!=8)) {
 	echo '<p><i>Reload the page to receive another UUID.</i></p>';
 }
 
@@ -64,17 +64,19 @@ try {
 		if ($version == '1') {
 			$uuid = gen_uuid_timebased();
 		} else if ($version == '2') {
-			$uuid = gen_uuid_dce($_REQUEST['dce_domain'] ?? '', $_REQUEST['dce_id'] ?? '');
+			$uuid = gen_uuid_dce(trim($_REQUEST['dce_domain']??''), trim($_REQUEST['dce_id']??''));
 		} else if ($version == '3') {
-			$uuid = gen_uuid_md5_namebased($_REQUEST['nb_ns'] ?? '', $_REQUEST['nb_val'] ?? '');
+			$uuid = gen_uuid_md5_namebased(trim($_REQUEST['nb_ns']??''), trim($_REQUEST['nb_val']??''));
 		} else if ($version == '4') {
 			$uuid = gen_uuid_random();
 		} else if ($version == '5') {
-			$uuid = gen_uuid_sha1_namebased($_REQUEST['nb_ns'] ?? '', $_REQUEST['nb_val'] ?? '');
+			$uuid = gen_uuid_sha1_namebased(trim($_REQUEST['nb_ns']??''), trim($_REQUEST['nb_val']??''));
 		} else if ($version == '6') {
 			$uuid = gen_uuid_reordered();
 		} else if ($version == '7') {
 			$uuid = gen_uuid_unix_epoch();
+		} else if ($version == '8') {
+			$uuid = gen_uuid_custom(trim($_REQUEST['block1']??'0'), trim($_REQUEST['block2']??'0'), trim($_REQUEST['block3']??'0'), trim($_REQUEST['block4']??'0'), trim($_REQUEST['block5']??'0'));
 		} else {
 			throw new Exception("Unexpected version number");
 		}

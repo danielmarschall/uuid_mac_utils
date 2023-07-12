@@ -50,6 +50,7 @@ const AUTO_NEW_UUIDS = 10;
             <li><a href="#gen_uuid_nce">NCE (variant 0) UUID</a></li>
             <li><a href="#gen_uuidv2">Generate DCE Security (version 2) UUID</a></li>
             <li><a href="#gen_uuidv35">Generate name-based (version 3/5) UUID</a></li>
+            <li><a href="#gen_uuidv8">Generate Custom (version 8) UUID</a></li>
         </ul></li>
     <li><a href="#interpret_uuid">Interpret a UUID</a></li>
     <li><a href="#interpret_mac">Interpret a MAC address (MAC / EUI / ELI / SAI / AAI)</a></li>
@@ -161,16 +162,16 @@ generators if you know what you are doing.</i></p>
 <p>The NCE UUIDs are a legacy format that cannot be generated anymore, because the
 amount of available timestamp bits was exhausted on <strong>5 September 2015</strong>.
 Here is an example of the last possible NCE UUID (all bits of the timestamp are set to 1):
-<a href="interprete_uuid.php?uuid=ffffffff-ffff-0000-027f-000001000000">ffffffff-ffff-0000-027f-000001000000</a>.</p>
+<a href="interprete_uuid.php?uuid=ffffffff-ffff-0000-027f-000001000000"><code>ffffffff-ffff-0000-027f-000001000000</code></a>.</p>
 
 <h3 id="gen_uuidv2">Generate DCE Security (version 2) UUID</h3>
 
 <form method="GET" action="interprete_uuid.php">
 	<input type="hidden" name="version" value="2">
 	Domain (8 bits): <select name="domain_choose" id="dce_domain_choice" onchange="javascript:dce_domain_choose();">
-		<option value="uid">POSIX UID</option>
-		<option value="gid">POSIX GID</option>
-		<option value="org">Org</option>
+		<option value="uid">Person (e.g. POSIX UID)</option>
+		<option value="gid">Group (e.g. POSIX GID)</option>
+		<option value="org">Organization</option>
 		<option value="site">Site-defined</option>
 	</select> <input type="text" name="dce_domain" value="" id="dce_domain" style="width:50px"> (decimal notation)<br>
 	Value (32 bits): <input type="text" name="dce_id" value="0" id="dce_id" style="width:200px"> (decimal notation)<br>
@@ -259,6 +260,20 @@ function nb_ns_choose() {
 }
 nb_ns_choose();
 </script>
+
+<h3 id="gen_uuidv8">Generate Custom (version 8) UUID</h3>
+
+<form method="GET" action="interprete_uuid.php">
+	<input type="hidden" name="version" value="8">
+	Block 1 (32 available bits): <input type="text" name="block1" value="00000000" maxlength="8"  id="v8_block1" style="width:150px"> (hex notation)<br>
+	Block 2 (16 available bits): <input type="text" name="block2" value="0000" maxlength="4"  id="v8_block2" style="width:150px"> (hex notation)<br>
+	Block 3 (<abbr title="The high 4 bits are occupied by the UUID version = 0b1000">12 available bits</abbr>): <input type="text" name="block3" value="0000" maxlength="4"  id="v8_block3" style="width:150px"> (hex notation)<br>
+	Block 4 (<abbr title="The high 2 bits are occupied by the UUID variant = 0b10">14 available bits</abbr>): <input type="text" name="block4" value="0000" maxlength="4"  id="v8_block4" style="width:150px"> (hex notation)<br>
+	Block 5 (48 available bits): <input type="text" name="block5" value="000000000000" maxlength="12" id="v8_block5" style="width:150px"> (hex notation)<br>
+	<font color="red">Warning</font>: These UUIDs do not contain a timestamp,
+	therefore the uniqueness of these UUIDs is not guaranteed!<br><br>
+	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create UUID">
+</form>
 
 <h2 id="interpret_uuid">Interpret a UUID</h2>
 

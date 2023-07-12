@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-07-11
+ * Version 2023-07-12
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -510,8 +510,21 @@ function uuid_info($uuid, $echo=true) {
 					$custom_data[15] = dechex(hexdec($custom_data[15])&3); // nibble was partially overwritten by variant
 					$custom_data = strtolower($custom_data);
 
-					echo sprintf("%-32s %s\n", "Custom data:", "[0x$custom_data]");
+					$custom_block1 = substr($uuid,  0, 8);
+					$custom_block2 = substr($uuid,  8, 4);
+					$custom_block3 = substr($uuid, 12, 4);
+					$custom_block4 = substr($uuid, 16, 4);
+					$custom_block5 = substr($uuid, 20);
 
+					$custom_block3 = substr($custom_block3, 1); // remove version
+					$custom_block4[0] = dechex(hexdec($custom_block4[0])&3); // remove variant
+
+					echo sprintf("%-32s %s\n", "Custom data:", "[0x$custom_data]");
+					echo sprintf("%-32s %s\n", "Custom block1 (32 bit):", "[0x$custom_block1]");
+					echo sprintf("%-32s %s\n", "Custom block2 (16 bit):", "[0x$custom_block2]");
+					echo sprintf("%-32s %s\n", "Custom block3 (12 bit):", "[0x$custom_block3]");
+					echo sprintf("%-32s %s\n", "Custom block4 (14 bit):", "[0x$custom_block4]");
+					echo sprintf("%-32s %s\n", "Custom block5 (48 bit):", "[0x$custom_block5]");
 
 					break;
 				default:
@@ -1011,6 +1024,32 @@ function gen_uuid_unix_epoch() {
 	$uuid[14] = '7';
 
 	return $uuid;
+}
+
+# --------------------------------------
+// Variant 1, Version 8 (Custom) UUID
+# --------------------------------------
+
+function gen_uuid_v8($block1_32bit, $block2_16bit, $block3_12bit, $block4_14bit, $block5_48bit) {
+	return gen_uuid_custom($block1_32bit, $block2_16bit, $block3_12bit, $block4_14bit, $block5_48bit);
+}
+function gen_uuid_custom($block1_32bit, $block2_16bit, $block3_12bit, $block4_14bit, $block5_48bit) {
+	if (preg_replace('@[0-9A-F]@i', '', $block1_32bit) != '') throw new Exception("Invalid data for block 1. Must be hex input");
+	if (preg_replace('@[0-9A-F]@i', '', $block2_16bit) != '') throw new Exception("Invalid data for block 2. Must be hex input");
+	if (preg_replace('@[0-9A-F]@i', '', $block3_12bit) != '') throw new Exception("Invalid data for block 3. Must be hex input");
+	if (preg_replace('@[0-9A-F]@i', '', $block4_14bit) != '') throw new Exception("Invalid data for block 4. Must be hex input");
+	if (preg_replace('@[0-9A-F]@i', '', $block5_48bit) != '') throw new Exception("Invalid data for block 5. Must be hex input");
+
+	$block1 = str_pad(substr($block1_32bit, -8),  8, '0', STR_PAD_LEFT);
+	$block2 = str_pad(substr($block2_16bit, -4),  4, '0', STR_PAD_LEFT);
+	$block3 = str_pad(substr($block3_12bit, -4),  4, '0', STR_PAD_LEFT);
+	$block4 = str_pad(substr($block4_14bit, -4),  4, '0', STR_PAD_LEFT);
+	$block5 = str_pad(substr($block5_48bit,-12), 12, '0', STR_PAD_LEFT);
+
+	$block3[0] = '8'; // Version 8 = Custom
+	$block4[0] = dechex((hexdec($block4[0])&3) + 0b1000); // Variant 0b10__ = RFC4122
+
+	return strtolower($block1.'-'.$block2.'-'.$block3.'-'.$block4.'-'.$block5);
 }
 
 # --------------------------------------
