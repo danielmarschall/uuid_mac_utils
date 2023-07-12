@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
-* Version 2023-07-11
+* Version 2023-07-12
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ const AUTO_NEW_UUIDS = 10;
 	<meta charset="iso-8859-1">
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<title>UUID &amp; MAC Utils by Daniel Marschall</title>
+	<meta name=viewport content="width=device-width, initial-scale=1">
 </head>
 
 <body>
@@ -60,14 +61,28 @@ const AUTO_NEW_UUIDS = 10;
 
 <h3 id="gen_uuidv7"><font color="green">New:</font> Generate Unix Epoch Time (version 7) UUID &#11088</h3>
 
-<p><i>A UUIDv7 is made of time and 74 random bits.
+<p><i>A UUIDv7 is made of time and 74 random&nbsp;bits.
         Since the time is at the beginning, the UUIDs are monotonically increasing.
         Due to the missing MAC address, this UUID version is recommended due to
         improved privacy.</i></p>
 
+<p><a id="uuidv7_info_button" href="javascript:show_uuidv7_info()">Show format</a>
+<script>
+function show_uuidv7_info() {
+	document.getElementById("uuidv7_info_button").style.display = "none";
+	document.getElementById("uuidv7_info").style.display = "block";
+}
+</script>
+<pre id="uuidv7_info" style="display:none">Variant 1, Version 7 UUID:
+- 48 bit Unix Time in milliseconds
+-  4 bit Version (fix 0x7)
+- 12 bit Random
+-  2 bit Variant (fix 0b10)
+- 62 bit Random</pre></p>
+
 <?php
 if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
-	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs which were created just for you! (Reload the page to get more)</p>';
+	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs that were created just for you! (Reload the page to get more)</p>';
 
 	echo '<pre>';
 	for ($i=0; $i<10; $i++) {
@@ -89,9 +104,25 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
         the time, and a clock sequence. However, the components in UUIDv6 are reordered (time is at the beginning),
         so that UUIDs are monotonically increasing.</i></p>
 
+<p><a id="uuidv6_info_button" href="javascript:show_uuidv6_info()">Show format</a>
+<script>
+function show_uuidv6_info() {
+	document.getElementById("uuidv6_info_button").style.display = "none";
+	document.getElementById("uuidv6_info").style.display = "block";
+}
+</script>
+<pre id="uuidv6_info" style="display:none">Variant 1, Version 6 UUID:
+- 48 bit High Time
+-  4 bit Version (fix 0x6)
+- 12 bit Low Time
+-  2 bit Variant (fix 0b10)
+-  6 bit Clock Sequence High
+-  8 bit Clock Sequence Low
+- 48 bit MAC Address</pre></p>
+
 <?php
 if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
-	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs which were created just for you! (Reload the page to get more)</p>';
+	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs that were created just for you! (Reload the page to get more)</p>';
 
 	echo '<pre>';
 	for ($i=0; $i<10; $i++) {
@@ -109,11 +140,25 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 
 <h3 id="gen_uuidv4">Generate random (version 4) UUID &#x1F3B2;</h3>
 
-<p><i>A UUIDv4 is made of 122 random bits. No other information is encoded in this kind of UUID.</i></p>
+<p><i>A UUIDv4 is made of 122 random&nbsp;bits. No other information is encoded in this kind of UUID.</i></p>
+
+<p><a id="uuidv4_info_button" href="javascript:show_uuidv4_info()">Show format</a>
+<script>
+function show_uuidv4_info() {
+	document.getElementById("uuidv4_info_button").style.display = "none";
+	document.getElementById("uuidv4_info").style.display = "block";
+}
+</script>
+<pre id="uuidv4_info" style="display:none">Variant 1, Version 4 UUID:
+- 48 bit Random High
+-  4 bit Version (fix 0x4)
+- 12 bit Random Mid
+-  2 bit Variant (fix 0b10)
+- 62 bit Random Low</pre></p>
 
 <?php
 if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
-	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs which were created just for you! (Reload the page to get more)</p>';
+	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs that were created just for you! (Reload the page to get more)</p>';
 
 	echo '<pre>';
 	for ($i=0; $i<10; $i++) {
@@ -134,9 +179,26 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 <p><i>A UUIDv1 is made of the MAC address of the generating computer,
 the time, and a clock sequence.</i></p>
 
+<p><a id="uuidv1_info_button" href="javascript:show_uuidv1_info()">Show format</a>
+<script>
+function show_uuidv1_info() {
+	document.getElementById("uuidv1_info_button").style.display = "none";
+	document.getElementById("uuidv1_info").style.display = "block";
+}
+</script>
+<pre id="uuidv1_info" style="display:none">Variant 1, Version 1 UUID:
+- 32 bit Low Time
+- 16 bit Mid Time
+-  4 bit Version (fix 0x1)
+- 12 bit High Time
+-  2 bit Variant (fix 0b10)
+-  6 bit Clock Sequence High
+-  8 bit Clock Sequence Low
+- 48 bit MAC Address</pre></p>
+
 <?php
 if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
-    echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs which were created just for you! (Reload the page to get more)</p>';
+    echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs that were created just for you! (Reload the page to get more)</p>';
 
     echo '<pre>';
     for ($i=0; $i<10; $i++) {
@@ -161,20 +223,55 @@ generators if you know what you are doing.</i></p>
 
 <p>The NCE UUIDs are a legacy format that cannot be generated anymore, because the
 amount of available timestamp bits was exhausted on <strong>5 September 2015</strong>.
-Here is an example of the last possible NCE UUID (all bits of the timestamp are set to 1):
+As an example, here is the last possible NCE UUID (all bits of the timestamp are set to 1) for IP address 127.0.0.1:
 <a href="interprete_uuid.php?uuid=ffffffff-ffff-0000-027f-000001000000"><code>ffffffff-ffff-0000-027f-000001000000</code></a>.</p>
+
+<p><a id="uuidnce_info_button" href="javascript:show_uuidnce_info()">Show format</a>
+<script>
+function show_uuidnce_info() {
+	document.getElementById("uuidnce_info_button").style.display = "none";
+	document.getElementById("uuidnce_info").style.display = "block";
+}
+</script>
+<pre id="uuidnce_info" style="display:none">Variant 0 UUID:
+- 32 bit High Time
+- 16 bit Low Time
+- 16 bit Reserved
+-  1 bit Variant (fix 0b0)
+-  7 bit Family
+- 56 bit Node</pre></p>
 
 <h3 id="gen_uuidv2">Generate DCE Security (version 2) UUID</h3>
 
+<p><i>An UUIDv2 contains information about the creator (person/group/org), the generating system (MAC address), and time.
+The creator information replaced parts of the time bits, therefore the time resolution is very low.</i></p>
+
+<p><a id="uuidv2_info_button" href="javascript:show_uuidv2_info()">Show format</a>
+<script>
+function show_uuidv2_info() {
+	document.getElementById("uuidv2_info_button").style.display = "none";
+	document.getElementById("uuidv2_info").style.display = "block";
+}
+</script>
+<pre id="uuidv2_info" style="display:none">Variant 1, Version 2 UUID:
+- 32 bit Local Domain Number
+- 16 bit Mid Time
+-  4 bit Version (fix 0x2)
+- 12 bit High Time
+-  2 bit Variant (fix 0b10)
+-  6 bit Clock Sequence
+-  8 bit Local Domain
+- 48 bit MAC Address</pre></p>
+
 <form method="GET" action="interprete_uuid.php">
 	<input type="hidden" name="version" value="2">
-	Domain (8 bits): <select name="domain_choose" id="dce_domain_choice" onchange="javascript:dce_domain_choose();">
+	<label>Domain (8&nbsp;bits):</label><select name="domain_choose" id="dce_domain_choice" onchange="javascript:dce_domain_choose();">
 		<option value="uid">Person (e.g. POSIX UID)</option>
 		<option value="gid">Group (e.g. POSIX GID)</option>
 		<option value="org">Organization</option>
 		<option value="site">Site-defined</option>
-	</select> <input type="text" name="dce_domain" value="" id="dce_domain" style="width:50px"> (decimal notation)<br>
-	Value (32 bits): <input type="text" name="dce_id" value="0" id="dce_id" style="width:200px"> (decimal notation)<br>
+	</select> = <input type="number" min="0" max="255" name="dce_domain" value="" id="dce_domain" style="width:50px" pattern="[0-9]+"> (decimal notation)<br>
+	<label>Value (32&nbsp;bits):</label><input type="number" min="0" max="4294967295" name="dce_id" value="0" id="dce_id" style="width:200px" pattern="[0-9]+"> (decimal notation)<br>
 	<font color="red">Warning</font>: The timestamp has an accuracy of approx. 7 minutes,
 	therefore the uniqueness of these UUIDs is not guaranteed!<br><br>
 	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create UUID">
@@ -200,60 +297,118 @@ dce_domain_choose();
 
 <h3 id="gen_uuidv35">Generate name-based (version 3/5) UUID</h3>
 
+<p><i>An UUIDv3 is made out of a MD5 hash and an UUIDv5 is made out of a SHA1 hash.</i></p>
+
+<p><a id="uuidv35_info_button" href="javascript:show_uuidv35_info()">Show format</a>
+<script>
+function show_uuidv35_info() {
+	document.getElementById("uuidv35_info_button").style.display = "none";
+	document.getElementById("uuidv35_info").style.display = "block";
+}
+</script>
+<pre id="uuidv35_info" style="display:none">Variant 1, Version 3/5 UUID:
+- 48 bit Hash High
+-  4 bit Version (fix 0x3)
+- 12 bit Hash Mid
+-  2 bit Variant (fix 0b10)
+- 62 bit Hash Low</pre></p>
+
+<style>
+label {
+	width:120px;
+	text-align:left;
+	margin-right: 20px;
+	display:inline-block;
+}
+</style>
+
 <form method="GET" action="interprete_uuid.php">
-	Hash algorithm: <select name="version">
+	<label>Hash algorithm:</label><select name="version">
 		<option value="3">MD5 (version 3 UUID)</option>
 		<option value="5">SHA1 (version 5 UUID)</option>
 	</select><br>
-	Namespace: <select name="namespace_choose" id="nb_nsc" onchange="javascript:nb_ns_choose();">
+	<label>Namespace:</label><select name="namespace_choose" id="nb_nsc" onchange="javascript:nb_ns_choose();">
 		<option value="dns">DNS</option>
 		<option value="url">URL</option>
 		<option value="oid">OID</option>
 		<option value="x500">X.500 DN</option>
-		<option value="oidplus_ns">OIDplus ns only</option>
-		<option value="oidplus_ns_val">OIDplus ns+val</option>
+		<!-- <option value="oidplus_ns">OIDplus ns only</option> -->
+		<!-- <option value="oidplus_ns_val">OIDplus ns+val</option> -->
 		<!-- <option value="oidplus_pubkey">OIDplus pubkey</option> -->
 		<option value="other">Other</option>
-	</select> <input type="text" name="nb_ns" value="" id="nb_ns" style="width:300px"><br>
-	Value: <input type="text" name="nb_val" value="" id="nb_val" style="width:300px"><br>
+	</select> = <input type="text" name="nb_ns" value="" id="nb_ns" style="width:270px" onchange="javascript:nb_ns_textchange();" pattern="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"><br>
+	<label>Value:</label><input type="text" name="nb_val" value="" id="nb_val" style="width:300px"><br>
 	<font color="red">Warning</font>: These UUIDs do not contain a timestamp,
 	therefore the uniqueness of these UUIDs is not guaranteed!<br><br>
 	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create UUID">
 </form>
 <script>
+function nb_ns_textchange() {
+	var ns = document.getElementById('nb_ns').value.toLowerCase();
+	if (ns == "6ba7b810-9dad-11d1-80b4-00c04fd430c8") {
+		if (document.getElementById('nb_nsc').value != "dns") {
+			document.getElementById('nb_nsc').value = "dns";
+			document.getElementById('nb_val').value = "www.example.org";
+		}
+	}
+	else if (ns == "6ba7b811-9dad-11d1-80b4-00c04fd430c8") {
+		if (document.getElementById('nb_nsc').value != "url") {
+			document.getElementById('nb_nsc').value = "url";
+			document.getElementById('nb_val').value = "http://www.example.org/";
+		}
+	}
+	else if (ns == "6ba7b812-9dad-11d1-80b4-00c04fd430c8") {
+		if (document.getElementById('nb_nsc').value != "oid") {
+			document.getElementById('nb_nsc').value = "oid";
+			document.getElementById('nb_val').value = "2.999";
+		}
+	}
+	else if (ns == "6ba7b814-9dad-11d1-80b4-00c04fd430c8") {
+		if (document.getElementById('nb_nsc').value != "x500") {
+			document.getElementById('nb_nsc').value = "x500";
+			document.getElementById('nb_val').value = "UID=jsmith,DC=example,DC=net";
+		}
+	}
+	else {
+		if (document.getElementById('nb_nsc').value != "other") {
+			document.getElementById('nb_nsc').value = "other";
+			document.getElementById('nb_val').value = "";
+		}
+	}
+}
 function nb_ns_choose() {
 	var ns = document.getElementById('nb_nsc').value;
 	if (ns == "dns") {
 		document.getElementById('nb_ns').value = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
 		document.getElementById('nb_val').value = "www.example.org";
 	}
-	if (ns == "url") {
+	else if (ns == "url") {
 		document.getElementById('nb_ns').value = "6ba7b811-9dad-11d1-80b4-00c04fd430c8";
 		document.getElementById('nb_val').value = "http://www.example.org/";
 	}
-	if (ns == "oid") {
+	else if (ns == "oid") {
 		document.getElementById('nb_ns').value = "6ba7b812-9dad-11d1-80b4-00c04fd430c8";
 		document.getElementById('nb_val').value = "2.999";
 	}
-	if (ns == "x500") {
+	else if (ns == "x500") {
 		document.getElementById('nb_ns').value = "6ba7b814-9dad-11d1-80b4-00c04fd430c8";
 		document.getElementById('nb_val').value = "UID=jsmith,DC=example,DC=net";
 	}
-	if (ns == "oidplus_ns") {
+	/*
+	else if (ns == "oidplus_ns") {
 		document.getElementById('nb_ns').value = "0943e3ce-4b79-11e5-b742-78e3b5fc7f22";
 		document.getElementById('nb_val').value = "ipv4";
 	}
-	if (ns == "oidplus_ns_val") {
+	else if (ns == "oidplus_ns_val") {
 		document.getElementById('nb_ns').value = "ad1654e6-7e15-11e4-9ef6-78e3b5fc7f22";
 		document.getElementById('nb_val').value = "ipv4:8.8.8.8";
 	}
-	/*
-	if (ns == "oidplus_ns_pubkey") {
+	else if (ns == "oidplus_ns_pubkey") {
 		document.getElementById('nb_ns').value = "fd16965c-8bab-11ed-8744-3c4a92df8582";
 		document.getElementById('nb_val').value = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqg/PnsC1WX3C1/mUSLuk0DIaDHtEsxBnG0auYJRJ1hBtbUUvItbK0odlKrX2SFo1MJJpu/SSxTzAgqkKZsZe3cCFkgA1svfuH9i94oGLjJ4n0kRJEGlanCmGndJBfIqGDJaQE2BJ8tLxeBrpkd9l0KvJsjhRmqJAb9KYK3KYFsWvT+wyjD3UJ1eHcgLbF/Qb3cwMU/u7Fs7ZpsNMW4phDPlsYsk9XHFpJ1/UCj6G53mYRfOC/ouDdGShlbVLB15s0V95QpnU/7lL8mJ2lE+sTZekGNBA4XbJv2gs21cR4E8zc/z+NyZS7117DYZoJqrAN8sKz6xGoKgQF6wueCK5qQIDAQAB";
 	}
 	*/
-	if (ns == "other") {
+	else if (ns == "other") {
 		document.getElementById('nb_ns').value = "";
 		document.getElementById('nb_val').value = "";
 	}
@@ -263,13 +418,29 @@ nb_ns_choose();
 
 <h3 id="gen_uuidv8">Generate Custom (version 8) UUID</h3>
 
+<p><i>UUIDv8 can contain 122 application-specific / custom data. The other 6 bits are used to specify the variant and version of the UUID, to make them RFC-compatible.</i></p>
+
+<p><a id="uuidv8_info_button" href="javascript:show_uuidv8_info()">Show format</a>
+<script>
+function show_uuidv8_info() {
+	document.getElementById("uuidv8_info_button").style.display = "none";
+	document.getElementById("uuidv8_info").style.display = "block";
+}
+</script>
+<pre id="uuidv8_info" style="display:none">Variant 1, Version 8 UUID:
+- 48 bit Custom data
+-  4 bit Version (fix 0x8)
+- 12 bit Custom data
+-  2 bit Variant (fix 0b10)
+- 62 bit Custom data</pre></p>
+
 <form method="GET" action="interprete_uuid.php">
 	<input type="hidden" name="version" value="8">
-	Block 1 (32 available bits): <input type="text" name="block1" value="00000000" maxlength="8"  id="v8_block1" style="width:150px"> (hex notation)<br>
-	Block 2 (16 available bits): <input type="text" name="block2" value="0000" maxlength="4"  id="v8_block2" style="width:150px"> (hex notation)<br>
-	Block 3 (<abbr title="The high 4 bits are occupied by the UUID version = 0b1000">12 available bits</abbr>): <input type="text" name="block3" value="0000" maxlength="4"  id="v8_block3" style="width:150px"> (hex notation)<br>
-	Block 4 (<abbr title="The high 2 bits are occupied by the UUID variant = 0b10">14 available bits</abbr>): <input type="text" name="block4" value="0000" maxlength="4"  id="v8_block4" style="width:150px"> (hex notation)<br>
-	Block 5 (48 available bits): <input type="text" name="block5" value="000000000000" maxlength="12" id="v8_block5" style="width:150px"> (hex notation)<br>
+	<label>Block&nbsp;1 (32&nbsp;bits):</label><input type="text" name="block1" value="00000000" maxlength="8"  id="v8_block1" style="width:150px" pattern="[0-9a-fA-F]+"> (hex notation)<br>
+	<label>Block&nbsp;2 (16&nbsp;bits):</label><input type="text" name="block2" value="0000" maxlength="4"  id="v8_block2" style="width:150px" pattern="[0-9a-fA-F]+"> (hex notation)<br>
+	<label>Block&nbsp;3 (<abbr title="The high 4 bits are occupied by the UUID version = 8">12&nbsp;bits</abbr>):</label><input type="text" name="block3" value="0000" maxlength="4"  id="v8_block3" style="width:150px" pattern="[0-9a-fA-F]+"> (hex notation)<br>
+	<label>Block&nbsp;4 (<abbr title="The high 2 bits are occupied by the UUID variant = 0b10">14&nbsp;bits</abbr>):</label><input type="text" name="block4" value="0000" maxlength="4"  id="v8_block4" style="width:150px" pattern="[0-9a-fA-F]+"> (hex notation)<br>
+	<label>Block&nbsp;5 (48&nbsp;bits):</label><input type="text" name="block5" value="000000000000" maxlength="12" id="v8_block5" style="width:150px" pattern="[0-9a-fA-F]+"> (hex notation)<br>
 	<font color="red">Warning</font>: These UUIDs do not contain a timestamp,
 	therefore the uniqueness of these UUIDs is not guaranteed!<br><br>
 	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create UUID">
@@ -288,7 +459,7 @@ nb_ns_choose();
 
 <ul>
 	<li>Notation as UUID and OID</li>
-	<li>Version, variant, and additional data (date and time, clock seq, node id, etc.)</li>
+	<li>Version, variant, and additional data (date and time, clock sequence, node id, etc.)</li>
 </ul>
 
 <p>Please enter a UUID or UUID OID:</p>

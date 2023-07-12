@@ -66,6 +66,15 @@ function uuid_info($uuid, $echo=true) {
 	else if ($x >=  0 /* 0b0___ */) $variant = 0;
 	else $variant = -1; // should not happen
 
+	if ($uuid == '00000000000000000000000000000000') {
+		echo sprintf("%-32s %s\n", "Special Use:", "Nil UUID");
+		echo "\n";
+	}
+	else if ($uuid == 'ffffffffffffffffffffffffffffffff') {
+		echo sprintf("%-32s %s\n", "Special Use:", "Max UUID");
+		echo "\n";
+	}
+
 	switch ($variant) {
 		case 0:
 			echo sprintf("%-32s %s\n", "Variant:", "[0b0__] Network Computing System (NCS)");
@@ -95,6 +104,8 @@ function uuid_info($uuid, $echo=true) {
 			*/
 
 			// Example of an UUID: 333a2276-0000-0000-0d00-00809c000000
+
+			// TODO: also show legacy format, e.g. 458487b55160.02.c0.64.02.03.00.00.00
 
 			# see also some notes at See https://github.com/cjsv/uuid/blob/master/Doc
 
@@ -177,6 +188,8 @@ function uuid_info($uuid, $echo=true) {
 
 			break;
 		case 1:
+			// TODO: Show byte order: 00112233-4455-6677-8899-aabbccddeeff => 00 11 22 33 44 55 66 77 88 99 aa bb cc dd ee ff
+
 			$version = hexdec(substr($uuid, 12, 1));
 
 			if ($version <= 2) {
@@ -197,8 +210,8 @@ function uuid_info($uuid, $echo=true) {
 					-  4 bit Version (fix 0x6)
 					- 12 bit Low Time
 					-  2 bit Variant (fix 0b10)
-					-  6 bit Clock Seq High
-					-  8 bit Clock Seq Low
+					-  6 bit Clock Sequence High
+					-  8 bit Clock Sequence Low
 					- 48 bit MAC Address
 					*/
 					echo sprintf("%-32s %s\n", "Version:", "[6] Reordered Time");
@@ -219,8 +232,8 @@ function uuid_info($uuid, $echo=true) {
 					-  4 bit Version (fix 0x1)
 					- 12 bit High Time
 					-  2 bit Variant (fix 0b10)
-					-  6 bit Clock Seq High
-					-  8 bit Clock Seq Low
+					-  6 bit Clock Sequence High
+					-  8 bit Clock Sequence Low
 					- 48 bit MAC Address
 					*/
 
@@ -266,7 +279,7 @@ function uuid_info($uuid, $echo=true) {
 					-  4 bit Version (fix 0x2)
 					- 12 bit High Time
 					-  2 bit Variant (fix 0b10)
-					-  6 bit Clock Seq
+					-  6 bit Clock Sequence
 					-  8 bit Local Domain
 					- 48 bit MAC Address
 					*/
@@ -497,11 +510,11 @@ function uuid_info($uuid, $echo=true) {
 				case 8:
 					/*
 					Variant 1, Version 8 UUID
-					- 48 bit Custom format
+					- 48 bit Custom data
 					-  4 bit Version (fix 0x8)
-					- 12 bit Custom format
+					- 12 bit Custom data
 					-  2 bit Variant (fix 0b10)
-					- 62 bit Custom format
+					- 62 bit Custom data
 					*/
 
 					echo sprintf("%-32s %s\n", "Version:", "[8] Custom implementation");
@@ -534,6 +547,8 @@ function uuid_info($uuid, $echo=true) {
 
 			break;
 		case 2:
+			// TODO: Show byte order: 00112233-4455-6677-8899-aabbccddeeff => 33 22 11 00 55 44 77 66 88 99 aa bb cc dd ee ff
+
 			// TODO: Is there any scheme in that legacy Microsoft GUIDs?
 			echo sprintf("%-32s %s\n", "Variant:", "[0b110] Reserved for Microsoft Corporation");
 			break;
