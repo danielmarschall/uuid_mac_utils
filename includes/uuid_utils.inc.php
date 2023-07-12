@@ -140,17 +140,28 @@ function uuid_info($uuid, $echo=true) {
 			$family_dec = hexdec($family_hex);
 			$nodeid_hex = substr($uuid, 18, 14);
 			$nodeid_dec = hexdec($nodeid_hex);
-			// List of families taken from: https://github.com/uuid6/uuid6-ietf-draft/issues/26#issuecomment-1062164457
+
+			// Sources:
+			// - https://bitsavers.org/pdf/ibm/rs6000/aix_3.0/SC23-2206-0_AIX_Version_3_for_RS6000_Communications_Programming_Concepts_199003.pdf
+			// - (For comparison) https://github.com/uuid6/uuid6-ietf-draft/issues/26#issuecomment-1062164457
+			// - (For comparison) https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.addressfamily?view=net-7.0 [numbers 0..13 are mostly identical]
+
 			if ($family_dec == 0) {
-				$family_name = 'socket_$unspec';
+				# Microsoft's AdressFamily: Unspecified	0	Unspecified address family.
+				# AIX 3.0 Manual:  0   unspec = Unspecified
+				$family_name = 'socket_$unspec (Unspecified)';
 				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
 			}
 			else if ($family_dec == 1) {
-				$family_name = 'socket_$unix';
+				# Microsoft's AdressFamily: Unix	1	Unix local to host address.
+				# AIX 3.0 Manual:  1   unix = Local to host (pipes, portals)
+				$family_name = 'socket_$unix (Local to host, e.g. pipes, portals)';
 				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
 			}
 			else if ($family_dec == 2) {
-				$family_name = 'socket_$internet (TCP/IP)';
+				# Microsoft's AdressFamily: InterNetwork	2	Address for IP version 4.
+				# AIX 3.0 Manual:  2   ip = Internet Protocols
+				$family_name = 'socket_$internet (Internet Protocols V4)';
 				// https://www.ibm.com/docs/en/aix/7.1?topic=u-uuid-gen-command-ncs (AIX 7.1) shows the following example output for /etc/ncs/uuid_gen -P
 				// := [
 				//    time_high := 16#458487df,
@@ -169,47 +180,72 @@ function uuid_info($uuid, $echo=true) {
 				if ($rest != '000000') $nodeid_desc .= " + unexpected rest 0x$rest";
 			}
 			else if ($family_dec == 3) {
-				$family_name = 'socket_$implink';
+				# Microsoft's AdressFamily: ImpLink	3	ARPANET IMP address.
+				# AIX 3.0 Manual:  3   implink = ARPANET imp addresses
+				$family_name = 'socket_$implink (ARPANET imp addresses)';
 				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
 			}
 			else if ($family_dec == 4) {
-				$family_name = 'socket_$pup';
+				# Microsoft's AdressFamily: Pup	4	Address for PUP protocols.
+				# AIX 3.0 Manual:  4   pup = Pup protocols (for example, BSP)
+				$family_name = 'socket_$pup (Pup protocols, e.g. BSP)';
 				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
 			}
 			else if ($family_dec == 5) {
-				$family_name = 'socket_$chaos';
+				# Microsoft's AdressFamily: Chaos	5	Address for MIT CHAOS protocols.
+				# AIX 3.0 Manual:  5   chaos = MIT CHAOS protocols
+				$family_name = 'socket_$chaos (MIT CHAOS protocols)';
 				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
 			}
 			else if ($family_dec == 6) {
-				$family_name = 'socket_$ns';
+				# Microsoft's AdressFamily: NS	6	Address for Xerox NS protocols.
+				# Microsoft's AdressFamily: Ipx	6	IPX or SPX address.
+				# AIX 3.0 Manual:  6   ns = XEROX NS protocols
+				$family_name = 'socket_$ns (XEROX NS protocols)';
 				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
 			}
 			else if ($family_dec == 7) {
-				$family_name = 'socket_$nbs';
+				# Microsoft's AdressFamily: Osi	7	Address for OSI protocols.
+				# Microsoft's AdressFamily: Iso	7	Address for ISO protocols.
+				# AIX 3.0 Manual:  7   nbs = NBS protocols
+				$family_name = 'socket_$nbs (NBS protocols)';
 				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
 			}
 			else if ($family_dec == 8) {
-				$family_name = 'socket_$ecma';
+				# Microsoft's AdressFamily: Ecma	8	European Computer Manufacturers Association (ECMA) address.
+				# AIX 3.0 Manual:  8   ecma = European computer manufacturers
+				$family_name = 'socket_$ecma (European computer manufacturers protocols)';
 				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
 			}
 			else if ($family_dec == 9) {
-				$family_name = 'socket_$datakit';
+				# Microsoft's AdressFamily: DataKit	9	Address for Datakit protocols.
+				# AIX 3.0 Manual:  9   datakit = Datakit protocols
+				$family_name = 'socket_$datakit (Datakit protocols)';
 				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
 			}
 			else if ($family_dec == 10) {
-				$family_name = 'socket_$ccitt';
+				# Microsoft's AdressFamily: Ccitt	10	Addresses for CCITT protocols, such as X.25.
+				# AIX 3.0 Manual:  A   ccitt = CCITT protocols (for example, X.25)
+				$family_name = 'socket_$ccitt (CCITT protocols, e.g. X.25)';
 				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
 			}
 			else if ($family_dec == 11) {
-				$family_name = 'socket_$sna';
+				# Microsoft's AdressFamily: Sna	11	IBM SNA address.
+				# AIX 3.0 Manual:  B   sna = IBM SNA
+				$family_name = 'socket_$sna (IBM SNA)';
 				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
 			}
 			else if ($family_dec == 12) {
-				$family_name = 'socket_$unspec2';
+				# Microsoft's AdressFamily: DecNet	12	DECnet address.
+				# AIX 3.0 Manual:  C   unspec2 = Unspecified
+				$family_name = 'socket_$unspec2 (Unspecified)';
 				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
 			}
 			else if ($family_dec == 13) {
-				$family_name = 'socket_$dds (Data Link)';
+				# Microsoft's AdressFamily: DataLink	13	Direct data-link interface address.
+				# AIX 3.0 Manual:  D   dds = Domain DDS protocol
+				# Some also call this "Data Link" ... Is that correct?
+				$family_name = 'socket_$dds (Domain DDS protocol)';
 				// https://www.ibm.com/docs/en/aix/7.1?topic=u-uuid-gen-command-ncs (AIX 7.1) shows the following example output for /etc/ncs/uuid_gen -C
 				// = { 0x34dc23af,
 				//    0xf000,
@@ -753,7 +789,7 @@ function gen_uuid_timebased() {
 	 * is the offset between UNIX epoch and the UUID UTC
 	 * time base October 15, 1582.
 	 */
-	usleep(1); // make sure the timestamp is not used before
+	usleep(1000); // Wait 1ms, to make sure that the time part changes if multiple UUIDs are generated
 	$tp = gettimeofday();
 	$time = ($tp['sec'] * 10000000) + ($tp['usec'] * 10) + 0x01B21DD213814000;
 
@@ -1072,7 +1108,7 @@ function gen_uuid_unix_epoch() {
 	$uuid = gen_uuid_random();
 
 	// Add the timestamp
-	usleep(1); // make sure the timestamp is not repeated
+	usleep(1000); // Wait 1ms, to make sure that the time part changes if multiple UUIDs are generated
 	if (function_exists('gmp_init')) {
 		list($ms,$sec) = explode(' ', microtime(false));
 		$sec = gmp_init($sec, 10);

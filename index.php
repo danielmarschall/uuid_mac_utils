@@ -74,7 +74,7 @@ function show_uuidv7_info() {
 }
 </script>
 <pre id="uuidv7_info" style="display:none">Variant 1, Version 7 UUID:
-- 48 bit Unix Time in milliseconds
+- 48 bit <abbr title="Count of 1ms intervals passed since 1 Jan 1970 00:00:00 GMT">Unix Time in milliseconds</abbr>
 -  4 bit Version (fix 0x7)
 - 12 bit Random
 -  2 bit Variant (fix 0b10)
@@ -112,9 +112,9 @@ function show_uuidv6_info() {
 }
 </script>
 <pre id="uuidv6_info" style="display:none">Variant 1, Version 6 UUID:
-- 48 bit High Time
+- 48 bit High <abbr title="Count of 100ns intervals passed since 15 Oct 1582 00:00:00 GMT">Time</abbr>
 -  4 bit Version (fix 0x6)
-- 12 bit Low Time
+- 12 bit Low <abbr title="Count of 100ns intervals passed since 15 Oct 1582 00:00:00 GMT">Time</abbr>
 -  2 bit Variant (fix 0b10)
 -  6 bit Clock Sequence High
 -  8 bit Clock Sequence Low
@@ -187,10 +187,10 @@ function show_uuidv1_info() {
 }
 </script>
 <pre id="uuidv1_info" style="display:none">Variant 1, Version 1 UUID:
-- 32 bit Low Time
-- 16 bit Mid Time
+- 32 bit Low <abbr title="Count of 100ns intervals passed since 15 Oct 1582 00:00:00 GMT">Time</abbr>
+- 16 bit Mid <abbr title="Count of 100ns intervals passed since 15 Oct 1582 00:00:00 GMT">Time</abbr>
 -  4 bit Version (fix 0x1)
-- 12 bit High Time
+- 12 bit High <abbr title="Count of 100ns intervals passed since 15 Oct 1582 00:00:00 GMT">Time</abbr>
 -  2 bit Variant (fix 0b10)
 -  6 bit Clock Sequence High
 -  8 bit Clock Sequence Low
@@ -216,7 +216,7 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 
 <h2 id="gen_other_uuid">Generate other UUID types</h2>
 
-<p><i>The following types of UUIDs are less common. Please only use the following
+<p><i>The following types of UUIDs are less common or require special knowledge. Please only use the following
 generators if you know what you are doing.</i></p>
 
 <h3 id="gen_uuid_nce">NCE (variant 0) UUID</h3>
@@ -234,16 +234,29 @@ function show_uuidnce_info() {
 }
 </script>
 <pre id="uuidnce_info" style="display:none">Variant 0 UUID:
-- 32 bit High Time
-- 16 bit Low Time
+- 32 bit High <abbr title="Count of 4&#xB5;s intervals passed since 1 Jan 1980 00:00:00 GMT">Time</abbr>
+- 16 bit Low <abbr title="Count of 4&#xB5;s intervals passed since 1 Jan 1980 00:00:00 GMT">Time</abbr>
 - 16 bit Reserved
 -  1 bit Variant (fix 0b0)
--  7 bit Family
+-  7 bit <abbr title="socket_$unspec (0x0)
+socket_$unix (0x1)
+socket_$internet (0x2)
+socket_$implink (0x3)
+socket_$pup (0x4)
+socket_$chaos (0x5)
+socket_$ns (0x6)
+socket_$nbs (0x7)
+socket_$ecma (0x8)
+socket_$datakit (0x9)
+socket_$ccitt (0xA)
+socket_$sna (0xB)
+socket_$unspec2 (0xC)
+socket_$dds (0xD)">Family</abbr>
 - 56 bit Node</pre></p>
 
 <h3 id="gen_uuidv2">Generate DCE Security (version 2) UUID</h3>
 
-<p><i>An UUIDv2 contains information about the creator (person/group/org), the generating system (MAC address), and time.
+<p><i>An UUIDv2 contains information about the creator (person, group, or organization), the generating system (MAC address), and time.
 The creator information replaced parts of the time bits, therefore the time resolution is very low.</i></p>
 
 <p><a id="uuidv2_info_button" href="javascript:show_uuidv2_info()">Show format</a>
@@ -255,12 +268,15 @@ function show_uuidv2_info() {
 </script>
 <pre id="uuidv2_info" style="display:none">Variant 1, Version 2 UUID:
 - 32 bit Local Domain Number
-- 16 bit Mid Time
+- 16 bit Mid <abbr title="Count of 429.4967296s intervals passed since 15 Oct 1582 00:00:00 GMT">Time</abbr>
 -  4 bit Version (fix 0x2)
-- 12 bit High Time
+- 12 bit High <abbr title="Count of 429.4967296s intervals passed since 15 Oct 1582 00:00:00 GMT">Time</abbr>
 -  2 bit Variant (fix 0b10)
 -  6 bit Clock Sequence
--  8 bit Local Domain
+-  8 bit <abbr title="0 = person
+1 = group
+2 = org
+3-255 = site-defined">Local Domain</abbr>
 - 48 bit MAC Address</pre></p>
 
 <form method="GET" action="interprete_uuid.php">
@@ -272,7 +288,7 @@ function show_uuidv2_info() {
 		<option value="site">Site-defined</option>
 	</select> = <input type="number" min="0" max="255" name="dce_domain" value="" id="dce_domain" style="width:50px" pattern="[0-9]+"> (decimal notation)<br>
 	<label>Value (32&nbsp;bits):</label><input type="number" min="0" max="4294967295" name="dce_id" value="0" id="dce_id" style="width:200px" pattern="[0-9]+"> (decimal notation)<br>
-	<font color="red">Warning</font>: The timestamp has an accuracy of approx. 7 minutes,
+	<font color="red">Warning</font>: The timestamp has an accuracy of 7:10 minutes,
 	therefore the uniqueness of these UUIDs is not guaranteed!<br><br>
 	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create UUID">
 </form>
@@ -418,7 +434,7 @@ nb_ns_choose();
 
 <h3 id="gen_uuidv8">Generate Custom (version 8) UUID</h3>
 
-<p><i>UUIDv8 can contain 122 application-specific / custom data. The other 6 bits are used to specify the variant and version of the UUID, to make them RFC-compatible.</i></p>
+<p><i>UUIDv8 is made of 122 bits application-specific / custom data. The other 6 bits are used to specify the variant and version of the UUID, to make it RFC-compatible.</i></p>
 
 <p><a id="uuidv8_info_button" href="javascript:show_uuidv8_info()">Show format</a>
 <script>
