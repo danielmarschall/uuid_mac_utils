@@ -40,7 +40,7 @@ $mac = isset($_GET['mac']) ? trim($_GET['mac']) : '';
 <?php
 
 echo '<form method="GET" action="interprete_mac.php">';
-echo '	<input type="text" name="mac" value="'.htmlentities($mac).'" style="width:250px"> <input type="submit" value="Interprete">';
+echo '	MAC: <input type="text" name="mac" value="'.htmlentities($mac).'" style="width:250px"> <input type="submit" value="Interprete">';
 echo '</form>';
 
 echo '<pre>';

@@ -48,7 +48,7 @@ if ($uuid == 'CREATE') {
 
 if ($uuid != 'CREATE') {
 	echo '<form method="GET" action="interprete_uuid.php">';
-	echo '	<input type="text" name="uuid" value="'.htmlentities($uuid).'" style="width:300px"> <input type="submit" value="Interprete">';
+	echo '	UUID: <input style="font-family:Courier,Courier New,Serif;width:325px" type="text" name="uuid" value="'.htmlentities($uuid).'"> <input type="submit" value="Interprete">';
 	echo '</form>';
 } else if (($version!=3) && ($version!=5) && ($version!=8)) {
 	echo '<p><i>Reload the page to receive another UUID.</i></p>';

@@ -26,7 +26,7 @@ if (file_exists(__DIR__ . '/gmp_supplement.inc.php')) include_once __DIR__ . '/g
 const UUID_NAMEBASED_NS_DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'; // FQDN
 const UUID_NAMEBASED_NS_URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
 const UUID_NAMEBASED_NS_OID = '6ba7b812-9dad-11d1-80b4-00c04fd430c8';
-const UUID_NAMEBASED_NS_X500_DN = '6ba7b814-9dad-11d1-80b4-00c04fd430c8'; // DER according to https://github.com/cjsv/uuid/blob/master/Doc ?!
+const UUID_NAMEBASED_NS_X500_DN = '6ba7b814-9dad-11d1-80b4-00c04fd430c8'; // "DER or text encoding" according to RFC4122bis
 
 function _random_int($min, $max) {
 	// This function tries a CSRNG and falls back to a RNG if no CSRNG is available
@@ -140,8 +140,17 @@ function uuid_info($uuid, $echo=true) {
 			$family_dec = hexdec($family_hex);
 			$nodeid_hex = substr($uuid, 18, 14);
 			$nodeid_dec = hexdec($nodeid_hex);
-			if ($family_dec == 2) {
-				$family_name = 'IP';
+			// List of families taken from: https://github.com/uuid6/uuid6-ietf-draft/issues/26#issuecomment-1062164457
+			if ($family_dec == 0) {
+				$family_name = 'socket_$unspec';
+				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+			}
+			else if ($family_dec == 1) {
+				$family_name = 'socket_$unix';
+				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+			}
+			else if ($family_dec == 2) {
+				$family_name = 'socket_$internet (TCP/IP)';
 				// https://www.ibm.com/docs/en/aix/7.1?topic=u-uuid-gen-command-ncs (AIX 7.1) shows the following example output for /etc/ncs/uuid_gen -P
 				// := [
 				//    time_high := 16#458487df,
@@ -158,8 +167,49 @@ function uuid_info($uuid, $echo=true) {
 				               hexdec(substr($nodeid_hex,6,2));
 				$rest = substr($nodeid_hex,8,6);
 				if ($rest != '000000') $nodeid_desc .= " + unexpected rest 0x$rest";
-			} else if ($family_dec == 13) {
-				$family_name = 'DDS (Data Link)';
+			}
+			else if ($family_dec == 3) {
+				$family_name = 'socket_$implink';
+				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+			}
+			else if ($family_dec == 4) {
+				$family_name = 'socket_$pup';
+				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+			}
+			else if ($family_dec == 5) {
+				$family_name = 'socket_$chaos';
+				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+			}
+			else if ($family_dec == 6) {
+				$family_name = 'socket_$ns';
+				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+			}
+			else if ($family_dec == 7) {
+				$family_name = 'socket_$nbs';
+				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+			}
+			else if ($family_dec == 8) {
+				$family_name = 'socket_$ecma';
+				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+			}
+			else if ($family_dec == 9) {
+				$family_name = 'socket_$datakit';
+				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+			}
+			else if ($family_dec == 10) {
+				$family_name = 'socket_$ccitt';
+				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+			}
+			else if ($family_dec == 11) {
+				$family_name = 'socket_$sna';
+				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+			}
+			else if ($family_dec == 12) {
+				$family_name = 'socket_$unspec2';
+				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+			}
+			else if ($family_dec == 13) {
+				$family_name = 'socket_$dds (Data Link)';
 				// https://www.ibm.com/docs/en/aix/7.1?topic=u-uuid-gen-command-ncs (AIX 7.1) shows the following example output for /etc/ncs/uuid_gen -C
 				// = { 0x34dc23af,
 				//    0xf000,
