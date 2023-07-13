@@ -163,7 +163,7 @@ function uuid_info($uuid, $echo=true) {
 			else if ($family_dec == 2) {
 				# Microsoft's AdressFamily: InterNetwork	2	Address for IP version 4.
 				# AIX 3.0 Manual:  2   ip = Internet Protocols
-				$family_name = 'socket_$internet (Internet Protocols V4)';
+				$family_name = 'socket_$internet (Internet Protocols, e.g. IPv4)';
 				// https://www.ibm.com/docs/en/aix/7.1?topic=u-uuid-gen-command-ncs (AIX 7.1) shows the following example output for /etc/ncs/uuid_gen -P
 				// := [
 				//    time_high := 16#458487df,
@@ -776,11 +776,6 @@ function gen_uuid_timebased($force_php_implementation=false) {
 
 	# If we hadn't any success yet, then implement the time based generation routine ourselves!
 	# Based on https://github.com/fredriklindberg/class.uuid.php/blob/master/class.uuid.php
-	// TODO: There seems to be a bug in the pure PHP implementation. Sometimes I receive a Microsoft-Reserved (Variant 2) UUID!
-	//       5f6f0de6-2118-11ee-c04f-3c4a92df8582
-	//       But it should be like:
-	//       9539b548-2118-11ee-981d-3c4a92df8582 or
-	//       9cb20d7a-2118-11ee-b258-3c4a92df8582
 
 	$uuid = array(
 		'time_low' => 0,		/* 32-bit */
@@ -819,7 +814,7 @@ function gen_uuid_timebased($force_php_implementation=false) {
 	 * We don't support saved state information and generate
 	 * a random clock sequence each time.
 	 */
-	$uuid['clock_seq_hi'] = 0x80 | _random_int(0, 64);
+	$uuid['clock_seq_hi'] = _random_int(0, 255) & 0b00111111 | 0b10000000; // set variant to 0b10__ (RFC 4122)
 	$uuid['clock_seq_low'] = _random_int(0, 255);
 
 	/*
