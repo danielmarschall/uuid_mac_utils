@@ -58,6 +58,12 @@ function uuid_valid($uuid) {
 	return ($uuid == '');
 }
 
+function uuid_version($uuid) {
+	$uuid = uuid_canonize($uuid);
+	if (!$uuid) return false;
+	return substr($uuid, 19, 1);
+}
+
 function uuid_info($uuid, $echo=true) {
 	if (!uuid_valid($uuid)) return false;
 
@@ -939,12 +945,12 @@ function gen_uuid_random() {
 	# On Windows: Requires
 	#    extension_dir = "C:\php-8.0.3-nts-Win32-vs16-x64\ext"
 	#    extension=com_dotnet
-	// TODO: can we trust that com_create_guid() always outputs UUIDv4?
-	/*
 	if (function_exists('com_create_guid')) {
-		return strtolower(trim(com_create_guid(), '{}'));
+		$uuid = trim(com_create_guid(), '{}');
+		if (uuid_version($uuid) === '4') { // <-- just to make 100% sure that Windows's CoCreateGuid() did output UUIDv4
+			return strtolower($uuid);
+		}
 	}
-	*/
 
 	# On Debian: apt-get install php-uuid
 	# extension_loaded('uuid')
@@ -975,14 +981,23 @@ function gen_uuid_random() {
 	}
 
 	# Make the UUID by ourselves
-	# Source: http://rogerstringer.com/2013/11/15/generate-uuids-php
-	return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-		_random_int( 0, 0xffff ), _random_int( 0, 0xffff ),
-		_random_int( 0, 0xffff ),
-		_random_int( 0, 0x0fff ) | 0x4000,
-		_random_int( 0, 0x3fff ) | 0x8000,
-		_random_int( 0, 0xffff ), _random_int( 0, 0xffff ), _random_int( 0, 0xffff )
-	);
+
+	if (function_exists('openssl_random_pseudo_bytes')) {
+		// Source: https://www.php.net/manual/en/function.com-create-guid.php#119168
+		$data = openssl_random_pseudo_bytes(16);
+		$data[6] = chr(ord($data[6]) & 0x0f | 0x40);    // set version to 0100
+		$data[8] = chr(ord($data[8]) & 0x3f | 0x80);    // set bits 6-7 to 10
+		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+	} else {
+		// Source: http://rogerstringer.com/2013/11/15/generate-uuids-php
+		return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+			_random_int( 0, 0xffff ), _random_int( 0, 0xffff ),
+			_random_int( 0, 0xffff ),
+			_random_int( 0, 0x0fff ) | 0x4000,
+			_random_int( 0, 0x3fff ) | 0x8000,
+			_random_int( 0, 0xffff ), _random_int( 0, 0xffff ), _random_int( 0, 0xffff )
+		);
+	}
 }
 
 # --------------------------------------
