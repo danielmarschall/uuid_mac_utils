@@ -90,6 +90,7 @@ try {
 		echo 'This is not a valid UUID.';
 	} else {
 		$oid = uuid_to_oid($uuid);
+		// TODO: This information should be in uuid_info()
 		echo sprintf("%-32s %s\n", "Your input:", $uuid);
 		echo "\n";
 		echo sprintf("%-32s %s\n", "URN:", 'urn:uuid:' . strtolower(oid_to_uuid(uuid_to_oid($uuid))));
@@ -100,7 +101,7 @@ try {
 		echo sprintf("%-32s %s\n", "As OID:", $oid);
 		echo sprintf("%-32s %s\n", "DER encoding of OID:", OidDerConverter::hexarrayToStr(OidDerConverter::oidToDER($oid)));
 		echo "\n";
-		echo "Interpration of the UUID:\n\n";
+		echo "<u>Interpration of the UUID:</u>\n\n";
 		uuid_info($uuid);
 	}
 } catch (Exception $e) {

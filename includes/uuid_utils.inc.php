@@ -345,6 +345,7 @@ function uuid_info($uuid, $echo=true) {
 					$x = hexdec(substr($uuid, 16, 4));
 					$dec = $x & 0x3FFF; // The highest 2 bits are used by "variant" (10x)
 					$hex = substr($uuid, 16, 4);
+					$hex = '<abbr title="The highest 2 bits are used by "variant" (10xx)">'.$hex[0].'</abbr>'.substr($hex,1);
 					echo sprintf("%-32s %s\n", "Clock ID:", "[0x$hex] $dec");
 
 					$x = substr($uuid, 20, 12);
@@ -356,7 +357,7 @@ function uuid_info($uuid, $echo=true) {
 					$nodeid = strtoupper($nodeid);
 					echo sprintf("%-32s %s\n", "Node ID:", "[0x$x] $nodeid");
 
-					echo "\nIn case that this Node ID is a MAC address, here is the interpretation of that MAC address:\n\n";
+					echo "\n<u>In case that this Node ID is a MAC address, here is the interpretation of that MAC address:</u>\n\n";
 					decode_mac(strtoupper($nodeid));
 
 					break;
@@ -379,8 +380,8 @@ function uuid_info($uuid, $echo=true) {
 
 					# The clock_seq_low field (which represents an integer in the range [0, 28-1]) is interpreted as a local domain (as represented by sec_rgy_domain_t; see sec_rgy_domain_t ); that is, an identifier domain meaningful to the local host. (Note that the data type sec_rgy_domain_t can potentially hold values outside the range [0, 28-1]; however, the only values currently registered are in the range [0, 2], so this type mismatch is not significant.) In the particular case of a POSIX host, the value sec_rgy_domain_person is to be interpreted as the "POSIX UID domain", and the value sec_rgy_domain_group is to be interpreted as the "POSIX GID domain".
 					$x = substr($uuid, 18, 2);
-					if ($x == '00') $domain_info = 'Person (POSIX: User-ID)';
-					else if ($x == '01') $domain_info = 'Group (POSIX: Group-ID)';
+					if ($x == '00') $domain_info = 'Person (e.g. POSIX UID)';
+					else if ($x == '01') $domain_info = 'Group (e.g. POSIX GID)';
 					else if ($x == '02') $domain_info = 'Organization';
 					else $domain_info = 'site-defined (Domain '.hexdec($x).')';
 					echo sprintf("%-32s %s\n", "Local Domain:", "[0x$x] $domain_info");
@@ -416,6 +417,7 @@ function uuid_info($uuid, $echo=true) {
 					$x = hexdec(substr($uuid, 16, 2));
 					$dec = $x & 0x3F; // The highest 2 bits are used by "variant" (10xx)
 					$hex = substr($uuid, 16, 2);
+					$hex = '<abbr title="The highest 2 bits are used by "variant" (10xx)">'.$hex[0].'</abbr>'.substr($hex,1);
 					echo sprintf("%-32s %s\n", "Clock ID:", "[0x$hex] $dec");
 
 					$x = substr($uuid, 20, 12);
@@ -427,7 +429,7 @@ function uuid_info($uuid, $echo=true) {
 					$nodeid = strtoupper($nodeid);
 					echo sprintf("%-32s %s\n", "Node ID:", "[0x$x] $nodeid");
 
-					echo "\nIn case that this Node ID is a MAC address, here is the interpretation of that MAC address:\n\n";
+					echo "\n<u>In case that this Node ID is a MAC address, here is the interpretation of that MAC address:</u>\n\n";
 					decode_mac(strtoupper($nodeid));
 
 					break;
@@ -453,9 +455,9 @@ function uuid_info($uuid, $echo=true) {
 					$var16d = strtoupper(dechex(hexdec($hash[16]) & 0b0011 | 0b1100));
 					$hash[16] = '?'; // was partially overwritten by variant
 
+					$p = 16;
+					$hash = substr($hash,0,$p)."<abbr title=\"$var16a, $var16b, $var16c, or $var16d\">".substr($hash,$p,1).'</abbr>'.substr($hash,$p+1);
 					echo sprintf("%-32s %s\n", "MD5(Namespace+Subject):", "[0x$hash]");
-					echo sprintf("%-32s %s\n", "", "                   ^");
-					echo sprintf("%-32s %s\n", "", "                   $var16a, $var16b, $var16c, or $var16d");
 
 					break;
 				case 4:
@@ -501,9 +503,10 @@ function uuid_info($uuid, $echo=true) {
 					$var16c = strtoupper(dechex(hexdec($rand_bytes[16]) & 0b0011 | 0b1000));
 					$var16d = strtoupper(dechex(hexdec($rand_bytes[16]) & 0b0011 | 0b1100));
 					$rand_bytes[16] = '?'; // was partially overwritten by variant
+
+					$p = 16;
+					$rand_bytes = substr($rand_bytes,0,$p)."<abbr title=\"$var16a, $var16b, $var16c, or $var16d\">".substr($rand_bytes,$p,1).'</abbr>'.substr($rand_bytes,$p+1);
 					echo sprintf("%-32s %s\n", "Random bytes:", "[0x$rand_bytes]");
-					echo sprintf("%-32s %s\n", "", "                   ^");
-					echo sprintf("%-32s %s\n", "", "                   $var16a, $var16b, $var16c, or $var16d");
 
 					break;
 				case 5:
@@ -530,9 +533,9 @@ function uuid_info($uuid, $echo=true) {
 
 					$hash .= '????????'; // was cut off
 
+					$p = 16;
+					$hash = substr($hash,0,$p)."<abbr title=\"$var16a, $var16b, $var16c, or $var16d\">".substr($hash,$p,1).'</abbr>'.substr($hash,$p+1);
 					echo sprintf("%-32s %s\n", "SHA1(Namespace+Subject):", "[0x$hash]");
-					echo sprintf("%-32s %s\n", "", "                   ^");
-					echo sprintf("%-32s %s\n", "", "                   $var16a, $var16b, $var16c, or $var16d");
 
 					break;
 				case 7:
@@ -585,9 +588,10 @@ function uuid_info($uuid, $echo=true) {
 					$var16c = strtoupper(dechex(hexdec($rand_bytes[3]) & 0b0011 | 0b1000));
 					$var16d = strtoupper(dechex(hexdec($rand_bytes[3]) & 0b0011 | 0b1100));
 					$rand_bytes[3] = '?'; // was partially overwritten by variant
+
+					$p = 3;
+					$rand_bytes = substr($rand_bytes,0,$p)."<abbr title=\"$var16a, $var16b, $var16c, or $var16d\">".substr($rand_bytes,$p,1).'</abbr>'.substr($rand_bytes,$p+1);
 					echo sprintf("%-32s %s\n", "Random bytes:", "[0x$rand_bytes]");
-					echo sprintf("%-32s %s\n", "", "      ^");
-					echo sprintf("%-32s %s\n", "", "      $var16a, $var16b, $var16c, or $var16d");
 
 					// TODO: convert to and from Base32 CROCKFORD ULID (make 2 methods in uuid_utils.inc.php)
 					// e.g. ULID: 01GCZ05N3JFRKBRWKNGCQZGP44
