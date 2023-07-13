@@ -21,8 +21,9 @@
 # This library requires either the GMP extension (or BCMath if gmp_supplement.inc.php is present)
 // TODO: If we are on 64 bit PHP (PHP_INT_SIZE > 4), then replace GMP with normal PHP operations
 
-if (file_exists(__DIR__ . '/mac_utils.inc.phps')) include_once __DIR__ . '/mac_utils.inc.phps'; // optionally used for uuid_info()
-if (file_exists(__DIR__ . '/mac_utils.inc.php')) include_once __DIR__ . '/mac_utils.inc.php'; // optionally used for uuid_info()
+if (file_exists(__DIR__ . '/mac_utils.inc.phps')) include_once __DIR__ . '/mac_utils.inc.phps';
+if (file_exists(__DIR__ . '/mac_utils.inc.php')) include_once __DIR__ . '/mac_utils.inc.php';
+
 if (file_exists(__DIR__ . '/gmp_supplement.inc.php')) include_once __DIR__ . '/gmp_supplement.inc.php';
 
 const UUID_NAMEBASED_NS_DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'; // FQDN
@@ -355,10 +356,8 @@ function uuid_info($uuid, $echo=true) {
 					$nodeid = strtoupper($nodeid);
 					echo sprintf("%-32s %s\n", "Node ID:", "[0x$x] $nodeid");
 
-					if (function_exists('decode_mac')) {
-						echo "\nIn case that this Node ID is a MAC address, here is the interpretation of that MAC address:\n\n";
-						decode_mac(strtoupper($nodeid));
-					}
+					echo "\nIn case that this Node ID is a MAC address, here is the interpretation of that MAC address:\n\n";
+					decode_mac(strtoupper($nodeid));
 
 					break;
 				case 2:
@@ -428,10 +427,8 @@ function uuid_info($uuid, $echo=true) {
 					$nodeid = strtoupper($nodeid);
 					echo sprintf("%-32s %s\n", "Node ID:", "[0x$x] $nodeid");
 
-					if (function_exists('decode_mac')) {
-						echo "\nIn case that this Node ID is a MAC address, here is the interpretation of that MAC address:\n\n";
-						decode_mac(strtoupper($nodeid));
-					}
+					echo "\nIn case that this Node ID is a MAC address, here is the interpretation of that MAC address:\n\n";
+					decode_mac(strtoupper($nodeid));
 
 					break;
 				case 3:
@@ -843,86 +840,6 @@ function gen_uuid_timebased($force_php_implementation=false) {
 		$uuid['clock_seq_hi'], $uuid['clock_seq_low'],
 		$uuid['node'][0], $uuid['node'][1], $uuid['node'][2],
 		$uuid['node'][3], $uuid['node'][4], $uuid['node'][5]);
-}
-function get_mac_address() {
-	static $detected_mac = false;
-
-	if ($detected_mac !== false) { // false NOT null!
-		return $detected_mac;
-	}
-
-	// TODO: This method get_mac_address() should actually be part of mac_utils.inc.php, but we need it
-	//       here, and mac_utils.inc.php shall only be optional. What to do?
-	if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-		// Windows
-		$cmds = array(
-			"ipconfig /all", // faster
-			"getmac"
-		);
-		foreach ($cmds as $cmd) {
-			$out = array();
-			$ec = -1;
-			exec($cmd, $out, $ec);
-			if ($ec == 0) {
-				$out = implode("\n",$out);
-				$m = array();
-				if (preg_match("/([0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2})/ismU", $out, $m)) {
-					$detected_mac = strtolower($m[1]);
-					return $detected_mac;
-				}
-			}
-		}
-	} else if (strtoupper(PHP_OS) == 'DARWIN') {
-		// Mac OS X
-		$cmds = array(
-			"networksetup -listallhardwareports 2>/dev/null",
-			"netstat -i 2>/dev/null"
-		);
-		foreach ($cmds as $cmd) {
-			$out = array();
-			$ec = -1;
-			exec($cmd, $out, $ec);
-			if ($ec == 0) {
-				$out = implode("\n",$out);
-				$m = array();
-				if (preg_match("/([0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2})/ismU", $out, $m)) {
-					$detected_mac = $m[1];
-					return $detected_mac;
-				}
-			}
-		}
-	} else {
-		// Linux
-		$addresses = @glob('/sys/class/net/'.'*'.'/address');
-		foreach ($addresses as $x) {
-			if (!strstr($x,'/lo/')) {
-				$detected_mac = trim(file_get_contents($x));
-				if (substr(mac_type($detected_mac),0,6) == 'EUI-48') {
-					return $detected_mac;
-				}
-			}
-		}
-		$cmds = array(
-			"netstat -ie 2>/dev/null",
-			"ifconfig 2>/dev/null" // only available for root (because it is in sbin)
-		);
-		foreach ($cmds as $cmd) {
-			$out = array();
-			$ec = -1;
-			exec($cmd, $out, $ec);
-			if ($ec == 0) {
-				$out = implode("\n",$out);
-				$m = array();
-				if (preg_match("/([0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2})/ismU", $out, $m)) {
-					$detected_mac = $m[1];
-					return $detected_mac;
-				}
-			}
-		}
-	}
-
-	$detected_mac = null;
-	return $detected_mac;
 }
 
 # --------------------------------------
