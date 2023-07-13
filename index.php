@@ -218,7 +218,7 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 
 <h2 id="gen_other_uuid">Generate other UUID types</h2>
 
-<p><i>The following types of UUIDs are less common or require special knowledge. Please only use the following
+<p><i>The following types of UUIDs are less common and/or require special knowledge. Please only use the following
 generators if you know what you are doing.</i></p>
 
 <h3 id="gen_uuid_nce">NCE (variant 0) UUID</h3>

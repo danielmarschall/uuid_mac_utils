@@ -27,8 +27,8 @@ else if (file_exists($f = __DIR__ . '/mac_utils.inc.phps')) include_once $f;
 if (file_exists($f = __DIR__ . '/gmp_supplement.inc.php')) include_once $f;
 else if (file_exists($f = __DIR__ . '/gmp_supplement.inc.phps')) include_once $f;
 
-if (file_exists($f = __DIR__ . '/includes/OidDerConverter.class.php')) include_once $f;
-else if (file_exists($f = __DIR__ . '/includes/OidDerConverter.class.phps')) include_once $f;
+if (file_exists($f = __DIR__ . '/OidDerConverter.class.php')) include_once $f;
+else if (file_exists($f = __DIR__ . '/OidDerConverter.class.phps')) include_once $f;
 
 const UUID_NAMEBASED_NS_DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'; // FQDN
 const UUID_NAMEBASED_NS_URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
@@ -318,7 +318,7 @@ function uuid_info($uuid, $echo=true) {
 			} else if (($version >= 6) && ($version <= 8)) {
 				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122bis (Leach-Mealling-Peabody-Davis)");
 			} else {
-				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122 ?");
+				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122?");
 			}
 
 			switch ($version) {
@@ -333,7 +333,7 @@ function uuid_info($uuid, $echo=true) {
 					-  8 bit Clock Sequence Low
 					- 48 bit MAC Address
 					*/
-					echo sprintf("%-32s %s\n", "Version:", "[6] Reordered Time");
+					echo sprintf("%-32s %s\n", "Version:", "[0x6] Reordered Time-Based");
 					$uuid = substr($uuid,  0, 8).'-'.
 					        substr($uuid,  8, 4).'-'.
 					        substr($uuid, 12, 4).'-'.
@@ -356,7 +356,7 @@ function uuid_info($uuid, $echo=true) {
 					- 48 bit MAC Address
 					*/
 
-					if ($version == 1) echo sprintf("%-32s %s\n", "Version:", "[1] Time-based with unique host identifier");
+					if ($version == 1) echo sprintf("%-32s %s\n", "Version:", "[0x1] Time-based with unique host identifier");
 
 					# Timestamp: Count of 100ns intervals since 15 Oct 1582 00:00:00
 					# 1/0,0000001 = 10000000
@@ -404,7 +404,7 @@ function uuid_info($uuid, $echo=true) {
 
 					// see also https://unicorn-utterances.com/posts/what-happened-to-uuid-v2
 
-					echo sprintf("%-32s %s\n", "Version:", "[2] DCE Security version");
+					echo sprintf("%-32s %s\n", "Version:", "[0x2] DCE Security version");
 
 					# The clock_seq_low field (which represents an integer in the range [0, 28-1]) is interpreted as a local domain (as represented by sec_rgy_domain_t; see sec_rgy_domain_t ); that is, an identifier domain meaningful to the local host. (Note that the data type sec_rgy_domain_t can potentially hold values outside the range [0, 28-1]; however, the only values currently registered are in the range [0, 2], so this type mismatch is not significant.) In the particular case of a POSIX host, the value sec_rgy_domain_person is to be interpreted as the "POSIX UID domain", and the value sec_rgy_domain_group is to be interpreted as the "POSIX GID domain".
 					$x = substr($uuid, 18, 2);
@@ -471,7 +471,7 @@ function uuid_info($uuid, $echo=true) {
 					- 62 bit Hash Low
 					*/
 
-					echo sprintf("%-32s %s\n", "Version:", "[3] Name-based (MD5 hash)");
+					echo sprintf("%-32s %s\n", "Version:", "[0x3] Name-based (MD5 hash)");
 
 					$hash = str_replace('-', '', strtolower($uuid));
 
@@ -498,7 +498,7 @@ function uuid_info($uuid, $echo=true) {
 					- 62 bit Random Low
 					*/
 
-					echo sprintf("%-32s %s\n", "Version:", "[4] Random");
+					echo sprintf("%-32s %s\n", "Version:", "[0x4] Random");
 
 					$rand_line1 = '';
 					$rand_line2 = '';
@@ -547,7 +547,7 @@ function uuid_info($uuid, $echo=true) {
 					- 62 bit Hash Low
 					*/
 
-					echo sprintf("%-32s %s\n", "Version:", "[5] Name-based (SHA-1 hash)");
+					echo sprintf("%-32s %s\n", "Version:", "[0x5] Name-based (SHA-1 hash)");
 
 					$hash = str_replace('-', '', strtolower($uuid));
 
@@ -576,7 +576,7 @@ function uuid_info($uuid, $echo=true) {
 					- 62 bit Random
 					*/
 
-					echo sprintf("%-32s %s\n", "Version:", "[7] Unix Epoch Time");
+					echo sprintf("%-32s %s\n", "Version:", "[0x7] Unix Epoch Time");
 
 					$timestamp = substr($uuid, 0, 12);
 
@@ -636,7 +636,7 @@ function uuid_info($uuid, $echo=true) {
 					- 62 bit Custom data
 					*/
 
-					echo sprintf("%-32s %s\n", "Version:", "[8] Custom implementation");
+					echo sprintf("%-32s %s\n", "Version:", "[0x8] Custom implementation");
 
 					$custom_data = substr($uuid,0,12).substr($uuid,13); // exclude version nibble
 					$custom_data[15] = dechex(hexdec($custom_data[15]) & 0b0011); // nibble was partially overwritten by variant
@@ -660,7 +660,7 @@ function uuid_info($uuid, $echo=true) {
 
 					break;
 				default:
-					echo sprintf("%-32s %s\n", "Version:", "[$version] Unknown");
+					echo sprintf("%-32s %s\n", "Version:", "[0x".dechex($version)."] Unknown");
 					break;
 			}
 
