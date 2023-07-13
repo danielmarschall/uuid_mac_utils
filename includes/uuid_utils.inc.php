@@ -21,10 +21,14 @@
 # This library requires either the GMP extension (or BCMath if gmp_supplement.inc.php is present)
 // TODO: If we are on 64 bit PHP (PHP_INT_SIZE > 4), then replace GMP with normal PHP operations
 
-if (file_exists(__DIR__ . '/mac_utils.inc.phps')) include_once __DIR__ . '/mac_utils.inc.phps';
-if (file_exists(__DIR__ . '/mac_utils.inc.php')) include_once __DIR__ . '/mac_utils.inc.php';
+if (file_exists($f = __DIR__ . '/mac_utils.inc.php')) include_once $f;
+else if (file_exists($f = __DIR__ . '/mac_utils.inc.phps')) include_once $f;
 
-if (file_exists(__DIR__ . '/gmp_supplement.inc.php')) include_once __DIR__ . '/gmp_supplement.inc.php';
+if (file_exists($f = __DIR__ . '/gmp_supplement.inc.php')) include_once $f;
+else if (file_exists($f = __DIR__ . '/gmp_supplement.inc.phps')) include_once $f;
+
+if (file_exists($f = __DIR__ . '/includes/OidDerConverter.class.php')) include_once $f;
+else if (file_exists($f = __DIR__ . '/includes/OidDerConverter.class.phps')) include_once $f;
 
 const UUID_NAMEBASED_NS_DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'; // FQDN
 const UUID_NAMEBASED_NS_URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
@@ -56,6 +60,24 @@ function uuid_valid($uuid) {
 
 function uuid_info($uuid, $echo=true) {
 	if (!uuid_valid($uuid)) return false;
+
+	$oid = uuid_to_oid($uuid);
+
+	echo sprintf("%-32s %s\n", "Your input:", $uuid);
+	echo "\n";
+	echo "<u>Various notations:</u>\n";
+	echo "\n";
+	echo sprintf("%-32s %s\n", "URN:", 'urn:uuid:' . strtolower(oid_to_uuid(uuid_to_oid($uuid))));
+	echo sprintf("%-32s %s\n", "URI:", 'uuid:' . strtolower(oid_to_uuid(uuid_to_oid($uuid))));
+	echo sprintf("%-32s %s\n", "Microsoft GUID syntax:", '{' . strtoupper(oid_to_uuid(uuid_to_oid($uuid))) . '}');
+	echo sprintf("%-32s %s\n", "C++ struct syntax:", uuid_c_syntax($uuid));
+	echo "\n";
+	echo sprintf("%-32s %s\n", "As OID:", $oid);
+	if (class_exists('OidDerConverter')) {
+		echo sprintf("%-32s %s\n", "DER encoding of OID:", OidDerConverter::hexarrayToStr(OidDerConverter::oidToDER($oid)));
+	}
+	echo "\n";
+	echo "<u>Interpration of the UUID:</u>\n\n";
 
 	if (!$echo) ob_start();
 
