@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-07-12
+ * Version 2023-07-13
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
  */
 
 # This library requires either the GMP extension (or BCMath if gmp_supplement.inc.php is present)
+// TODO: If we are on 64 bit PHP (PHP_INT_SIZE > 4), then replace GMP with normal PHP operations
 
 if (file_exists(__DIR__ . '/mac_utils.inc.phps')) include_once __DIR__ . '/mac_utils.inc.phps'; // optionally used for uuid_info()
 if (file_exists(__DIR__ . '/gmp_supplement.inc.php')) include_once __DIR__ . '/gmp_supplement.inc.php';
@@ -446,10 +447,10 @@ function uuid_info($uuid, $echo=true) {
 
 					$hash[12] = '?'; // was overwritten by version
 
-					$var16a = strtoupper(dechex((hexdec($hash[16])&3) + 0x0/*00__*/));
-					$var16b = strtoupper(dechex((hexdec($hash[16])&3) + 0x4/*01__*/));
-					$var16c = strtoupper(dechex((hexdec($hash[16])&3) + 0x8/*10__*/));
-					$var16d = strtoupper(dechex((hexdec($hash[16])&3) + 0xC/*11__*/));
+					$var16a = strtoupper(dechex(hexdec($hash[16]) & 0b0011 | 0b0000));
+					$var16b = strtoupper(dechex(hexdec($hash[16]) & 0b0011 | 0b0100));
+					$var16c = strtoupper(dechex(hexdec($hash[16]) & 0b0011 | 0b1000));
+					$var16d = strtoupper(dechex(hexdec($hash[16]) & 0b0011 | 0b1100));
 					$hash[16] = '?'; // was partially overwritten by variant
 
 					echo sprintf("%-32s %s\n", "MD5(Namespace+Subject):", "[0x$hash]");
@@ -495,10 +496,10 @@ function uuid_info($uuid, $echo=true) {
 
 					$rand_bytes = str_replace('-', '', strtolower($uuid));
 					$rand_bytes[12] = '?'; // was overwritten by version
-					$var16a = strtoupper(dechex((hexdec($rand_bytes[16])&3) + 0x0/*00__*/));
-					$var16b = strtoupper(dechex((hexdec($rand_bytes[16])&3) + 0x4/*01__*/));
-					$var16c = strtoupper(dechex((hexdec($rand_bytes[16])&3) + 0x8/*10__*/));
-					$var16d = strtoupper(dechex((hexdec($rand_bytes[16])&3) + 0xC/*11__*/));
+					$var16a = strtoupper(dechex(hexdec($rand_bytes[16]) & 0b0011 | 0b0000));
+					$var16b = strtoupper(dechex(hexdec($rand_bytes[16]) & 0b0011 | 0b0100));
+					$var16c = strtoupper(dechex(hexdec($rand_bytes[16]) & 0b0011 | 0b1000));
+					$var16d = strtoupper(dechex(hexdec($rand_bytes[16]) & 0b0011 | 0b1100));
 					$rand_bytes[16] = '?'; // was partially overwritten by variant
 					echo sprintf("%-32s %s\n", "Random bytes:", "[0x$rand_bytes]");
 					echo sprintf("%-32s %s\n", "", "                   ^");
@@ -521,10 +522,10 @@ function uuid_info($uuid, $echo=true) {
 
 					$hash[12] = '?'; // was overwritten by version
 
-					$var16a = strtoupper(dechex((hexdec($hash[16])&3) + 0x0/*00__*/));
-					$var16b = strtoupper(dechex((hexdec($hash[16])&3) + 0x4/*01__*/));
-					$var16c = strtoupper(dechex((hexdec($hash[16])&3) + 0x8/*10__*/));
-					$var16d = strtoupper(dechex((hexdec($hash[16])&3) + 0xC/*11__*/));
+					$var16a = strtoupper(dechex(hexdec($hash[16]) & 0b0011 | 0b0000));
+					$var16b = strtoupper(dechex(hexdec($hash[16]) & 0b0011 | 0b0100));
+					$var16c = strtoupper(dechex(hexdec($hash[16]) & 0b0011 | 0b1000));
+					$var16d = strtoupper(dechex(hexdec($hash[16]) & 0b0011 | 0b1100));
 					$hash[16] = '?'; // was partially overwritten by variant
 
 					$hash .= '????????'; // was cut off
@@ -579,10 +580,10 @@ function uuid_info($uuid, $echo=true) {
 					echo sprintf("%-32s %s\n", "Random bits:", trim($rand));
 
 					$rand_bytes = substr(str_replace('-', '', strtolower($uuid)),13);
-					$var16a = strtoupper(dechex((hexdec($rand_bytes[3])&3) + 0x0/*00__*/));
-					$var16b = strtoupper(dechex((hexdec($rand_bytes[3])&3) + 0x4/*01__*/));
-					$var16c = strtoupper(dechex((hexdec($rand_bytes[3])&3) + 0x8/*10__*/));
-					$var16d = strtoupper(dechex((hexdec($rand_bytes[3])&3) + 0xC/*11__*/));
+					$var16a = strtoupper(dechex(hexdec($rand_bytes[3]) & 0b0011 | 0b0000));
+					$var16b = strtoupper(dechex(hexdec($rand_bytes[3]) & 0b0011 | 0b0100));
+					$var16c = strtoupper(dechex(hexdec($rand_bytes[3]) & 0b0011 | 0b1000));
+					$var16d = strtoupper(dechex(hexdec($rand_bytes[3]) & 0b0011 | 0b1100));
 					$rand_bytes[3] = '?'; // was partially overwritten by variant
 					echo sprintf("%-32s %s\n", "Random bytes:", "[0x$rand_bytes]");
 					echo sprintf("%-32s %s\n", "", "      ^");
@@ -606,7 +607,7 @@ function uuid_info($uuid, $echo=true) {
 					echo sprintf("%-32s %s\n", "Version:", "[8] Custom implementation");
 
 					$custom_data = substr($uuid,0,12).substr($uuid,13); // exclude version nibble
-					$custom_data[15] = dechex(hexdec($custom_data[15])&3); // nibble was partially overwritten by variant
+					$custom_data[15] = dechex(hexdec($custom_data[15]) & 0b0011); // nibble was partially overwritten by variant
 					$custom_data = strtolower($custom_data);
 
 					$custom_block1 = substr($uuid,  0, 8);
@@ -616,7 +617,7 @@ function uuid_info($uuid, $echo=true) {
 					$custom_block5 = substr($uuid, 20);
 
 					$custom_block3 = substr($custom_block3, 1); // remove version
-					$custom_block4[0] = dechex(hexdec($custom_block4[0])&3); // remove variant
+					$custom_block4[0] = dechex(hexdec($custom_block4[0]) & 0b0011); // remove variant
 
 					echo sprintf("%-32s %s\n", "Custom data:", "[0x$custom_data]");
 					echo sprintf("%-32s %s\n", "Custom block1 (32 bit):", "[0x$custom_block1]");
@@ -789,15 +790,24 @@ function gen_uuid_timebased() {
 	 * is the offset between UNIX epoch and the UUID UTC
 	 * time base October 15, 1582.
 	 */
-	usleep(1000); // Wait 1ms, to make sure that the time part changes if multiple UUIDs are generated
+	if (time_nanosleep(0,100) !== true) usleep(1); // Wait 100ns, to make sure that the time part changes if multiple UUIDs are generated
 	$tp = gettimeofday();
-	$time = ($tp['sec'] * 10000000) + ($tp['usec'] * 10) + 0x01B21DD213814000;
-
-	$uuid['time_low'] = $time & 0xffffffff;
-	/* Work around PHP 32-bit bit-operation limits */
-	$high = intval($time / 0xffffffff);
-	$uuid['time_mid'] = $high & 0xffff;
-	$uuid['time_hi'] = (($high >> 16) & 0xfff) | (1/*TimeBased*/ << 12);
+	if (PHP_INT_SIZE == 4) {
+		$tp['sec'] = gmp_init($tp['sec'],10);
+		$tp['usec'] = gmp_init($tp['usec'],10);
+		$time = gmp_add(gmp_add(gmp_mul($tp['sec'], gmp_init('10000000',10)),gmp_mul($tp['usec'], gmp_init('10',10))),gmp_init('01B21DD213814000',16));
+		$uuid['time_low'] = gmp_and($time, gmp_init('ffffffff',16));
+		$high = gmp_shiftr($time,32);
+		$uuid['time_mid'] = gmp_and($high, gmp_init('ffff',16));
+		$uuid['time_hi'] = intval(gmp_and(gmp_shiftr($high,16),gmp_init('fff',16)),10) | (1/*TimeBased*/ << 12);
+	} else {
+		$time = ($tp['sec'] * 10000000) + ($tp['usec'] * 10) + 0x01B21DD213814000;
+		$uuid['time_low'] = $time & 0xffffffff;
+		/* Work around PHP 32-bit bit-operation limits */
+		$high = intval($time / 0xffffffff);
+		$uuid['time_mid'] = $high & 0xffff;
+		$uuid['time_hi'] = (($high >> 16) & 0xfff) | (1/*TimeBased*/ << 12);
+	}
 
 	/*
 	 * We don't support saved state information and generate
@@ -960,7 +970,7 @@ function gen_uuid_md5_namebased($namespace_uuid, $name) {
 
 	$hash = md5($namespace_uuid.$name);
 	$hash[12] = '3'; // Set version: 3 = MD5
-	$hash[16] = dechex(hexdec($hash[16]) & 0x3 | 0x8); // Set variant to "10xx" (RFC4122)
+	$hash[16] = dechex(hexdec($hash[16]) & 0b0011 | 0b1000); // Set variant to "10xx" (RFC4122)
 
 	return substr($hash,  0, 8).'-'.
 	       substr($hash,  8, 4).'-'.
@@ -1042,7 +1052,7 @@ function gen_uuid_sha1_namebased($namespace_uuid, $name) {
 
 	$hash = sha1($namespace_uuid.$name);
 	$hash[12] = '5'; // Set version: 5 = SHA1
-	$hash[16] = dechex(hexdec($hash[16]) & 0x3 | 0x8); // Set variant to "0b10__" (RFC4122/DCE1.1)
+	$hash[16] = dechex(hexdec($hash[16]) & 0b0011 | 0b1000); // Set variant to "0b10__" (RFC4122/DCE1.1)
 
 	return substr($hash,  0, 8).'-'.
 	       substr($hash,  8, 4).'-'.
@@ -1148,7 +1158,7 @@ function gen_uuid_custom($block1_32bit, $block2_16bit, $block3_12bit, $block4_14
 	$block5 = str_pad(substr($block5_48bit,-12), 12, '0', STR_PAD_LEFT);
 
 	$block3[0] = '8'; // Version 8 = Custom
-	$block4[0] = dechex((hexdec($block4[0])&3) + 0b1000); // Variant 0b10__ = RFC4122
+	$block4[0] = dechex(hexdec($block4[0]) & 0b0011 | 0b1000); // Variant 0b10__ = RFC4122
 
 	return strtolower($block1.'-'.$block2.'-'.$block3.'-'.$block4.'-'.$block5);
 }
@@ -1156,14 +1166,26 @@ function gen_uuid_custom($block1_32bit, $block2_16bit, $block3_12bit, $block4_14
 # --------------------------------------
 
 // http://php.net/manual/de/function.hex2bin.php#113057
-if ( !function_exists( 'hex2bin' ) ) {
-    function hex2bin( $str ) {
+if (!function_exists('hex2bin')) {
+    function hex2bin($str) {
         $sbin = "";
-        $len = strlen( $str );
+        $len = strlen($str);
         for ( $i = 0; $i < $len; $i += 2 ) {
-            $sbin .= pack( "H*", substr( $str, $i, 2 ) );
+            $sbin .= pack("H*", substr($str, $i, 2));
         }
-
         return $sbin;
+    }
+}
+
+// https://stackoverflow.com/questions/72127764/shift-right-left-bitwise-operators-in-php7-gmp-extension
+if (!function_exists('gmp_shiftl')) {
+    function gmp_shiftl($x,$n) { // shift left
+        return(gmp_mul($x,gmp_pow(2,$n)));
+    }
+}
+
+if (!function_exists('gmp_shiftr')) {
+    function gmp_shiftr($x,$n) { // shift right
+        return(gmp_div_q($x,gmp_pow(2,$n)));
     }
 }
