@@ -22,6 +22,7 @@
 // TODO: If we are on 64 bit PHP (PHP_INT_SIZE > 4), then replace GMP with normal PHP operations
 
 if (file_exists(__DIR__ . '/mac_utils.inc.phps')) include_once __DIR__ . '/mac_utils.inc.phps'; // optionally used for uuid_info()
+if (file_exists(__DIR__ . '/mac_utils.inc.php')) include_once __DIR__ . '/mac_utils.inc.php'; // optionally used for uuid_info()
 if (file_exists(__DIR__ . '/gmp_supplement.inc.php')) include_once __DIR__ . '/gmp_supplement.inc.php';
 
 const UUID_NAMEBASED_NS_DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'; // FQDN
@@ -749,10 +750,10 @@ function gen_uuid($prefer_mac_address_based = true) {
 function gen_uuid_v1() {
 	return gen_uuid_timebased();
 }
-function gen_uuid_timebased() {
+function gen_uuid_timebased($force_php_implementation=false) {
 	# On Debian: apt-get install php-uuid
 	# extension_loaded('uuid')
-	if (function_exists('uuid_create')) {
+	if (!$force_php_implementation && function_exists('uuid_create')) {
 		# OSSP uuid extension like seen in php5-uuid at Debian 8
 		/*
 		$x = uuid_create($context);
@@ -766,7 +767,7 @@ function gen_uuid_timebased() {
 	}
 
 	# On Debian: apt-get install uuid-runtime
-	if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
+	if (!$force_php_implementation && strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
 		$out = array();
 		$ec = -1;
 		exec('uuidgen -t 2>/dev/null', $out, $ec);
@@ -775,6 +776,11 @@ function gen_uuid_timebased() {
 
 	# If we hadn't any success yet, then implement the time based generation routine ourselves!
 	# Based on https://github.com/fredriklindberg/class.uuid.php/blob/master/class.uuid.php
+	// TODO: There seems to be a bug in the pure PHP implementation. Sometimes I receive a Microsoft-Reserved (Variant 2) UUID!
+	//       5f6f0de6-2118-11ee-c04f-3c4a92df8582
+	//       But it should be like:
+	//       9539b548-2118-11ee-981d-3c4a92df8582 or
+	//       9cb20d7a-2118-11ee-b258-3c4a92df8582
 
 	$uuid = array(
 		'time_low' => 0,		/* 32-bit */
@@ -825,20 +831,27 @@ function gen_uuid_timebased() {
 		for ($i = 0; $i < 6; $i++) {
 			$uuid['node'][$i] = hexdec(substr($node, $i*2, 2));
 		}
-
-		/*
-		 * Now output the UUID
-		 */
-		return sprintf(
-			'%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x',
-			($uuid['time_low']), ($uuid['time_mid']), ($uuid['time_hi']),
-			$uuid['clock_seq_hi'], $uuid['clock_seq_low'],
-			$uuid['node'][0], $uuid['node'][1], $uuid['node'][2],
-			$uuid['node'][3], $uuid['node'][4], $uuid['node'][5]);
+	} else {
+		// If we cannot get a MAC address, then generate a random AAI
+		for ($i=0; $i<6; $i++) {
+			$val = _random_int(0x00, 0xFF);
+			if ($i == 0) {
+				// Make it an AAI
+				$val = $val & 0xF0 | 0x02;
+			}
+			$uuid['node'][$i] = $val;
+		}
 	}
 
-	# We cannot generate the timebased UUID!
-	return false;
+	/*
+	 * Now output the UUID
+	 */
+	return sprintf(
+		'%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x',
+		($uuid['time_low']), ($uuid['time_mid']), ($uuid['time_hi']),
+		$uuid['clock_seq_hi'], $uuid['clock_seq_low'],
+		$uuid['node'][0], $uuid['node'][1], $uuid['node'][2],
+		$uuid['node'][3], $uuid['node'][4], $uuid['node'][5]);
 }
 function get_mac_address() {
 	static $detected_mac = false;
@@ -847,7 +860,7 @@ function get_mac_address() {
 		return $detected_mac;
 	}
 
-	// TODO: This should actually be part of mac_utils.inc.php, but we need it
+	// TODO: This method get_mac_address() should actually be part of mac_utils.inc.php, but we need it
 	//       here, and mac_utils.inc.php shall only be optional. What to do?
 	if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
 		// Windows
@@ -893,7 +906,10 @@ function get_mac_address() {
 		foreach ($addresses as $x) {
 			if (!strstr($x,'/lo/')) {
 				$detected_mac = trim(file_get_contents($x));
-				return $detected_mac;
+				// TODO: mac_type() requires mac_utils!!!
+				if (substr(mac_type($detected_mac),0,6) == 'EUI-48') {
+					return $detected_mac;
+				}
 			}
 		}
 		$cmds = array(
