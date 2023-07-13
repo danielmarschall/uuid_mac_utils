@@ -3,7 +3,7 @@
 /*
  * MAC (EUI-48 and EUI-64) utils for PHP
  * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-07-11
+ * Version 2023-07-13
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,36 @@
 // - https://en.m.wikipedia.org/wiki/Organizationally_unique_identifier
 
 const IEEE_MAC_REGISTRY = __DIR__ . '/../web-data';
+
+if (!function_exists('_random_int')) {
+	function _random_int($min, $max) {
+		// This function tries a CSRNG and falls back to a RNG if no CSRNG is available
+		try {
+			return random_int($min, $max);
+		} catch (Exception $e) {
+			return mt_rand($min, $max);
+		}
+	}
+}
+
+/**
+ * Generates a random new AAI.
+ * @param int $bits Must be 48 or 64
+ * @param bool $multicast Should it be multicast?
+ */
+function gen_aai(int $bits, bool $multicast): string {
+	if (($bits != 48) && ($bits != 64)) throw new Exception("Invalid bits for gen_aai(). Must be 48 or 64.");
+	$bytes = [];
+	for ($i=0; $i<($bits==48?6:8); $i++) {
+		$val = _random_int(0x00, 0xFF);
+		if ($i == 0) {
+			// Make it an AAI
+			$val = $val & 0xF0 | ($multicast ? 0x03 : 0x02);
+		}
+		$bytes[] = sprintf('%02x',$val);
+	}
+	return strtoupper(implode('-',$bytes));
+}
 
 /**
  * Checks if a MAC, EUI, ELI, AAI, SAI, or IPv6-Link-Local address is valid

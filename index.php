@@ -54,7 +54,9 @@ const AUTO_NEW_UUIDS = 10;
             <li><a href="#gen_uuidv8">Generate Custom (version 8) UUID</a></li>
         </ul></li>
     <li><a href="#interpret_uuid">Interpret a UUID</a></li>
-    <li><a href="#interpret_mac">Interpret a MAC address (MAC / EUI / ELI / SAI / AAI)</a></li>
+    <li><a href="#interpret_mac">Interpret a MAC address (MAC / EUI / ELI / SAI / AAI)</a><ul>
+        <li><a href="#gen_aai">Generate an AAI</a></li>
+    </ul></li>
 </ul>
 
 <h2 id="gen_uuid">Generate random and/or time-based UUIDs</h2>
@@ -514,6 +516,46 @@ function show_uuidv8_info() {
 <form method="GET" action="interprete_mac.php">
 	<input type="text" name="mac" value="" style="width:250px"> <input type="submit" value="Interprete">
 </form>
+
+<h3 id="gen_aai">Generate an AAI</h3>
+
+<p><i>An Administratively Assigned Identifier (AAI) is a MAC address which can be locally defined
+by applications or an administrator. Unlike the EUI, an AAI is NOT worldwide unique.</i></p>
+
+<form method="GET" action="interprete_mac.php">
+    <input type="hidden" name="aai_gen" value="1">
+    <input type="hidden" name="aai_gen_bits" value="48">
+    <input type="hidden" name="aai_gen_multicast" value="0">
+    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Generate AAI-48">
+</form>
+
+<br>
+
+<form method="GET" action="interprete_mac.php">
+    <input type="hidden" name="aai_gen" value="1">
+    <input type="hidden" name="aai_gen_bits" value="64">
+    <input type="hidden" name="aai_gen_multicast" value="0">
+    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Generate AAI-64">
+</form>
+
+<p>The following options are rather unusual, but are implemented for the sake of completeness:</p>
+
+<form method="GET" action="interprete_mac.php">
+    <input type="hidden" name="aai_gen" value="1">
+    <input type="hidden" name="aai_gen_bits" value="48">
+    <input type="hidden" name="aai_gen_multicast" value="1">
+    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Generate Multicast AAI-48">
+</form>
+
+<br>
+
+<form method="GET" action="interprete_mac.php">
+    <input type="hidden" name="aai_gen" value="1">
+    <input type="hidden" name="aai_gen_bits" value="64">
+    <input type="hidden" name="aai_gen_multicast" value="1">
+    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Generate Multicast AAI-64">
+</form>
+
 
 <br><br><br>
 

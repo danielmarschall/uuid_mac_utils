@@ -30,12 +30,14 @@ const UUID_NAMEBASED_NS_URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
 const UUID_NAMEBASED_NS_OID = '6ba7b812-9dad-11d1-80b4-00c04fd430c8';
 const UUID_NAMEBASED_NS_X500_DN = '6ba7b814-9dad-11d1-80b4-00c04fd430c8'; // "DER or text encoding" according to RFC4122bis
 
-function _random_int($min, $max) {
-	// This function tries a CSRNG and falls back to a RNG if no CSRNG is available
-	try {
-		return random_int($min, $max);
-	} catch (Exception $e) {
-		return mt_rand($min, $max);
+if (!function_exists('_random_int')) {
+	function _random_int($min, $max) {
+		// This function tries a CSRNG and falls back to a RNG if no CSRNG is available
+		try {
+			return random_int($min, $max);
+		} catch (Exception $e) {
+			return mt_rand($min, $max);
+		}
 	}
 }
 
@@ -828,14 +830,8 @@ function gen_uuid_timebased($force_php_implementation=false) {
 		}
 	} else {
 		// If we cannot get a MAC address, then generate a random AAI
-		for ($i=0; $i<6; $i++) {
-			$val = _random_int(0x00, 0xFF);
-			if ($i == 0) {
-				// Make it an AAI
-				$val = $val & 0xF0 | 0x02;
-			}
-			$uuid['node'][$i] = $val;
-		}
+		$uuid['node'] = explode('-', gen_aai(48, false));
+		$uuid['node'] = array_map('hexdec', $uuid['node']);
 	}
 
 	/*
@@ -901,7 +897,6 @@ function get_mac_address() {
 		foreach ($addresses as $x) {
 			if (!strstr($x,'/lo/')) {
 				$detected_mac = trim(file_get_contents($x));
-				// TODO: mac_type() requires mac_utils!!!
 				if (substr(mac_type($detected_mac),0,6) == 'EUI-48') {
 					return $detected_mac;
 				}
