@@ -345,7 +345,7 @@ function uuid_info($uuid, $echo=true) {
 					$x = hexdec(substr($uuid, 16, 4));
 					$dec = $x & 0x3FFF; // The highest 2 bits are used by "variant" (10x)
 					$hex = substr($uuid, 16, 4);
-					$hex = '<abbr title="The highest 2 bits are used by "variant" (10xx)">'.$hex[0].'</abbr>'.substr($hex,1);
+					$hex = '<abbr title="The highest 2 bits are used by the UUID variant (10xx)">'.$hex[0].'</abbr>'.substr($hex,1);
 					echo sprintf("%-32s %s\n", "Clock ID:", "[0x$hex] $dec");
 
 					$x = substr($uuid, 20, 12);
@@ -417,7 +417,7 @@ function uuid_info($uuid, $echo=true) {
 					$x = hexdec(substr($uuid, 16, 2));
 					$dec = $x & 0x3F; // The highest 2 bits are used by "variant" (10xx)
 					$hex = substr($uuid, 16, 2);
-					$hex = '<abbr title="The highest 2 bits are used by "variant" (10xx)">'.$hex[0].'</abbr>'.substr($hex,1);
+					$hex = '<abbr title="The highest 2 bits are used by the UUID variant (10xx)">'.$hex[0].'</abbr>'.substr($hex,1);
 					echo sprintf("%-32s %s\n", "Clock ID:", "[0x$hex] $dec");
 
 					$x = substr($uuid, 20, 12);
