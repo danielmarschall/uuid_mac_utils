@@ -83,7 +83,7 @@ function uuid_info($uuid, $echo=true) {
 		echo sprintf("%-32s %s\n", "DER encoding of OID:", OidDerConverter::hexarrayToStr(OidDerConverter::oidToDER($oid)));
 	}
 	echo "\n";
-	echo "<u>Interpration of the UUID:</u>\n\n";
+	echo "<u>Interpretation of the UUID:</u>\n\n";
 
 	if (!$echo) ob_start();
 
