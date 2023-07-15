@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-07-13
+ * Version 2023-07-15
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -660,7 +660,7 @@ function uuid_info($uuid, $echo=true) {
 
 					// Check if Custom UUIDv8 is likely an OIDplus 2.0 Information Object UUID
 					// Details here: https://github.com/danielmarschall/oidplus/blob/master/doc/oidplus_custom_guid.md
-					$min_day = 14609; // 1 Jan 2010
+					$min_day = 14610; // 1 Jan 2010
 					$max_day = floor(time()/24/60/60); // Today
 					if (($custom_block3 == '000') && (hexdec($custom_block2) >= $min_day) && (hexdec($custom_block2) <= $max_day)) {
 						echo "\n<u>Interpretation of <a href=\"https://github.com/danielmarschall/oidplus/blob/master/doc/oidplus_custom_guid.md\">OIDplus 2.0 Information Object UUID</a></u>\n\n";
@@ -686,7 +686,7 @@ function uuid_info($uuid, $echo=true) {
 							'1.3.6.1.4.1.37553.8.1.8.8.53354196964.39870' => 'uri (Frdlweb plugin)',
 							'1.3.6.1.4.1.37553.8.1.8.8.53354196964.1958965295' => 'web+fan (Frdlweb plugin)'
 						);
-						$namespace_desc = 'Unknown';
+						$namespace_desc = 'Unknown object type';
 						foreach ($known_objecttype_plugins as $oid => $name) {
 							if ((hexdec(substr(sha1($oid),-4)) & 0x3fff) == hexdec($custom_block4)) $namespace_desc = $name;
 						}
