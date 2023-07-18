@@ -48,7 +48,7 @@ const AUTO_NEW_UUIDS = 10;
             <li><a href="#gen_uuidv1">Generate time-based (version 1) UUID</a></li>
         </ul></li>
     <li><a href="#gen_other_uuid">Generate other UUID types</a><ul>
-            <li><a href="#gen_uuid_nce">NCE (variant 0) UUID</a></li>
+            <li><a href="#gen_uuid_ncs">NCS (variant 0) UUID</a></li>
             <li><a href="#gen_uuidv2">Generate DCE Security (version 2) UUID</a></li>
             <li><a href="#gen_uuidv35">Generate name-based (version 3/5) UUID</a></li>
             <li><a href="#gen_uuidv8">Generate Custom (version 8) UUID</a></li>
@@ -221,11 +221,12 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 <p><i>The following types of UUIDs are less common and/or require special knowledge. Please only use the following
 generators if you know what you are doing.</i></p>
 
-<h3 id="gen_uuid_nce">NCE (variant 0) UUID</h3>
+<h3 id="gen_uuid_ncs">NCS (variant 0) UUID</h3>
 
-<p>The NCE UUIDs are a legacy format that cannot be generated anymore, because the
+<p>The <abbr title="Network Computing System">NCS</abbr> UUIDs are a legacy format
+initially designed by Apollo Computer that cannot be generated anymore, because the
 amount of available timestamp bits was exhausted on <strong>5 September 2015</strong>.
-As an example, here is the last possible NCE UUID (all bits of the timestamp are set to 1) for IP address 127.0.0.1:
+As an example, here is the last possible NCS UUID (all bits of the timestamp are set to 1) for IP address 127.0.0.1:
 <a href="interprete_uuid.php?uuid=ffffffff-ffff-0000-027f-000001000000"><code>ffffffff-ffff-0000-027f-000001000000</code></a>.</p>
 
 <p><a id="uuidnce_info_button" href="javascript:show_uuidnce_info()">Show format</a>
