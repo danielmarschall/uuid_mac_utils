@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-07-15
+ * Version 2023-07-18
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -900,7 +900,13 @@ function gen_uuid_timebased($force_php_implementation=false) {
 		}
 	} else {
 		// If we cannot get a MAC address, then generate a random AAI
-		$uuid['node'] = explode('-', gen_aai(48, false));
+		// RFC 4122 requires the multicast bit to be set, to make sure
+		// that a UUID from a system with network card never conflicts
+		// with a UUID from a system without network ard.
+		// We are additionally defining the other 3 bits as AAI,
+		// to avoid that we are misusing the CID or OUI from other vendors
+		// if we would create multicast ELI (based on CID) or EUI (based on OUI).
+		$uuid['node'] = explode('-', gen_aai(48, true/*Multicast*/));
 		$uuid['node'] = array_map('hexdec', $uuid['node']);
 	}
 
