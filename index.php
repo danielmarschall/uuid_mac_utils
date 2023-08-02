@@ -293,7 +293,7 @@ function show_uuidv2_info() {
 	<label>Value (32&nbsp;bits):</label><input type="number" min="0" max="4294967295" name="dce_id" value="0" id="dce_id" style="width:200px" pattern="[0-9]+"> (decimal notation)<br>
 	<font color="red">Warning</font>: The timestamp has an accuracy of 7:10 minutes,
 	therefore the uniqueness of these UUIDs is not guaranteed!<br><br>
-	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create UUID">
+	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create UUIDv2">
 </form>
 <script>
 function dce_domain_choose() {
@@ -318,7 +318,8 @@ dce_domain_choose();
 
 <p><i>An UUIDv3 is made out of a MD5 hash and an UUIDv5 is made out of a SHA1 hash.
 The revision of RFC4122 also contains an example for a custom UUIDv8 that
-allows SHA2 and SHA3 hash algorithms.</i></p>
+allows SHA2, SHA3 and SHAKE hash algorithms. ViaThinkSoft added more hash
+algorithms (offered by the programming language PHP) and assigned Hash Space UUIDs to them.</i></p>
 
 <p><a id="uuidv35_info_button" href="javascript:show_uuidv35_info()">Show format</a>
 <script>
@@ -344,22 +345,27 @@ label {
 </style>
 
 <form method="GET" action="interprete_uuid.php">
-	<label>Hash algorithm:</label><select name="version">
+	<label>Hash algorithm:</label><select name="version" id="nb_version" onchange="javascript:nb_version_choose();">
 		<option value="3">MD5 (version 3 UUID)</option>
 		<option value="5">SHA1 (version 5 UUID)</option>
-		<option value="8_namebased_59031ca3-fbdb-47fb-9f6c-0f30e2e83145">SHA2-224 (version 8 UUID Example)</option>
-		<option value="8_namebased_3fb32780-953c-4464-9cfd-e85dbbe9843d">SHA2-256 (version 8 UUID Example)</option>
-		<option value="8_namebased_e6800581-f333-484b-8778-601ff2b58da8">SHA2-384 (version 8 UUID Example)</option>
-		<option value="8_namebased_0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9">SHA2-512 (version 8 UUID Example)</option>
-		<option value="8_namebased_003c2038-c4fe-4b95-a672-0c26c1b79542">SHA2-512/224 (version 8 UUID Example)</option>
-		<option value="8_namebased_9475ad00-3769-4c07-9642-5e7383732306">SHA2-512/256 (version 8 UUID Example)</option>
-		<option value="8_namebased_9768761f-ac5a-419e-a180-7ca239e8025a">SHA3-224 (version 8 UUID Example)</option>
-		<option value="8_namebased_2034d66b-4047-4553-8f80-70e593176877">SHA3-256 (version 8 UUID Example)</option>
-		<option value="8_namebased_872fb339-2636-4bdd-bda6-b6dc2a82b1b3">SHA3-384 (version 8 UUID Example)</option>
-		<option value="8_namebased_a4920a5d-a8a6-426c-8d14-a6cafbe64c7b">SHA3-512 (version 8 UUID Example)</option>
-		<option value="8_namebased_7ea218f6-629a-425f-9f88-7439d63296bb">SHAKE-128 (version 8 UUID Example)</option>
-		<option value="8_namebased_2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a">SHAKE-256 (version 8 UUID Example)</option>
-	</select><br>
+		<option value="8_namebased_59031ca3-fbdb-47fb-9f6c-0f30e2e83145">SHA2-224 (version 8 UUID RFC-Example)</option>
+		<option value="8_namebased_3fb32780-953c-4464-9cfd-e85dbbe9843d">SHA2-256 (version 8 UUID RFC-Example)</option>
+		<option value="8_namebased_e6800581-f333-484b-8778-601ff2b58da8">SHA2-384 (version 8 UUID RFC-Example)</option>
+		<option value="8_namebased_0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9">SHA2-512 (version 8 UUID RFC-Example)</option>
+		<option value="8_namebased_003c2038-c4fe-4b95-a672-0c26c1b79542">SHA2-512/224 (version 8 UUID RFC-Example)</option>
+		<option value="8_namebased_9475ad00-3769-4c07-9642-5e7383732306">SHA2-512/256 (version 8 UUID RFC-Example)</option>
+		<option value="8_namebased_9768761f-ac5a-419e-a180-7ca239e8025a">SHA3-224 (version 8 UUID RFC-Example)</option>
+		<option value="8_namebased_2034d66b-4047-4553-8f80-70e593176877">SHA3-256 (version 8 UUID RFC-Example)</option>
+		<option value="8_namebased_872fb339-2636-4bdd-bda6-b6dc2a82b1b3">SHA3-384 (version 8 UUID RFC-Example)</option>
+		<option value="8_namebased_a4920a5d-a8a6-426c-8d14-a6cafbe64c7b">SHA3-512 (version 8 UUID RFC-Example)</option>
+		<option value="8_namebased_7ea218f6-629a-425f-9f88-7439d63296bb">SHAKE-128 (version 8 UUID RFC-Example)</option>
+		<option value="8_namebased_2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a">SHAKE-256 (version 8 UUID RFC-Example)</option>
+		<?php
+		foreach (get_viathinksoft_uuidv8_hash_spaces() as $algo => $uuid) {
+			echo '<option value="8_namebased_'.$uuid.'">'.strtoupper($algo).' (version 8 UUID by ViaThinkSoft)</option>';
+		}
+		?>
+	</select><font size="-1"><span id="nb_hash_info"></span></font><br>
 	<label>Namespace:</label><select name="namespace_choose" id="nb_nsc" onchange="javascript:nb_ns_choose();">
 		<option value="dns">DNS</option>
 		<option value="url">URL</option>
@@ -369,13 +375,24 @@ label {
 		<!-- <option value="oidplus_ns_val">OIDplus ns+val</option> -->
 		<!-- <option value="oidplus_pubkey">OIDplus pubkey</option> -->
 		<option value="other">Other</option>
-	</select> = <input type="text" name="nb_ns" value="" id="nb_ns" style="width:270px" onchange="javascript:nb_ns_textchange();" pattern="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"><br>
+	</select> = Namespace UUID: <input type="text" name="nb_ns" value="" id="nb_ns" style="width:270px" onchange="javascript:nb_ns_textchange();" pattern="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"><br>
 	<label>Value:</label><input type="text" name="nb_val" value="" id="nb_val" style="width:300px"><br>
 	<font color="red">Warning</font>: These UUIDs do not contain a timestamp,
 	therefore the uniqueness of these UUIDs is not guaranteed!<br><br>
-	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create UUID">
+	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" id="nb_create_btn" value="Create UUID">
 </form>
 <script>
+function nb_version_choose() {
+	var ver = document.getElementById('nb_version').value;
+	document.getElementById('nb_create_btn').value = 'Create UUIDv' + ver.substr(0,1);
+	var x = ver.split('_namebased_');
+	if (x.length == 2) {
+		document.getElementById('nb_hash_info').innerHTML = ' (Hash Space UUID: ' + x[1] + ')';
+	} else {
+		document.getElementById('nb_hash_info').innerHTML = '';
+	}
+
+}
 function nb_ns_textchange() {
 	var ns = document.getElementById('nb_ns').value.toLowerCase();
 	if (ns == "6ba7b810-9dad-11d1-80b4-00c04fd430c8") {
@@ -446,6 +463,7 @@ function nb_ns_choose() {
 		document.getElementById('nb_val').value = "";
 	}
 }
+nb_version_choose();
 nb_ns_choose();
 </script>
 
@@ -476,7 +494,7 @@ function show_uuidv8_info() {
 	<label>Block&nbsp;5 (48&nbsp;bits):</label><input type="text" name="block5" value="000000000000" maxlength="12" id="v8_block5" style="width:150px" pattern="[0-9a-fA-F]+"> (hex notation)<br>
 	<font color="red">Warning</font>: These UUIDs do not contain a timestamp,
 	therefore the uniqueness of these UUIDs is not guaranteed!<br><br>
-	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create UUID">
+	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create UUIDv8">
 </form>
 
 <h2 id="interpret_uuid">Interpret a UUID</h2>
