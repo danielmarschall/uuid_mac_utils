@@ -1274,7 +1274,11 @@ function gen_uuid_custom($block1_32bit, $block2_16bit, $block3_12bit, $block4_14
 }
 
 function gen_uuid_v8_namebased($hash_uuid, $namespace_uuid, $name) {
-	// Example from RFC4122bis
+	if (($hash_uuid ?? '') === '') throw new Exception("Hash space UUID missing");
+	if (!uuid_valid($hash_uuid)) throw new Exception("Invalid hash space ID '$hash_uuid'");
+
+	if (($namespace_uuid ?? '') === '') throw new Exception("Namespace UUID missing");
+	if (!uuid_valid($namespace_uuid)) throw new Exception("Invalid namespace UUID '$namespace_uuid'");
 
 	$uuid1 = hex2bin(str_replace('-','',uuid_canonize($hash_uuid)));
 	$uuid2 = hex2bin(str_replace('-','',uuid_canonize($namespace_uuid)));

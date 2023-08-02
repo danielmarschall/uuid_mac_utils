@@ -50,8 +50,8 @@ const AUTO_NEW_UUIDS = 10;
     <li><a href="#gen_other_uuid">Generate other UUID types</a><ul>
             <li><a href="#gen_uuid_ncs">NCS (variant 0) UUID</a></li>
             <li><a href="#gen_uuidv2">Generate DCE Security (version 2) UUID</a></li>
-            <li><a href="#gen_uuidv35">Generate name-based (version 3/5/8) UUID</a></li>
-            <li><a href="#gen_uuidv8">Generate Custom (version 8) UUID</a></li>
+            <li><a href="#gen_uuidv35">Generate name-based (version 3 / 5 / <font color="green">New: 8</font>) UUID</a></li>
+            <li><a href="#gen_uuidv8"><font color="green">New:</font> Generate Custom (version 8) UUID</a></li>
         </ul></li>
     <li><a href="#interpret_uuid">Interpret a UUID</a></li>
     <li><a href="#interpret_mac">Interpret a MAC address (MAC / EUI / ELI / SAI / AAI)</a><ul>
@@ -314,12 +314,12 @@ function dce_domain_choose() {
 dce_domain_choose();
 </script>
 
-<h3 id="gen_uuidv35">Generate name-based (version 3/5/8) UUID</h3>
+<h3 id="gen_uuidv35">Generate name-based (version 3 / 5 / <font color="green">New: 8</font>) UUID</h3>
 
 <p><i>An UUIDv3 is made out of a MD5 hash and an UUIDv5 is made out of a SHA1 hash.
 The revision of RFC4122 also contains an example for a custom UUIDv8 that
 allows SHA2, SHA3 and SHAKE hash algorithms. ViaThinkSoft added more hash
-algorithms (offered by the programming language PHP) and assigned Hash Space UUIDs to them.</i></p>
+algorithms and assigned Hash Space IDs to them.</i></p>
 
 <p><a id="uuidv35_info_button" href="javascript:show_uuidv35_info()">Show format</a>
 <script>
@@ -346,11 +346,16 @@ label {
 
 <form method="GET" action="interprete_uuid.php">
 	<label>Hash algorithm:</label><select name="version" id="nb_version" onchange="javascript:nb_version_choose();">
-		<option value="3">MD5 (UUIDv3)</option>
-		<option value="5">SHA1 (UUIDv5)</option>
 		<?php
+		$tmp = [];
+		$tmp['MD5'] = '<option value="3">MD5 (UUIDv3)</option>';
+		$tmp['SHA1'] = '<option value="5" selected>SHA1 (UUIDv5)</option>';
 		foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyname,$author)) {
-			echo '<option value="8_namebased_'.$space.'">'.htmlentities($friendlyname).' (UUIDv8 defined by '.htmlentities($author).')</option>'."\n\t\t";
+			$tmp[$friendlyname] = '<option value="8_namebased_'.$space.'">'.htmlentities($friendlyname).' (UUIDv8 defined by '.htmlentities($author).')</option>';
+		}
+		ksort($tmp);
+		foreach ($tmp as $html) {
+			echo "\t\t$html\n";
 		}
 		?>
 	</select><font size="-1"><span id="nb_hash_info"></span></font><br>
@@ -375,7 +380,7 @@ function nb_version_choose() {
 	document.getElementById('nb_create_btn').value = 'Create UUIDv' + ver.substr(0,1);
 	var x = ver.split('_namebased_');
 	if (x.length == 2) {
-		document.getElementById('nb_hash_info').innerHTML = ' (Hash Space UUID: ' + x[1] + ')';
+		document.getElementById('nb_hash_info').innerHTML = ' (UUIDv8 Hash Space ID: ' + x[1] + ')';
 	} else {
 		document.getElementById('nb_hash_info').innerHTML = '';
 	}
@@ -455,7 +460,7 @@ nb_version_choose();
 nb_ns_choose();
 </script>
 
-<h3 id="gen_uuidv8">Generate Custom (version 8) UUID</h3>
+<h3 id="gen_uuidv8"><font color="green">New:</font> Generate Custom (version 8) UUID</h3>
 
 <p><i>UUIDv8 is made of 122 bits application-specific / custom data. The other 6 bits are used to specify the variant and version of the UUID, to make it RFC-compatible.</i></p>
 
