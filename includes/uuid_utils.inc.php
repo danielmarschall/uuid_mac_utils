@@ -1150,62 +1150,6 @@ function gen_uuid_random() {
 // Variant 1, Version 5 (SHA1 name based) UUID
 # --------------------------------------
 
-
-const RFC4122BIS_SHA2_224     = "59031ca3-fbdb-47fb-9f6c-0f30e2e83145"; // sha224
-const RFC4122BIS_SHA2_256     = "3fb32780-953c-4464-9cfd-e85dbbe9843d"; // sha256
-const RFC4122BIS_SHA2_384     = "e6800581-f333-484b-8778-601ff2b58da8"; // sha384
-const RFC4122BIS_SHA2_512     = "0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9"; // sha512
-const RFC4122BIS_SHA2_512_224 = "003c2038-c4fe-4b95-a672-0c26c1b79542"; // sha512/224
-const RFC4122BIS_SHA2_512_256 = "9475ad00-3769-4c07-9642-5e7383732306"; // sha512/256
-const RFC4122BIS_SHA3_224     = "9768761f-ac5a-419e-a180-7ca239e8025a"; // sha3-224
-const RFC4122BIS_SHA3_256     = "2034d66b-4047-4553-8f80-70e593176877"; // sha3-256
-const RFC4122BIS_SHA3_384     = "872fb339-2636-4bdd-bda6-b6dc2a82b1b3"; // sha3-384
-const RFC4122BIS_SHA3_512     = "a4920a5d-a8a6-426c-8d14-a6cafbe64c7b"; // sha3-512
-const RFC4122BIS_SHAKE_128    = "7ea218f6-629a-425f-9f88-7439d63296bb";
-const RFC4122BIS_SHAKE_256    = "2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a";
-function gen_uuid_v8_namebased($hash_uuid, $namespace_uuid, $name) {
-	// Example from RFC4122bis
-
-	$uuid1 = hex2bin(str_replace('-','',uuid_canonize($hash_uuid)));
-	$uuid2 = hex2bin(str_replace('-','',uuid_canonize($namespace_uuid)));
-	$payload = $uuid1 . $uuid2 . $name;
-
-	$hash = null;
-	if ($hash_uuid == RFC4122BIS_SHA2_224) $hash = hash('sha224', $payload, false);
-	else if ($hash_uuid == RFC4122BIS_SHA2_256) $hash = hash('sha256', $payload, false);
-	else if ($hash_uuid == RFC4122BIS_SHA2_384) $hash = hash('sha384', $payload, false);
-	else if ($hash_uuid == RFC4122BIS_SHA2_512) $hash = hash('sha512', $payload, false);
-	else if ($hash_uuid == RFC4122BIS_SHA2_512_224) $hash = hash('sha512/224', $payload, false);
-	else if ($hash_uuid == RFC4122BIS_SHA2_512_256) $hash = hash('sha512/256', $payload, false);
-	else if ($hash_uuid == RFC4122BIS_SHA3_224) $hash = hash('sha3-224', $payload, false);
-	else if ($hash_uuid == RFC4122BIS_SHA3_256) $hash = hash('sha3-256', $payload, false);
-	else if ($hash_uuid == RFC4122BIS_SHA3_384) $hash = hash('sha3-384', $payload, false);
-	else if ($hash_uuid == RFC4122BIS_SHA3_512) $hash = hash('sha3-512', $payload, false);
-	else if ($hash_uuid == RFC4122BIS_SHAKE_128) $hash = shake128($payload, 16/*min. required bytes*/, false);
-	else if ($hash_uuid == RFC4122BIS_SHAKE_256) $hash = shake256($payload, 16/*min. required bytes*/, false);
-	else {
-		foreach (get_viathinksoft_uuidv8_hash_spaces() as $algo => $space) {
-			if (uuid_equal($hash_uuid,$space)) {
-				$hash = hash($algo, $payload);
-				break;
-			}
-		}
-	}
-
-	if ($hash == null) {
-		throw new Exception("Unknown Hash Space UUID $hash_uuid");
-	}
-
-	$hash[12] = '8'; // Set version: 8 = Custom
-	$hash[16] = dechex(hexdec($hash[16]) & 0b0011 | 0b1000); // Set variant to "0b10__" (RFC4122/DCE1.1)
-
-	return substr($hash,  0, 8).'-'.
-	       substr($hash,  8, 4).'-'.
-	       substr($hash, 12, 4).'-'.
-	       substr($hash, 16, 4).'-'.
-	       substr($hash, 20, 12);
-}
-
 function gen_uuid_v5($namespace_uuid, $name) {
 	return gen_uuid_sha1_namebased($namespace_uuid, $name);
 }
@@ -1329,6 +1273,74 @@ function gen_uuid_custom($block1_32bit, $block2_16bit, $block3_12bit, $block4_14
 	return strtolower($block1.'-'.$block2.'-'.$block3.'-'.$block4.'-'.$block5);
 }
 
+function gen_uuid_v8_namebased($hash_uuid, $namespace_uuid, $name) {
+	// Example from RFC4122bis
+
+	$uuid1 = hex2bin(str_replace('-','',uuid_canonize($hash_uuid)));
+	$uuid2 = hex2bin(str_replace('-','',uuid_canonize($namespace_uuid)));
+	$payload = $uuid1 . $uuid2 . $name;
+
+	$hash = null;
+	foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyname,$author)) {
+		if (uuid_equal($hash_uuid,$space)) {
+			if ($algo == 'shake128') $hash = shake128($payload, 16/*min. required bytes*/, false);
+			else if ($algo == 'shake256') $hash = shake256($payload, 16/*min. required bytes*/, false);
+			else $hash = hash($algo, $payload, false);
+			break;
+		}
+	}
+
+	if ($hash == null) {
+		throw new Exception("Unknown Hash Space UUID $hash_uuid");
+	}
+
+	$hash[12] = '8'; // Set version: 8 = Custom
+	$hash[16] = dechex(hexdec($hash[16]) & 0b0011 | 0b1000); // Set variant to "0b10__" (RFC4122/DCE1.1)
+
+	return substr($hash,  0, 8).'-'.
+		substr($hash,  8, 4).'-'.
+		substr($hash, 12, 4).'-'.
+		substr($hash, 16, 4).'-'.
+		substr($hash, 20, 12);
+}
+
+/**
+ * Collection of Namebased UUIDv8 Hash Space IDs
+ * @return array An array containing tuples of [PHP Algo Name, Hash Space UUID, Human friendly name, Hash Space Author]
+ */
+function get_uuidv8_hash_space_ids(): array {
+	$out = array();
+
+	// The following Hash Space UUIDs are defined in the RFC4122bis as Example for Namebased UUIDv8
+	$out[] = ['sha224', '59031ca3-fbdb-47fb-9f6c-0f30e2e83145', 'SHA2-224', 'RFC Example'];
+	$out[] = ['sha256', '3fb32780-953c-4464-9cfd-e85dbbe9843d', 'SHA2-256', 'RFC Example'];
+	$out[] = ['sha384', 'e6800581-f333-484b-8778-601ff2b58da8', 'SHA2-384', 'RFC Example'];
+	$out[] = ['sha512', '0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9', 'SHA2-512', 'RFC Example'];
+	$out[] = ['sha512/224', '003c2038-c4fe-4b95-a672-0c26c1b79542', 'SHA2-512/224', 'RFC Example'];
+	$out[] = ['sha512/256', '9475ad00-3769-4c07-9642-5e7383732306', 'SHA2-512/256', 'RFC Example'];
+	$out[] = ['sha3-224', '9768761f-ac5a-419e-a180-7ca239e8025a', 'SHA3-224', 'RFC Example'];
+	$out[] = ['sha3-256', '2034d66b-4047-4553-8f80-70e593176877', 'SHA3-256', 'RFC Example'];
+	$out[] = ['sha3-384', '872fb339-2636-4bdd-bda6-b6dc2a82b1b3', 'SHA3-384', 'RFC Example'];
+	$out[] = ['sha3-512', 'a4920a5d-a8a6-426c-8d14-a6cafbe64c7b', 'SHA3-512', 'RFC Example'];
+	$out[] = ['shake128'/*Currently no PHP core algorithm!*/, '7ea218f6-629a-425f-9f88-7439d63296bb', 'SHAKE-128', 'RFC Example'];
+	$out[] = ['shake256'/*Currently no PHP core algorithm!*/, '2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a', 'SHAKE-256', 'RFC Example'];
+
+	// The following Hash Space UUIDs are defined by ViaThinkSoft
+	// These Hash Spaces can be calculated as follows:
+	//      UUIDv8_NamebasedViaThinkSoft := <HashAlgo>_AsUUIDv8( BinaryHashSpaceUUID + BinaryNamespaceUUID + Data )
+	//      BinaryHashSpaceUUID := SHA1_AsUUIDv5( hex2bin('1ee317e2-1853-64b2-8fe9-3c4a92df8582') + PhpHashAlgoName )
+	foreach (hash_algos() as $algo) {
+		if ($algo == 'md5') continue; // MD5 is already used in UUIDv3
+		if ($algo == 'sha1') continue; // MD5 is already used in UUIDv5
+		foreach ($out as list($algo2,$space,$friendlyname,$author)) {
+			if ($algo == $algo2) continue 2; // UUID is already defined by RFC, don't need a VTS Hash Space UUID
+		}
+		if (strlen(hash($algo,'',false)) < 32) continue; // Hash too short (needs at least 16 bytes)
+		$out[] = [$algo, gen_uuid_v5('1ee317e2-1853-64b2-8fe9-3c4a92df8582', $algo), strtoupper($algo), 'ViaThinkSoft'];
+	}
+	return $out;
+}
+
 # --------------------------------------
 
 // http://php.net/manual/de/function.hex2bin.php#113057
@@ -1370,43 +1382,4 @@ function shake256(string $msg, int $outputLength=512, bool $binary=false): strin
 	$sponge->absorb($msg);
 	$bin = $sponge->squeeze($outputLength);
 	return $binary ? $bin : bin2hex($bin);
-}
-
-/**
- * UUIDv8 hash spaces defined by ViaThinkSoft
- * The Hash Space is the UUIDv5 hash of the PHP algorithm name
- * A UUIDv8 with uncommon hashes can be calculated as follows:
- *    UUIDv8_NamebasedViaThinkSoft := Hash( BinaryHashSpaceUUID + BinaryNamespaceUUID + Data )
- *    HashSpaceUUID := SHA1( hex2bin('1ee317e2-1853-64b2-8fe9-3c4a92df8582') + PhpHashAlgoName )
- * @return array An array containing PHP Hash Algo Name => Hash Space UUID
- */
-function get_viathinksoft_uuidv8_hash_spaces(): array {
-
-	$blacklisted_algos = [
-		'md5', // already defined in UUIDv3
-		'sha1', // already defined in UUIDv5
-		'sha224', // already defined in UUIDv8 Example
-		'sha256', // already defined in UUIDv8 Example
-		'sha384', // already defined in UUIDv8 Example
-		'sha512/224', // already defined in UUIDv8 Example
-		'sha512/256', // already defined in UUIDv8 Example
-		'sha512', // already defined in UUIDv8 Example
-		'sha3-224', // already defined in UUIDv8 Example
-		'sha3-256', // already defined in UUIDv8 Example
-		'sha3-384', // already defined in UUIDv8 Example
-		'sha3-512', // already defined in UUIDv8 Example
-		'shake128', // already defined in UUIDv8 Example [Note: shake256 is not a PHP hash algo, but we make sure to exclude it in case it appears someday]
-		'shake256' // already defined in UUIDv8 Example [Note: shake256 is not a PHP hash algo, but we make sure to exclude it in case it appears someday]
-	];
-
-	$out = array();
-	$algos = hash_algos();
-	foreach ($algos as $algo) {
-		if (!in_array($algo, $blacklisted_algos)) {
-			if (strlen(hash($algo,'',false)) > 32/*16 byte*/) {
-				$out[$algo] = gen_uuid_v5('1ee317e2-1853-64b2-8fe9-3c4a92df8582', $algo);
-			}
-		}
-	}
-	return $out;
 }

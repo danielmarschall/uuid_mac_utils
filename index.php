@@ -346,23 +346,11 @@ label {
 
 <form method="GET" action="interprete_uuid.php">
 	<label>Hash algorithm:</label><select name="version" id="nb_version" onchange="javascript:nb_version_choose();">
-		<option value="3">MD5 (version 3 UUID)</option>
-		<option value="5">SHA1 (version 5 UUID)</option>
-		<option value="8_namebased_59031ca3-fbdb-47fb-9f6c-0f30e2e83145">SHA2-224 (version 8 UUID RFC-Example)</option>
-		<option value="8_namebased_3fb32780-953c-4464-9cfd-e85dbbe9843d">SHA2-256 (version 8 UUID RFC-Example)</option>
-		<option value="8_namebased_e6800581-f333-484b-8778-601ff2b58da8">SHA2-384 (version 8 UUID RFC-Example)</option>
-		<option value="8_namebased_0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9">SHA2-512 (version 8 UUID RFC-Example)</option>
-		<option value="8_namebased_003c2038-c4fe-4b95-a672-0c26c1b79542">SHA2-512/224 (version 8 UUID RFC-Example)</option>
-		<option value="8_namebased_9475ad00-3769-4c07-9642-5e7383732306">SHA2-512/256 (version 8 UUID RFC-Example)</option>
-		<option value="8_namebased_9768761f-ac5a-419e-a180-7ca239e8025a">SHA3-224 (version 8 UUID RFC-Example)</option>
-		<option value="8_namebased_2034d66b-4047-4553-8f80-70e593176877">SHA3-256 (version 8 UUID RFC-Example)</option>
-		<option value="8_namebased_872fb339-2636-4bdd-bda6-b6dc2a82b1b3">SHA3-384 (version 8 UUID RFC-Example)</option>
-		<option value="8_namebased_a4920a5d-a8a6-426c-8d14-a6cafbe64c7b">SHA3-512 (version 8 UUID RFC-Example)</option>
-		<option value="8_namebased_7ea218f6-629a-425f-9f88-7439d63296bb">SHAKE-128 (version 8 UUID RFC-Example)</option>
-		<option value="8_namebased_2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a">SHAKE-256 (version 8 UUID RFC-Example)</option>
+		<option value="3">MD5 (UUIDv3)</option>
+		<option value="5">SHA1 (UUIDv5)</option>
 		<?php
-		foreach (get_viathinksoft_uuidv8_hash_spaces() as $algo => $uuid) {
-			echo '<option value="8_namebased_'.$uuid.'">'.strtoupper($algo).' (version 8 UUID by ViaThinkSoft)</option>';
+		foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyname,$author)) {
+			echo '<option value="8_namebased_'.$space.'">'.htmlentities($friendlyname).' (UUIDv8 defined by '.htmlentities($author).')</option>'."\n\t\t";
 		}
 		?>
 	</select><font size="-1"><span id="nb_hash_info"></span></font><br>
