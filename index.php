@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
-* Version 2023-07-12
+* Version 2023-08-02
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ const AUTO_NEW_UUIDS = 10;
     <li><a href="#gen_other_uuid">Generate other UUID types</a><ul>
             <li><a href="#gen_uuid_ncs">NCS (variant 0) UUID</a></li>
             <li><a href="#gen_uuidv2">Generate DCE Security (version 2) UUID</a></li>
-            <li><a href="#gen_uuidv35">Generate name-based (version 3/5) UUID</a></li>
+            <li><a href="#gen_uuidv35">Generate name-based (version 3/5/8) UUID</a></li>
             <li><a href="#gen_uuidv8">Generate Custom (version 8) UUID</a></li>
         </ul></li>
     <li><a href="#interpret_uuid">Interpret a UUID</a></li>
@@ -314,9 +314,11 @@ function dce_domain_choose() {
 dce_domain_choose();
 </script>
 
-<h3 id="gen_uuidv35">Generate name-based (version 3/5) UUID</h3>
+<h3 id="gen_uuidv35">Generate name-based (version 3/5/8) UUID</h3>
 
-<p><i>An UUIDv3 is made out of a MD5 hash and an UUIDv5 is made out of a SHA1 hash.</i></p>
+<p><i>An UUIDv3 is made out of a MD5 hash and an UUIDv5 is made out of a SHA1 hash.
+The revision of RFC4122 also contains an example for a custom UUIDv8 that
+allows SHA2 and SHA3 hash algorithms.</i></p>
 
 <p><a id="uuidv35_info_button" href="javascript:show_uuidv35_info()">Show format</a>
 <script>
@@ -345,6 +347,18 @@ label {
 	<label>Hash algorithm:</label><select name="version">
 		<option value="3">MD5 (version 3 UUID)</option>
 		<option value="5">SHA1 (version 5 UUID)</option>
+		<option value="8_namebased_59031ca3-fbdb-47fb-9f6c-0f30e2e83145">SHA2-224 (version 8 UUID Example)</option>
+		<option value="8_namebased_3fb32780-953c-4464-9cfd-e85dbbe9843d">SHA2-256 (version 8 UUID Example)</option>
+		<option value="8_namebased_e6800581-f333-484b-8778-601ff2b58da8">SHA2-384 (version 8 UUID Example)</option>
+		<option value="8_namebased_0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9">SHA2-512 (version 8 UUID Example)</option>
+		<option value="8_namebased_003c2038-c4fe-4b95-a672-0c26c1b79542">SHA2-512/224 (version 8 UUID Example)</option>
+		<option value="8_namebased_9475ad00-3769-4c07-9642-5e7383732306">SHA2-512/256 (version 8 UUID Example)</option>
+		<option value="8_namebased_9768761f-ac5a-419e-a180-7ca239e8025a">SHA3-224 (version 8 UUID Example)</option>
+		<option value="8_namebased_2034d66b-4047-4553-8f80-70e593176877">SHA3-256 (version 8 UUID Example)</option>
+		<option value="8_namebased_872fb339-2636-4bdd-bda6-b6dc2a82b1b3">SHA3-384 (version 8 UUID Example)</option>
+		<option value="8_namebased_a4920a5d-a8a6-426c-8d14-a6cafbe64c7b">SHA3-512 (version 8 UUID Example)</option>
+		<option value="8_namebased_7ea218f6-629a-425f-9f88-7439d63296bb">SHAKE-128 (version 8 UUID Example)</option>
+		<option value="8_namebased_2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a">SHAKE-256 (version 8 UUID Example)</option>
 	</select><br>
 	<label>Namespace:</label><select name="namespace_choose" id="nb_nsc" onchange="javascript:nb_ns_choose();">
 		<option value="dns">DNS</option>
@@ -367,13 +381,13 @@ function nb_ns_textchange() {
 	if (ns == "6ba7b810-9dad-11d1-80b4-00c04fd430c8") {
 		if (document.getElementById('nb_nsc').value != "dns") {
 			document.getElementById('nb_nsc').value = "dns";
-			document.getElementById('nb_val').value = "www.example.org";
+			document.getElementById('nb_val').value = "www.example.com";
 		}
 	}
 	else if (ns == "6ba7b811-9dad-11d1-80b4-00c04fd430c8") {
 		if (document.getElementById('nb_nsc').value != "url") {
 			document.getElementById('nb_nsc').value = "url";
-			document.getElementById('nb_val').value = "http://www.example.org/";
+			document.getElementById('nb_val').value = "http://www.example.com/";
 		}
 	}
 	else if (ns == "6ba7b812-9dad-11d1-80b4-00c04fd430c8") {
@@ -399,11 +413,11 @@ function nb_ns_choose() {
 	var ns = document.getElementById('nb_nsc').value;
 	if (ns == "dns") {
 		document.getElementById('nb_ns').value = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
-		document.getElementById('nb_val').value = "www.example.org";
+		document.getElementById('nb_val').value = "www.example.com";
 	}
 	else if (ns == "url") {
 		document.getElementById('nb_ns').value = "6ba7b811-9dad-11d1-80b4-00c04fd430c8";
-		document.getElementById('nb_val').value = "http://www.example.org/";
+		document.getElementById('nb_val').value = "http://www.example.com/";
 	}
 	else if (ns == "oid") {
 		document.getElementById('nb_ns').value = "6ba7b812-9dad-11d1-80b4-00c04fd430c8";

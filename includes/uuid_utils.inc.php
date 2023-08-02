@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-07-29
+ * Version 2023-08-02
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1142,6 +1142,50 @@ function gen_uuid_random() {
 // Variant 1, Version 5 (SHA1 name based) UUID
 # --------------------------------------
 
+
+const RFC4122BIS_SHA2_224     = "59031ca3-fbdb-47fb-9f6c-0f30e2e83145"; // sha224
+const RFC4122BIS_SHA2_256     = "3fb32780-953c-4464-9cfd-e85dbbe9843d"; // sha256
+const RFC4122BIS_SHA2_384     = "e6800581-f333-484b-8778-601ff2b58da8"; // sha384
+const RFC4122BIS_SHA2_512     = "0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9"; // sha512
+const RFC4122BIS_SHA2_512_224 = "003c2038-c4fe-4b95-a672-0c26c1b79542"; // sha512/224
+const RFC4122BIS_SHA2_512_256 = "9475ad00-3769-4c07-9642-5e7383732306"; // sha512/256
+const RFC4122BIS_SHA3_224     = "9768761f-ac5a-419e-a180-7ca239e8025a"; // sha3-224
+const RFC4122BIS_SHA3_256     = "2034d66b-4047-4553-8f80-70e593176877"; // sha3-256
+const RFC4122BIS_SHA3_384     = "872fb339-2636-4bdd-bda6-b6dc2a82b1b3"; // sha3-384
+const RFC4122BIS_SHA3_512     = "a4920a5d-a8a6-426c-8d14-a6cafbe64c7b"; // sha3-512
+const RFC4122BIS_SHAKE_128    = "7ea218f6-629a-425f-9f88-7439d63296bb";
+const RFC4122BIS_SHAKE_256    = "2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a";
+function gen_uuid_v8_namebased($hash_uuid, $namespace_uuid, $name) {
+	// Example from RFC4122bis
+
+	$uuid1 = hex2bin(str_replace('-','',uuid_canonize($hash_uuid)));
+	$uuid2 = hex2bin(str_replace('-','',uuid_canonize($namespace_uuid)));
+	$payload = $uuid1 . $uuid2 . $name;
+
+	if ($hash_uuid == RFC4122BIS_SHA2_224) $hash = hash('sha224', $payload);
+	else if ($hash_uuid == RFC4122BIS_SHA2_256) $hash = hash('sha256', $payload);
+	else if ($hash_uuid == RFC4122BIS_SHA2_384) $hash = hash('sha384', $payload);
+	else if ($hash_uuid == RFC4122BIS_SHA2_512) $hash = hash('sha512', $payload);
+	else if ($hash_uuid == RFC4122BIS_SHA2_512_224) $hash = hash('sha512/224', $payload);
+	else if ($hash_uuid == RFC4122BIS_SHA2_512_256) $hash = hash('sha512/256', $payload);
+	else if ($hash_uuid == RFC4122BIS_SHA3_224) $hash = hash('sha3-224', $payload);
+	else if ($hash_uuid == RFC4122BIS_SHA3_256) $hash = hash('sha3-256', $payload);
+	else if ($hash_uuid == RFC4122BIS_SHA3_384) $hash = hash('sha3-384', $payload);
+	else if ($hash_uuid == RFC4122BIS_SHA3_512) $hash = hash('sha3-512', $payload);
+	else if ($hash_uuid == RFC4122BIS_SHAKE_128) $hash = shake128($payload);
+	else if ($hash_uuid == RFC4122BIS_SHAKE_256) $hash = shake256($payload);
+	else throw new Exception("Unknown hash UUID");
+
+	$hash[12] = '8'; // Set version: 8 = Custom
+	$hash[16] = dechex(hexdec($hash[16]) & 0b0011 | 0b1000); // Set variant to "0b10__" (RFC4122/DCE1.1)
+
+	return substr($hash,  0, 8).'-'.
+	       substr($hash,  8, 4).'-'.
+	       substr($hash, 12, 4).'-'.
+	       substr($hash, 16, 4).'-'.
+	       substr($hash, 20, 12);
+}
+
 function gen_uuid_v5($namespace_uuid, $name) {
 	return gen_uuid_sha1_namebased($namespace_uuid, $name);
 }
@@ -1291,3 +1335,21 @@ if (!function_exists('gmp_shiftr')) {
         return(gmp_div_q($x,gmp_pow(2,$n)));
     }
 }
+
+function shake128(string $msg, int $outputLength=512, bool $binary=false): string {
+	include_once 'SHA3.php';
+	$sponge = SHA3::init(SHA3::SHAKE128);
+	$sponge->absorb($msg);
+	$bin = $sponge->squeeze($outputLength);
+	return $binary ? $bin : bin2hex($bin);
+}
+
+function shake256(string $msg, int $outputLength=512, bool $binary=false): string {
+	include_once 'SHA3.php';
+	$sponge = SHA3::init(SHA3::SHAKE256);
+	$sponge->absorb($msg);
+	$bin = $sponge->squeeze($outputLength);
+	return $binary ? $bin : bin2hex($bin);
+}
+
+
