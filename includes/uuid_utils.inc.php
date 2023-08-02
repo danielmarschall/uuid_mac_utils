@@ -1172,8 +1172,8 @@ function gen_uuid_v8_namebased($hash_uuid, $namespace_uuid, $name) {
 	else if ($hash_uuid == RFC4122BIS_SHA3_256) $hash = hash('sha3-256', $payload);
 	else if ($hash_uuid == RFC4122BIS_SHA3_384) $hash = hash('sha3-384', $payload);
 	else if ($hash_uuid == RFC4122BIS_SHA3_512) $hash = hash('sha3-512', $payload);
-	else if ($hash_uuid == RFC4122BIS_SHAKE_128) $hash = shake128($payload);
-	else if ($hash_uuid == RFC4122BIS_SHAKE_256) $hash = shake256($payload);
+	else if ($hash_uuid == RFC4122BIS_SHAKE_128) $hash = shake128($payload, 16, false);
+	else if ($hash_uuid == RFC4122BIS_SHAKE_256) $hash = shake256($payload, 16, false);
 	else throw new Exception("Unknown hash UUID");
 
 	$hash[12] = '8'; // Set version: 8 = Custom

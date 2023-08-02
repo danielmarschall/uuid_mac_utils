@@ -327,9 +327,9 @@ function show_uuidv35_info() {
 	document.getElementById("uuidv35_info").style.display = "block";
 }
 </script>
-<pre id="uuidv35_info" style="display:none">Variant 1, Version 3/5 UUID:
+<pre id="uuidv35_info" style="display:none">Variant 1, Version 3/5/8 UUID:
 - 48 bit Hash High
--  4 bit Version (fix 0x3)
+-  4 bit Version (fix 0x3, 0x5, or 0x8)
 - 12 bit Hash Mid
 -  2 bit Variant (fix 0b10)
 - 62 bit Hash Low</pre></p>
