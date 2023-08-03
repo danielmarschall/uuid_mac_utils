@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-08-02
+ * Version 2023-08-03
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1285,8 +1285,12 @@ function gen_uuid_v8_namebased($hash_uuid, $namespace_uuid, $name) {
 	$payload = $uuid1 . $uuid2 . $name;
 
 	$hash = null;
-	foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyname,$author)) {
+	foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
 		if (uuid_equal($hash_uuid,$space)) {
+			if (!$available) {
+				throw new Exception("Algorithm $algo is not available on this system (PHP version too old)");
+			}
+
 			if ($algo == 'shake128') $hash = shake128($payload, 16/*min. required bytes*/, false);
 			else if ($algo == 'shake256') $hash = shake256($payload, 16/*min. required bytes*/, false);
 			else $hash = hash($algo, $payload, false);
@@ -1310,24 +1314,24 @@ function gen_uuid_v8_namebased($hash_uuid, $namespace_uuid, $name) {
 
 /**
  * Collection of Namebased UUIDv8 Hash Space IDs
- * @return array An array containing tuples of [PHP Algo Name, Hash Space UUID, Human friendly name, Hash Space Author]
+ * @return array An array containing tuples of [PHP Algo Name, Hash Space UUID, Human friendly name, Hash Space Author, Available]
  */
 function get_uuidv8_hash_space_ids(): array {
 	$out = array();
 
 	// The following Hash Space UUIDs are defined in the RFC4122bis as Example for Namebased UUIDv8
-	$out[] = ['sha224', '59031ca3-fbdb-47fb-9f6c-0f30e2e83145', 'SHA2-224', 'RFC Example'];
-	$out[] = ['sha256', '3fb32780-953c-4464-9cfd-e85dbbe9843d', 'SHA2-256', 'RFC Example'];
-	$out[] = ['sha384', 'e6800581-f333-484b-8778-601ff2b58da8', 'SHA2-384', 'RFC Example'];
-	$out[] = ['sha512', '0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9', 'SHA2-512', 'RFC Example'];
-	$out[] = ['sha512/224', '003c2038-c4fe-4b95-a672-0c26c1b79542', 'SHA2-512/224', 'RFC Example'];
-	$out[] = ['sha512/256', '9475ad00-3769-4c07-9642-5e7383732306', 'SHA2-512/256', 'RFC Example'];
-	$out[] = ['sha3-224', '9768761f-ac5a-419e-a180-7ca239e8025a', 'SHA3-224', 'RFC Example'];
-	$out[] = ['sha3-256', '2034d66b-4047-4553-8f80-70e593176877', 'SHA3-256', 'RFC Example'];
-	$out[] = ['sha3-384', '872fb339-2636-4bdd-bda6-b6dc2a82b1b3', 'SHA3-384', 'RFC Example'];
-	$out[] = ['sha3-512', 'a4920a5d-a8a6-426c-8d14-a6cafbe64c7b', 'SHA3-512', 'RFC Example'];
-	$out[] = ['shake128'/*Currently no PHP core algorithm!*/, '7ea218f6-629a-425f-9f88-7439d63296bb', 'SHAKE-128', 'RFC Example'];
-	$out[] = ['shake256'/*Currently no PHP core algorithm!*/, '2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a', 'SHAKE-256', 'RFC Example'];
+	$out[] = ['sha224', '59031ca3-fbdb-47fb-9f6c-0f30e2e83145', 'SHA2-224', 'RFC Example', PHP_VERSION_ID >= 70100];
+	$out[] = ['sha256', '3fb32780-953c-4464-9cfd-e85dbbe9843d', 'SHA2-256', 'RFC Example', PHP_VERSION_ID >= 70100];
+	$out[] = ['sha384', 'e6800581-f333-484b-8778-601ff2b58da8', 'SHA2-384', 'RFC Example', PHP_VERSION_ID >= 70100];
+	$out[] = ['sha512', '0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9', 'SHA2-512', 'RFC Example', PHP_VERSION_ID >= 70100];
+	$out[] = ['sha512/224', '003c2038-c4fe-4b95-a672-0c26c1b79542', 'SHA2-512/224', 'RFC Example', PHP_VERSION_ID >= 70100];
+	$out[] = ['sha512/256', '9475ad00-3769-4c07-9642-5e7383732306', 'SHA2-512/256', 'RFC Example', PHP_VERSION_ID >= 70100];
+	$out[] = ['sha3-224', '9768761f-ac5a-419e-a180-7ca239e8025a', 'SHA3-224', 'RFC Example', PHP_VERSION_ID >= 70100];
+	$out[] = ['sha3-256', '2034d66b-4047-4553-8f80-70e593176877', 'SHA3-256', 'RFC Example', PHP_VERSION_ID >= 70100];
+	$out[] = ['sha3-384', '872fb339-2636-4bdd-bda6-b6dc2a82b1b3', 'SHA3-384', 'RFC Example', PHP_VERSION_ID >= 70100];
+	$out[] = ['sha3-512', 'a4920a5d-a8a6-426c-8d14-a6cafbe64c7b', 'SHA3-512', 'RFC Example', PHP_VERSION_ID >= 70100];
+	$out[] = ['shake128'/*Currently no PHP core algorithm!*/, '7ea218f6-629a-425f-9f88-7439d63296bb', 'SHAKE-128', 'RFC Example', file_exists(__DIR__.'/SHA3.php')];
+	$out[] = ['shake256'/*Currently no PHP core algorithm!*/, '2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a', 'SHAKE-256', 'RFC Example', file_exists(__DIR__.'/SHA3.php')];
 
 	// The following Hash Space UUIDs are defined by ViaThinkSoft
 	// These Hash Spaces can be calculated as follows:
@@ -1336,12 +1340,33 @@ function get_uuidv8_hash_space_ids(): array {
 	foreach (hash_algos() as $algo) {
 		if ($algo == 'md5') continue; // MD5 is already used in UUIDv3
 		if ($algo == 'sha1') continue; // MD5 is already used in UUIDv5
-		foreach ($out as list($algo2,$space,$friendlyname,$author)) {
+		foreach ($out as list($algo2,$space,$friendlyName,$author)) {
 			if ($algo == $algo2) continue 2; // UUID is already defined by RFC, don't need a VTS Hash Space UUID
 		}
 		if (strlen(hash($algo,'',false)) < 32) continue; // Hash too short (needs at least 16 bytes)
-		$out[] = [$algo, gen_uuid_v5('1ee317e2-1853-64b2-8fe9-3c4a92df8582', $algo), strtoupper($algo), 'ViaThinkSoft'];
+		$out[] = [$algo, gen_uuid_v5('1ee317e2-1853-64b2-8fe9-3c4a92df8582', $algo), strtoupper($algo), 'ViaThinkSoft', true];
 	}
+
+	// How to update this list $unavailable_algos:
+	// 1. Look if new hashes are listed in the PHP documentation: https://www.php.net/manual/de/function.hash-algos.php
+	// 2. If the required version is lower than our server version, then you don't need to do anything
+	// 3. Otherwise, run this command on a different machine (where the algorithms are implemented) to check if the hashes have the correct length
+	//	foreach (hash_algos() as $algo) {
+	//		$len = strlen(hash($algo, '', false));
+	//		if ($len >= 32) echo "$algo, length $len\n";
+	//	}
+	// 4. Then, include all fitting hashes here
+	// 5. Please publish the new hash space IDs here: https://oidplus.viathinksoft.com/oidplus/?goto=guid%3Auuid_mac_utils%2Fuuidv8_hash_space_vts
+	$unavailable_algos = [];
+	if (PHP_VERSION_ID < 80100/*8.1.0*/) {
+		$unavailable_algos[] = 'murmur3c'; // length: 16 bytes
+		$unavailable_algos[] = 'murmur3f'; // length: 16 bytes
+		$unavailable_algos[] = 'xxh128';   // length: 16 bytes
+	}
+	foreach ($unavailable_algos as $algo) {
+		$out[] = [$algo, gen_uuid_v5('1ee317e2-1853-64b2-8fe9-3c4a92df8582', $algo), strtoupper($algo), 'ViaThinkSoft', false];
+	}
+
 	return $out;
 }
 

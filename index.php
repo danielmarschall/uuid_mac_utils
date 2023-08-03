@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
-* Version 2023-08-02
+* Version 2023-08-03
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -61,20 +61,20 @@ const AUTO_NEW_UUIDS = 10;
 
 <h2 id="gen_uuid">Generate random and/or time-based UUIDs</h2>
 
-<h3 id="gen_uuidv7"><font color="green">New:</font> Generate Unix Epoch Time (version 7) UUID &#11088</h3>
+<h3 id="gen_uuidv7"><font color="green">New:</font> Generate Unix Epoch Time (version 7) UUID &#11088;</h3>
 
 <p><i>A UUIDv7 is made of time and 74 random&nbsp;bits.
         Since the time is at the beginning, the UUIDs are monotonically increasing.
         Due to the missing MAC address, this UUID version is recommended due to
         improved privacy.</i></p>
 
-<p><a id="uuidv7_info_button" href="javascript:show_uuidv7_info()">Show format</a>
 <script>
 function show_uuidv7_info() {
 	document.getElementById("uuidv7_info_button").style.display = "none";
 	document.getElementById("uuidv7_info").style.display = "block";
 }
 </script>
+<p><a id="uuidv7_info_button" href="javascript:show_uuidv7_info()">Show format</a>
 <pre id="uuidv7_info" style="display:none">Variant 1, Version 7 UUID:
 - 48 bit <abbr title="Count of 1ms intervals passed since 1 Jan 1970 00:00:00 GMT">Unix Time in milliseconds</abbr>
 -  4 bit Version (fix 0x7)
@@ -106,13 +106,13 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
         the time, and a clock sequence. However, the components in UUIDv6 are reordered (time is at the beginning),
         so that UUIDs are monotonically increasing.</i></p>
 
-<p><a id="uuidv6_info_button" href="javascript:show_uuidv6_info()">Show format</a>
 <script>
 function show_uuidv6_info() {
 	document.getElementById("uuidv6_info_button").style.display = "none";
 	document.getElementById("uuidv6_info").style.display = "block";
 }
 </script>
+<p><a id="uuidv6_info_button" href="javascript:show_uuidv6_info()">Show format</a>
 <pre id="uuidv6_info" style="display:none">Variant 1, Version 6 UUID:
 - 48 bit High <abbr title="Count of 100ns intervals passed since 15 Oct 1582 00:00:00 GMT">Time</abbr>
 -  4 bit Version (fix 0x6)
@@ -144,13 +144,13 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 
 <p><i>A UUIDv4 is made of 122 random&nbsp;bits. No other information is encoded in this kind of UUID.</i></p>
 
-<p><a id="uuidv4_info_button" href="javascript:show_uuidv4_info()">Show format</a>
 <script>
 function show_uuidv4_info() {
 	document.getElementById("uuidv4_info_button").style.display = "none";
 	document.getElementById("uuidv4_info").style.display = "block";
 }
 </script>
+<p><a id="uuidv4_info_button" href="javascript:show_uuidv4_info()">Show format</a>
 <pre id="uuidv4_info" style="display:none">Variant 1, Version 4 UUID:
 - 48 bit Random High
 -  4 bit Version (fix 0x4)
@@ -181,13 +181,13 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 <p><i>A UUIDv1 is made of the MAC address of the generating computer,
 the time, and a clock sequence.</i></p>
 
-<p><a id="uuidv1_info_button" href="javascript:show_uuidv1_info()">Show format</a>
 <script>
 function show_uuidv1_info() {
 	document.getElementById("uuidv1_info_button").style.display = "none";
 	document.getElementById("uuidv1_info").style.display = "block";
 }
 </script>
+<p><a id="uuidv1_info_button" href="javascript:show_uuidv1_info()">Show format</a>
 <pre id="uuidv1_info" style="display:none">Variant 1, Version 1 UUID:
 - 32 bit Low <abbr title="Count of 100ns intervals passed since 15 Oct 1582 00:00:00 GMT">Time</abbr>
 - 16 bit Mid <abbr title="Count of 100ns intervals passed since 15 Oct 1582 00:00:00 GMT">Time</abbr>
@@ -229,13 +229,13 @@ amount of available timestamp bits was exhausted on <strong>5 September 2015</st
 As an example, here is the last possible NCS UUID (all bits of the timestamp are set to 1) for IP address 127.0.0.1:
 <a href="interprete_uuid.php?uuid=ffffffff-ffff-0000-027f-000001000000"><code>ffffffff-ffff-0000-027f-000001000000</code></a>.</p>
 
-<p><a id="uuidnce_info_button" href="javascript:show_uuidnce_info()">Show format</a>
 <script>
 function show_uuidnce_info() {
 	document.getElementById("uuidnce_info_button").style.display = "none";
 	document.getElementById("uuidnce_info").style.display = "block";
 }
 </script>
+<p><a id="uuidnce_info_button" href="javascript:show_uuidnce_info()">Show format</a>
 <pre id="uuidnce_info" style="display:none">Variant 0 UUID:
 - 32 bit High <abbr title="Count of 4&#xB5;s intervals passed since 1 Jan 1980 00:00:00 GMT">Time</abbr>
 - 16 bit Low <abbr title="Count of 4&#xB5;s intervals passed since 1 Jan 1980 00:00:00 GMT">Time</abbr>
@@ -262,13 +262,13 @@ socket_$dds (0xD)">Family</abbr>
 <p><i>An UUIDv2 contains information about the creator (person, group, or organization), the generating system (MAC address), and time.
 The creator information replaced parts of the time bits, therefore the time resolution is very low.</i></p>
 
-<p><a id="uuidv2_info_button" href="javascript:show_uuidv2_info()">Show format</a>
 <script>
 function show_uuidv2_info() {
 	document.getElementById("uuidv2_info_button").style.display = "none";
 	document.getElementById("uuidv2_info").style.display = "block";
 }
 </script>
+<p><a id="uuidv2_info_button" href="javascript:show_uuidv2_info()">Show format</a>
 <pre id="uuidv2_info" style="display:none">Variant 1, Version 2 UUID:
 - 32 bit Local Domain Number
 - 16 bit Mid <abbr title="Count of 429.4967296s intervals passed since 15 Oct 1582 00:00:00 GMT">Time</abbr>
@@ -289,7 +289,7 @@ function show_uuidv2_info() {
 		<option value="gid">Group (e.g. POSIX GID)</option>
 		<option value="org">Organization</option>
 		<option value="site">Site-defined</option>
-	</select> = <input type="number" min="0" max="255" name="dce_domain" value="" id="dce_domain" style="width:50px" pattern="[0-9]+"> (decimal notation)<br>
+	</select> = Address Family ID: <input type="number" min="0" max="255" name="dce_domain" value="" id="dce_domain" style="width:50px" pattern="[0-9]+"> (decimal notation)<br>
 	<label>Value (32&nbsp;bits):</label><input type="number" min="0" max="4294967295" name="dce_id" value="0" id="dce_id" style="width:200px" pattern="[0-9]+"> (decimal notation)<br>
 	<font color="red">Warning</font>: The timestamp has an accuracy of 7:10 minutes,
 	therefore the uniqueness of these UUIDs is not guaranteed!<br><br>
@@ -321,19 +321,72 @@ The revision of RFC4122 also contains an example for a custom UUIDv8 that
 allows SHA2, SHA3 and SHAKE hash algorithms. ViaThinkSoft added more hash
 algorithms and assigned Hash Space IDs to them.</i></p>
 
-<p><a id="uuidv35_info_button" href="javascript:show_uuidv35_info()">Show format</a>
 <script>
 function show_uuidv35_info() {
 	document.getElementById("uuidv35_info_button").style.display = "none";
 	document.getElementById("uuidv35_info").style.display = "block";
 }
 </script>
+<p><a id="uuidv35_info_button" href="javascript:show_uuidv35_info()">Show format</a>
 <pre id="uuidv35_info" style="display:none">Variant 1, Version 3/5/8 UUID:
 - 48 bit Hash High
 -  4 bit Version (fix 0x3, 0x5, or 0x8)
 - 12 bit Hash Mid
 -  2 bit Variant (fix 0b10)
-- 62 bit Hash Low</pre></p>
+- 62 bit Hash Low
+
+
+
+<u>Overview of namebased UUIDs:</u>
+UUIDv3(<i>NamespaceUuid</i>, <i>Data</i>)           := <abbr title="Adds UUID variant 0b10 and version 3">ConvertRawBytesToUuid_v3</abbr>(MD5( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
+UUIDv5(<i>NamespaceUuid</i>, <i>Data</i>)           := <abbr title="Adds UUID variant 0b10 and version 5">ConvertRawBytesToUuid_v5</abbr>(SHA1( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
+UUIDv8(<i>HashAlgo</i>, <i>NameSpaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 8">ConvertRawBytesToUuid_v8</abbr>(<i>HashAlgo</i>( Binary[HashSpaceUuid&lt;<i>HashAlgo</i>&gt;] || Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
+
+<u>As defined by RFC4122 Appendix C / RFC4122bis Appendix A:</u>
+NameSpaceUuid&lt;DNS&gt;          := "6ba7b810-9dad-11d1-80b4-00c04fd430c8".
+NameSpaceUuid&lt;URL&gt;          := "6ba7b811-9dad-11d1-80b4-00c04fd430c8".
+NameSpaceUuid&lt;OID&gt;          := "6ba7b812-9dad-11d1-80b4-00c04fd430c8".
+NameSpaceUuid&lt;X500&gt;         := "6ba7b814-9dad-11d1-80b4-00c04fd430c8".
+
+<u>As defined by RFC4122bis Appendix B:</u>
+HashSpaceUuid&lt;SHA2_224&gt;     := "59031ca3-fbdb-47fb-9f6c-0f30e2e83145".
+HashSpaceUuid&lt;SHA2_256&gt;     := "3fb32780-953c-4464-9cfd-e85dbbe9843d".
+HashSpaceUuid&lt;SHA2_384&gt;     := "e6800581-f333-484b-8778-601ff2b58da8".
+HashSpaceUuid&lt;SHA2_512&gt;     := "0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9".
+HashSpaceUuid&lt;SHA2_512_224&gt; := "003c2038-c4fe-4b95-a672-0c26c1b79542".
+HashSpaceUuid&lt;SHA2_512_256&gt; := "9475ad00-3769-4c07-9642-5e7383732306".
+HashSpaceUuid&lt;SHA3_224&gt;     := "9768761f-ac5a-419e-a180-7ca239e8025a".
+HashSpaceUuid&lt;SHA3_256&gt;     := "2034d66b-4047-4553-8f80-70e593176877".
+HashSpaceUuid&lt;SHA3_384&gt;     := "872fb339-2636-4bdd-bda6-b6dc2a82b1b3".
+HashSpaceUuid&lt;SHA3_512&gt;     := "a4920a5d-a8a6-426c-8d14-a6cafbe64c7b".
+HashSpaceUuid&lt;SHAKE_128&gt;    := "7ea218f6-629a-425f-9f88-7439d63296bb".
+HashSpaceUuid&lt;SHAKE_256&gt;    := "2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a".
+
+<u>As defined by ViaThinkSoft for all other algorithms:</u>
+HashSpaceUuid&lt;<i>HashAlgo</i>&gt;     := UUIDv5("1ee317e2-1853-64b2-8fe9-3c4a92df8582", <a href="https://www.php.net/manual/de/function.hash-algos.php">PhpName</a>[<i>HashAlgo</i>]).
+which results in the following UUIDs:
+<?php
+
+$tmp = [];
+
+foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
+	$line = str_pad('HashSpaceUuid&lt;'.htmlentities($friendlyName).'&gt;', 34, ' ', STR_PAD_RIGHT);
+	$line .= ':= "'.$space.'".';
+	if (!$available) $line .= " (Currently not available on this system)";
+	$line .= "\n";
+
+	$tmp[$friendlyName] = $line;
+}
+
+ksort($tmp);
+foreach ($tmp as $line) {
+	echo $line;
+}
+
+?>
+
+
+</pre></p>
 
 <style>
 label {
@@ -350,8 +403,10 @@ label {
 		$tmp = [];
 		$tmp['MD5'] = '<option value="3">MD5 (UUIDv3)</option>';
 		$tmp['SHA1'] = '<option value="5" selected>SHA1 (UUIDv5)</option>';
-		foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyname,$author)) {
-			$tmp[$friendlyname] = '<option value="8_namebased_'.$space.'">'.htmlentities($friendlyname).' (UUIDv8 defined by '.htmlentities($author).')</option>';
+		foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
+			if ($available) {
+				$tmp[$friendlyName] = '<option value="8_namebased_'.$space.'">'.htmlentities($friendlyName).' (UUIDv8 defined by '.htmlentities($author).')</option>';
+			}
 		}
 		ksort($tmp);
 		foreach ($tmp as $html) {
@@ -464,13 +519,13 @@ nb_ns_choose();
 
 <p><i>UUIDv8 is made of 122 bits application-specific / custom data. The other 6 bits are used to specify the variant and version of the UUID, to make it RFC-compatible.</i></p>
 
-<p><a id="uuidv8_info_button" href="javascript:show_uuidv8_info()">Show format</a>
 <script>
 function show_uuidv8_info() {
 	document.getElementById("uuidv8_info_button").style.display = "none";
 	document.getElementById("uuidv8_info").style.display = "block";
 }
 </script>
+<p><a id="uuidv8_info_button" href="javascript:show_uuidv8_info()">Show format</a>
 <pre id="uuidv8_info" style="display:none">Variant 1, Version 8 UUID:
 - 48 bit Custom data
 -  4 bit Version (fix 0x8)
@@ -543,7 +598,7 @@ function show_uuidv8_info() {
 	<input type="text" name="mac" value="" style="width:250px"> <input type="submit" value="Interprete">
 </form>
 
-<h3 id="gen_aai">Generate an AAI</h3>
+<h3 id="gen_aai">Generate an <abbr title="Administratively Assigned Identifier">AAI</abbr></h3>
 
 <p><i>An Administratively Assigned Identifier (AAI) is a MAC address which can be locally defined
 by applications or an administrator. Unlike the EUI, an AAI is NOT worldwide unique.</i></p>
