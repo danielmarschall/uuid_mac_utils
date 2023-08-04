@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-08-03
+ * Version 2023-08-04
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -637,11 +637,11 @@ function uuid_info($uuid, $echo=true) {
 				case 8:
 					/*
 					Variant 1, Version 8 UUID
-					- 48 bit Custom data
+					- 48 bit Custom data [Block 1+2]
 					-  4 bit Version (fix 0x8)
-					- 12 bit Custom data
+					- 12 bit Custom data [Block 3]
 					-  2 bit Variant (fix 0b10)
-					- 62 bit Custom data
+					- 62 bit Custom data [Block 4+5]
 					*/
 
 					echo sprintf("%-32s %s\n", "Version:", "[0x8] Custom implementation");
@@ -1033,11 +1033,11 @@ function gen_uuid_v2($domain, $id) {
 function gen_uuid_dce($domain, $id) {
 	if (($domain ?? '') === '') throw new Exception("Domain ID missing");
 	if (!is_numeric($domain)) throw new Exception("Invalid Domain ID");
-	if (($domain < 0) || ($domain > 255)) throw new Exception("Domain ID must be in range 0..255");
+	if (($domain < 0) || ($domain > 0xFF)) throw new Exception("Domain ID must be in range 0..255");
 
 	if (($id ?? '') === '') throw new Exception("ID value missing");
 	if (!is_numeric($id)) throw new Exception("Invalid ID value");
-	if (($id < 0) || ($id > 4294967295)) throw new Exception("ID value must be in range 0..4294967295");
+	if (($id < 0) || ($id > 0xFFFFFFFF)) throw new Exception("ID value must be in range 0..4294967295");
 
 	# Start with a version 1 UUID
 	$uuid = gen_uuid_timebased();
@@ -1306,10 +1306,10 @@ function gen_uuid_v8_namebased($hash_uuid, $namespace_uuid, $name) {
 	$hash[16] = dechex(hexdec($hash[16]) & 0b0011 | 0b1000); // Set variant to "0b10__" (RFC4122/DCE1.1)
 
 	return substr($hash,  0, 8).'-'.
-		substr($hash,  8, 4).'-'.
-		substr($hash, 12, 4).'-'.
-		substr($hash, 16, 4).'-'.
-		substr($hash, 20, 12);
+	       substr($hash,  8, 4).'-'.
+	       substr($hash, 12, 4).'-'.
+	       substr($hash, 16, 4).'-'.
+	       substr($hash, 20, 12);
 }
 
 /**
@@ -1398,7 +1398,7 @@ if (!function_exists('gmp_shiftr')) {
 }
 
 function shake128(string $msg, int $outputLength=512, bool $binary=false): string {
-	include_once 'SHA3.php';
+	include_once __DIR__.'/SHA3.php';
 	$sponge = SHA3::init(SHA3::SHAKE128);
 	$sponge->absorb($msg);
 	$bin = $sponge->squeeze($outputLength);
@@ -1406,7 +1406,7 @@ function shake128(string $msg, int $outputLength=512, bool $binary=false): strin
 }
 
 function shake256(string $msg, int $outputLength=512, bool $binary=false): string {
-	include_once 'SHA3.php';
+	include_once __DIR__.'/SHA3.php';
 	$sponge = SHA3::init(SHA3::SHAKE256);
 	$sponge->absorb($msg);
 	$bin = $sponge->squeeze($outputLength);

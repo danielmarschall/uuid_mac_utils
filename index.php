@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
-* Version 2023-08-03
+* Version 2023-08-04
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -527,11 +527,11 @@ function show_uuidv8_info() {
 </script>
 <p><a id="uuidv8_info_button" href="javascript:show_uuidv8_info()">Show format</a>
 <pre id="uuidv8_info" style="display:none">Variant 1, Version 8 UUID:
-- 48 bit Custom data
+- 48 bit Custom data [Block 1+2]
 -  4 bit Version (fix 0x8)
-- 12 bit Custom data
+- 12 bit Custom data [Block 3]
 -  2 bit Variant (fix 0b10)
-- 62 bit Custom data</pre></p>
+- 62 bit Custom data [Block 4+5]</pre></p>
 
 <form method="GET" action="interprete_uuid.php">
 	<input type="hidden" name="version" value="8">
