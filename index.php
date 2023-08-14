@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
-* Version 2023-08-04
+* Version 2023-08-14
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -342,13 +342,13 @@ UUIDv3(<i>NamespaceUuid</i>, <i>Data</i>)           := <abbr title="Adds UUID va
 UUIDv5(<i>NamespaceUuid</i>, <i>Data</i>)           := <abbr title="Adds UUID variant 0b10 and version 5">ConvertRawBytesToUuid_v5</abbr>(SHA1( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
 UUIDv8(<i>HashAlgo</i>, <i>NameSpaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 8">ConvertRawBytesToUuid_v8</abbr>(<i>HashAlgo</i>( Binary[HashSpaceUuid&lt;<i>HashAlgo</i>&gt;] || Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
 
-<u>As defined by RFC4122 Appendix C / RFC4122bis Appendix A:</u>
+<u>As defined by <a href="https://datatracker.ietf.org/doc/rfc4122/">RFC4122</a> Appendix C / <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">RFC4122bis</a> Appendix A:</u><!-- TODO: When new RFC is published, replace the RFC number -->
 NameSpaceUuid&lt;DNS&gt;          := "6ba7b810-9dad-11d1-80b4-00c04fd430c8".
 NameSpaceUuid&lt;URL&gt;          := "6ba7b811-9dad-11d1-80b4-00c04fd430c8".
 NameSpaceUuid&lt;OID&gt;          := "6ba7b812-9dad-11d1-80b4-00c04fd430c8".
 NameSpaceUuid&lt;X500&gt;         := "6ba7b814-9dad-11d1-80b4-00c04fd430c8".
 
-<u>As defined by RFC4122bis Appendix B:</u>
+<u>As defined by <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">RFC4122bis</a> Appendix B:</u><!-- TODO: When new RFC is published, replace the RFC number -->
 HashSpaceUuid&lt;SHA2_224&gt;     := "59031ca3-fbdb-47fb-9f6c-0f30e2e83145".
 HashSpaceUuid&lt;SHA2_256&gt;     := "3fb32780-953c-4464-9cfd-e85dbbe9843d".
 HashSpaceUuid&lt;SHA2_384&gt;     := "e6800581-f333-484b-8778-601ff2b58da8".
