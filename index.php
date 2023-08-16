@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
-* Version 2023-08-14
+* Version 2023-08-16
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -524,6 +524,30 @@ function show_uuidv8_info() {
 	document.getElementById("uuidv8_info_button").style.display = "none";
 	document.getElementById("uuidv8_info").style.display = "block";
 }
+function uuidv8_changedec(block, len) {
+	var x = document.getElementById("v8_block"+block+"_dec").value;
+	if (x.trim() == "") x = 0;
+	x = parseInt(x);
+	if (isNaN(x)) {
+		x = "???";
+	} else {
+		x = x.toString(16).padStart(len, '0');
+		if ((len > 0) && (x.length > len)) x = "Overflow";
+	}
+	document.getElementById("v8_block"+block+"_hex").value = x;
+}
+function uuidv8_changehex(block, len) {
+	var x = document.getElementById("v8_block"+block+"_hex").value;
+	if (x.trim() == "") x = 0;
+	x = parseInt(x, 16);
+	if (isNaN(x)) {
+		x = "???";
+	} else {
+		x = x.toString().padStart(len, '0');
+		if ((len > 0) && (x.length > len)) x = "Overflow"; // Note: For block 3/4, the overflow actually happens at 12/14 bits, not at 4 nibbles (16 bits)
+	}
+	document.getElementById("v8_block"+block+"_dec").value = x;
+}
 </script>
 <p><a id="uuidv8_info_button" href="javascript:show_uuidv8_info()">Show format</a>
 <pre id="uuidv8_info" style="display:none">Variant 1, Version 8 UUID:
@@ -535,11 +559,22 @@ function show_uuidv8_info() {
 
 <form method="GET" action="interprete_uuid.php">
 	<input type="hidden" name="version" value="8">
-	<label>Block&nbsp;1 (32&nbsp;bits):</label><input type="text" name="block1" value="00000000" maxlength="8"  id="v8_block1" style="width:150px" pattern="[0-9a-fA-F]+"> (hex notation)<br>
-	<label>Block&nbsp;2 (16&nbsp;bits):</label><input type="text" name="block2" value="0000" maxlength="4"  id="v8_block2" style="width:150px" pattern="[0-9a-fA-F]+"> (hex notation)<br>
-	<label>Block&nbsp;3 (<abbr title="The high 4 bits are occupied by the UUID version = 8">12&nbsp;bits</abbr>):</label><input type="text" name="block3" value="0000" maxlength="4"  id="v8_block3" style="width:150px" pattern="[0-9a-fA-F]+"> (hex notation)<br>
-	<label>Block&nbsp;4 (<abbr title="The high 2 bits are occupied by the UUID variant = 0b10">14&nbsp;bits</abbr>):</label><input type="text" name="block4" value="0000" maxlength="4"  id="v8_block4" style="width:150px" pattern="[0-9a-fA-F]+"> (hex notation)<br>
-	<label>Block&nbsp;5 (48&nbsp;bits):</label><input type="text" name="block5" value="000000000000" maxlength="12" id="v8_block5" style="width:150px" pattern="[0-9a-fA-F]+"> (hex notation)<br>
+
+	<label>Block&nbsp;1 (32&nbsp;bits):</label>0x<input type="text" name="block1" value="00000000" maxlength="8" id="v8_block1_hex" onkeyup="uuidv8_changehex(1, 0)" style="width:150px" pattern="[0-9a-fA-F]+"> = Decimal
+	<input type="number" name="block1dec" value="0" min="0" maxlength="20" id="v8_block1_dec" onmouseup="uuidv8_changedec(1, 8)" onkeyup="uuidv8_changedec(1, 8)" style="width:150px"><br>
+
+	<label>Block&nbsp;2 (16&nbsp;bits):</label>0x<input type="text" name="block2" value="0000" maxlength="4" id="v8_block2_hex" onkeyup="uuidv8_changehex(2, 0)" style="width:150px" pattern="[0-9a-fA-F]+"> = Decimal
+	<input type="number" name="block2dec" value="0" min="0" maxlength="20" id="v8_block2_dec" onmouseup="uuidv8_changedec(2, 4)" onkeyup="uuidv8_changedec(2, 4)" style="width:150px"><br>
+
+	<label>Block&nbsp;3 (<abbr title="The high 4 bits are occupied by the UUID version = 8">12&nbsp;bits</abbr>):</label>0x<input type="text" name="block3" value="0000" maxlength="4" id="v8_block3_hex" onkeyup="uuidv8_changehex(3, 0)" style="width:150px" pattern="[0-9a-fA-F]+"> = Decimal
+	<input type="number" name="block3dec" value="0" min="0" maxlength="20" id="v8_block3_dec" onmouseup="uuidv8_changedec(3, 4)" onkeyup="uuidv8_changedec(3, 4)" style="width:150px"><br>
+
+	<label>Block&nbsp;4 (<abbr title="The high 2 bits are occupied by the UUID variant = 0b10">14&nbsp;bits</abbr>):</label>0x<input type="text" name="block4" value="0000" maxlength="4" id="v8_block4_hex" onkeyup="uuidv8_changehex(4, 0)" style="width:150px" pattern="[0-9a-fA-F]+"> = Decimal
+	<input type="number" name="block4dec" value="0" min="0" maxlength="20" id="v8_block4_dec" onmouseup="uuidv8_changedec(4, 4)" onkeyup="uuidv8_changedec(4, 4)" style="width:150px"><br>
+
+	<label>Block&nbsp;5 (48&nbsp;bits):</label>0x<input type="text" name="block5" value="000000000000" maxlength="12" id="v8_block5_hex" onkeyup="uuidv8_changehex(5, 0)" style="width:150px" pattern="[0-9a-fA-F]+"> = Decimal
+	<input type="number" name="block5dec" value="0" min="0" maxlength="20" id="v8_block5_dec" onmouseup="uuidv8_changedec(5, 12)" onkeyup="uuidv8_changedec(5, 12)" style="width:150px"><br>
+
 	<font color="red">Warning</font>: These UUIDs do not contain a timestamp,
 	therefore the uniqueness of these UUIDs is not guaranteed!<br><br>
 	<input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create UUIDv8">
