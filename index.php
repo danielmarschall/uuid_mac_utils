@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
-* Version 2023-08-16
+* Version 2023-09-06
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -342,25 +342,31 @@ UUIDv3(<i>NamespaceUuid</i>, <i>Data</i>)           := <abbr title="Adds UUID va
 UUIDv5(<i>NamespaceUuid</i>, <i>Data</i>)           := <abbr title="Adds UUID variant 0b10 and version 5">ConvertRawBytesToUuid_v5</abbr>(SHA1( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
 UUIDv8(<i>HashAlgo</i>, <i>NameSpaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 8">ConvertRawBytesToUuid_v8</abbr>(<i>HashAlgo</i>( Binary[HashSpaceUuid&lt;<i>HashAlgo</i>&gt;] || Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
 
-<u>As defined by <a href="https://datatracker.ietf.org/doc/rfc4122/">RFC4122</a> Appendix C / <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">RFC4122bis</a> Appendix A:</u><!-- TODO: When new RFC is published, replace the RFC number -->
+<u>As defined by <a href="https://datatracker.ietf.org/doc/rfc4122/">RFC4122</a> Appendix C / <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">draft-ietf-uuidrev-rfc4122bis-11</a> Appendix A:</u><!-- TODO: When new RFC is published, replace the RFC number -->
 NameSpaceUuid&lt;DNS&gt;          := "6ba7b810-9dad-11d1-80b4-00c04fd430c8".
 NameSpaceUuid&lt;URL&gt;          := "6ba7b811-9dad-11d1-80b4-00c04fd430c8".
 NameSpaceUuid&lt;OID&gt;          := "6ba7b812-9dad-11d1-80b4-00c04fd430c8".
 NameSpaceUuid&lt;X500&gt;         := "6ba7b814-9dad-11d1-80b4-00c04fd430c8".
 
-<u>As defined by <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">RFC4122bis</a> Appendix B:</u><!-- TODO: When new RFC is published, replace the RFC number -->
-HashSpaceUuid&lt;SHA2_224&gt;     := "59031ca3-fbdb-47fb-9f6c-0f30e2e83145".
-HashSpaceUuid&lt;SHA2_256&gt;     := "3fb32780-953c-4464-9cfd-e85dbbe9843d".
-HashSpaceUuid&lt;SHA2_384&gt;     := "e6800581-f333-484b-8778-601ff2b58da8".
-HashSpaceUuid&lt;SHA2_512&gt;     := "0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9".
-HashSpaceUuid&lt;SHA2_512_224&gt; := "003c2038-c4fe-4b95-a672-0c26c1b79542".
-HashSpaceUuid&lt;SHA2_512_256&gt; := "9475ad00-3769-4c07-9642-5e7383732306".
-HashSpaceUuid&lt;SHA3_224&gt;     := "9768761f-ac5a-419e-a180-7ca239e8025a".
-HashSpaceUuid&lt;SHA3_256&gt;     := "2034d66b-4047-4553-8f80-70e593176877".
-HashSpaceUuid&lt;SHA3_384&gt;     := "872fb339-2636-4bdd-bda6-b6dc2a82b1b3".
-HashSpaceUuid&lt;SHA3_512&gt;     := "a4920a5d-a8a6-426c-8d14-a6cafbe64c7b".
-HashSpaceUuid&lt;SHAKE_128&gt;    := "7ea218f6-629a-425f-9f88-7439d63296bb".
-HashSpaceUuid&lt;SHAKE_256&gt;    := "2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a".
+<u>As defined by <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">draft-ietf-uuidrev-rfc4122bis-11</a> Appendix B:</u><!-- TODO: When new RFC is published, replace the RFC number -->
+<?php
+
+$tmp = [];
+foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
+	if (strpos($author,'ViaThinkSoft') === false) {
+		$line = str_pad('HashSpaceUuid&lt;'.htmlentities($friendlyName).'&gt;', 34, ' ', STR_PAD_RIGHT);
+		$line .= ':= "'.$space.'".';
+		if (!$available) $line .= " (Currently not available on this system)";
+		$line .= "\n";
+		$tmp[$friendlyName] = $line;
+	}
+}
+ksort($tmp);
+foreach ($tmp as $line) {
+	echo $line;
+}
+
+?>
 
 <u>As defined by ViaThinkSoft for all other algorithms:</u>
 HashSpaceUuid&lt;<i>HashAlgo</i>&gt;     := UUIDv5("1ee317e2-1853-64b2-8fe9-3c4a92df8582", <a href="https://www.php.net/manual/de/function.hash-algos.php">PhpName</a>[<i>HashAlgo</i>]).
@@ -368,16 +374,15 @@ which results in the following UUIDs:
 <?php
 
 $tmp = [];
-
 foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
-	$line = str_pad('HashSpaceUuid&lt;'.htmlentities($friendlyName).'&gt;', 34, ' ', STR_PAD_RIGHT);
-	$line .= ':= "'.$space.'".';
-	if (!$available) $line .= " (Currently not available on this system)";
-	$line .= "\n";
-
-	$tmp[$friendlyName] = $line;
+	if (strpos($author,'ViaThinkSoft') !== false) {
+		$line = str_pad('HashSpaceUuid&lt;'.htmlentities($friendlyName).'&gt;', 34, ' ', STR_PAD_RIGHT);
+		$line .= ':= "'.$space.'".';
+		if (!$available) $line .= " (Currently not available on this system)";
+		$line .= "\n";
+		$tmp[$friendlyName] = $line;
+	}
 }
-
 ksort($tmp);
 foreach ($tmp as $line) {
 	echo $line;

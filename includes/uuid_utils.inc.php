@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-08-04
+ * Version 2023-09-06
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -325,9 +325,9 @@ function uuid_info($uuid, $echo=true) {
 			} else if (($version >= 3) && ($version <= 5)) {
 				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122 (Leach-Mealling-Salz)");
 			} else if (($version >= 6) && ($version <= 8)) {
-				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122bis (Davis-Peabody-Leach)"); // TODO: When new RFC is published, replace the RFC number
+				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC draft-ietf-uuidrev-rfc4122bis (Davis-Peabody-Leach)"); // TODO: When new RFC is published, replace the RFC number
 			} else {
-				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] RFC 4122?");
+				echo sprintf("%-32s %s\n", "Variant:", "[0b10_] Unknown RFC");
 			}
 
 			switch ($version) {
@@ -1320,7 +1320,7 @@ function gen_uuid_v8_namebased($hash_uuid, $namespace_uuid, $name) {
 function get_uuidv8_hash_space_ids(): array {
 	$out = array();
 
-	// The following Hash Space UUIDs are defined in RFC4122bis as Example for Namebased UUIDv8    [ TODO: When new RFC is published, replace the RFC number in this comment ]
+	// The following Hash Space UUIDs are defined in draft-ietf-uuidrev-rfc4122bis-11 as Example for Namebased UUIDv8    [ TODO: When new RFC is published, replace the RFC number in this comment ]
 	$out[] = ['sha224', '59031ca3-fbdb-47fb-9f6c-0f30e2e83145', 'SHA2-224', 'RFC Example', PHP_VERSION_ID >= 70100];
 	$out[] = ['sha256', '3fb32780-953c-4464-9cfd-e85dbbe9843d', 'SHA2-256', 'RFC Example', PHP_VERSION_ID >= 70100];
 	$out[] = ['sha384', 'e6800581-f333-484b-8778-601ff2b58da8', 'SHA2-384', 'RFC Example', PHP_VERSION_ID >= 70100];
