@@ -352,7 +352,7 @@ NameSpaceUuid&lt;X500&gt;         := "6ba7b814-9dad-11d1-80b4-00c04fd430c8".
 <?php
 
 $tmp = [];
-foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
+foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available,$oid)) {
 	if (strpos($author,'ViaThinkSoft') === false) {
 		$line = str_pad('HashSpaceUuid&lt;'.htmlentities($friendlyName).'&gt;', 34, ' ', STR_PAD_RIGHT);
 		$line .= ':= "'.$space.'".';
@@ -375,10 +375,12 @@ which results in the following UUIDs:
 <?php
 
 $tmp = [];
-foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
+foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available,$oid)) {
 	if (strpos($author,'ViaThinkSoft') === false) {
 		$line = str_pad('HashSpaceUuid&lt;'.htmlentities($friendlyName).'&gt;', 34, ' ', STR_PAD_RIGHT);
-		$line .= ':= "'.$space.'".';
+		if ($oid != null) $line .= str_pad(':= UUIDv5(NS_OID, "'.$oid.'")', 46, ' ', STR_PAD_RIGHT);
+		if ($oid == null) $line .= str_pad(':= UUIDv5(NS_PHPNAME, "'.$algo.'")', 46, ' ', STR_PAD_RIGHT);
+		$line .= '= "'.$space.'".';
 		if (!$available) $line .= " (Currently not available on this system)";
 		$line .= "\n";
 		$tmp[$friendlyName] = $line;
@@ -392,15 +394,19 @@ foreach ($tmp as $line) {
 ?>
 
 <u>As defined by ViaThinkSoft for all other algorithms:</u>
-HashSpaceUuid&lt;<i>HashAlgo</i>&gt;     := UUIDv5("1ee317e2-1853-64b2-8fe9-3c4a92df8582", <a href="https://www.php.net/manual/de/function.hash-algos.php">PhpName</a>[<i>HashAlgo</i>]).
+HashSpaceUuid&lt;<i>HashAlgo</i>&gt;     := UUIDv5(NS_OID, OID[<i>HashAlgo</i>]).
+or in case no OID can be found:
+HashSpaceUuid&lt;<i>HashAlgo</i>&gt;     := UUIDv5(NS_PHPNAME="1ee317e2-1853-64b2-8fe9-3c4a92df8582", <a href="https://www.php.net/manual/de/function.hash-algos.php">PhpName</a>[<i>HashAlgo</i>]).
 which results in the following UUIDs:
 <?php
 
 $tmp = [];
-foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
+foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available,$oid)) {
 	if (strpos($author,'ViaThinkSoft') !== false) {
 		$line = str_pad('HashSpaceUuid&lt;'.htmlentities($friendlyName).'&gt;', 34, ' ', STR_PAD_RIGHT);
-		$line .= ':= "'.$space.'".';
+		if ($oid != null) $line .= str_pad(':= UUIDv5(NS_OID,     "'.$oid.'")', 53, ' ', STR_PAD_RIGHT);
+		if ($oid == null) $line .= str_pad(':= UUIDv5(NS_PHPNAME, "'.$algo.'")', 53, ' ', STR_PAD_RIGHT);
+		$line .= '= "'.$space.'".';
 		if (!$available) $line .= " (Currently not available on this system)";
 		$line .= "\n";
 		$tmp[$friendlyName] = $line;
