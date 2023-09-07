@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-09-06
+ * Version 2023-09-07
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1320,19 +1320,43 @@ function gen_uuid_v8_namebased($hash_uuid, $namespace_uuid, $name) {
 function get_uuidv8_hash_space_ids(): array {
 	$out = array();
 
-	// The following Hash Space UUIDs are defined in draft-ietf-uuidrev-rfc4122bis-11 as Example for Namebased UUIDv8    [ TODO: When new RFC is published, replace the RFC number in this comment ]
-	$out[] = ['sha224', '59031ca3-fbdb-47fb-9f6c-0f30e2e83145', 'SHA2-224', 'RFC Example', PHP_VERSION_ID >= 70100];
-	$out[] = ['sha256', '3fb32780-953c-4464-9cfd-e85dbbe9843d', 'SHA2-256', 'RFC Example', PHP_VERSION_ID >= 70100];
-	$out[] = ['sha384', 'e6800581-f333-484b-8778-601ff2b58da8', 'SHA2-384', 'RFC Example', PHP_VERSION_ID >= 70100];
-	$out[] = ['sha512', '0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9', 'SHA2-512', 'RFC Example', PHP_VERSION_ID >= 70100];
-	$out[] = ['sha512/224', '003c2038-c4fe-4b95-a672-0c26c1b79542', 'SHA2-512/224', 'RFC Example', PHP_VERSION_ID >= 70100];
-	$out[] = ['sha512/256', '9475ad00-3769-4c07-9642-5e7383732306', 'SHA2-512/256', 'RFC Example', PHP_VERSION_ID >= 70100];
-	$out[] = ['sha3-224', '9768761f-ac5a-419e-a180-7ca239e8025a', 'SHA3-224', 'RFC Example', PHP_VERSION_ID >= 70100];
-	$out[] = ['sha3-256', '2034d66b-4047-4553-8f80-70e593176877', 'SHA3-256', 'RFC Example', PHP_VERSION_ID >= 70100];
-	$out[] = ['sha3-384', '872fb339-2636-4bdd-bda6-b6dc2a82b1b3', 'SHA3-384', 'RFC Example', PHP_VERSION_ID >= 70100];
-	$out[] = ['sha3-512', 'a4920a5d-a8a6-426c-8d14-a6cafbe64c7b', 'SHA3-512', 'RFC Example', PHP_VERSION_ID >= 70100];
-	$out[] = ['shake128'/*Currently no PHP core algorithm!*/, '7ea218f6-629a-425f-9f88-7439d63296bb', 'SHAKE-128', 'RFC Example', file_exists(__DIR__.'/SHA3.php')];
-	$out[] = ['shake256'/*Currently no PHP core algorithm!*/, '2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a', 'SHAKE-256', 'RFC Example', file_exists(__DIR__.'/SHA3.php')];
+	// The following Hash Space UUIDs are defined in draft-ietf-uuidrev-rfc4122bis-11 as Example for Namebased UUIDv8
+	$category = 'Internet Draft 11, Appendix B';
+	$out[] = ['sha224', '59031ca3-fbdb-47fb-9f6c-0f30e2e83145', 'SHA-224', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha256', '3fb32780-953c-4464-9cfd-e85dbbe9843d', 'SHA-256', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha384', 'e6800581-f333-484b-8778-601ff2b58da8', 'SHA-384', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha512', '0fde22f2-e7ba-4fd1-9753-9c2ea88fa3f9', 'SHA-512', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha512/224', '003c2038-c4fe-4b95-a672-0c26c1b79542', 'SHA-512/224', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha512/256', '9475ad00-3769-4c07-9642-5e7383732306', 'SHA-512/256', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha3-224', '9768761f-ac5a-419e-a180-7ca239e8025a', 'SHA3-224', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha3-256', '2034d66b-4047-4553-8f80-70e593176877', 'SHA3-256', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha3-384', '872fb339-2636-4bdd-bda6-b6dc2a82b1b3', 'SHA3-384', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha3-512', 'a4920a5d-a8a6-426c-8d14-a6cafbe64c7b', 'SHA3-512', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['shake128'/*Currently no PHP core algorithm!*/, '7ea218f6-629a-425f-9f88-7439d63296bb', 'SHAKE128', $category, file_exists(__DIR__.'/SHA3.php')];
+	$out[] = ['shake256'/*Currently no PHP core algorithm!*/, '2e7fc6a4-2919-4edc-b0ba-7d7062ce4f0a', 'SHAKE256', $category, file_exists(__DIR__.'/SHA3.php')];
+
+	// ---
+
+	// Proposal https://github.com/ietf-wg-uuidrev/rfc4122bis/issues/143#issuecomment-1709117798 , probably to be put into Draft 12
+	$category = 'Internet Draft 12 Proposal';
+	$out[] = ['sha224', gen_uuid_v5(UUID_NAMEBASED_NS_OID, '2.16.840.1.101.3.4.2.4'), 'SHA-224', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha256', gen_uuid_v5(UUID_NAMEBASED_NS_OID, '2.16.840.1.101.3.4.2.1'), 'SHA-256', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha384', gen_uuid_v5(UUID_NAMEBASED_NS_OID, '2.16.840.1.101.3.4.2.2'), 'SHA-384', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha512', gen_uuid_v5(UUID_NAMEBASED_NS_OID, '2.16.840.1.101.3.4.2.3'), 'SHA-512', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha512/224', gen_uuid_v5(UUID_NAMEBASED_NS_OID, '2.16.840.1.101.3.4.2.5'), 'SHA-512/224', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha512/256', gen_uuid_v5(UUID_NAMEBASED_NS_OID, '2.16.840.1.101.3.4.2.6'), 'SHA-512/256', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha3-224', gen_uuid_v5(UUID_NAMEBASED_NS_OID, '2.16.840.1.101.3.4.2.7'), 'SHA3-224', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha3-256', gen_uuid_v5(UUID_NAMEBASED_NS_OID, '2.16.840.1.101.3.4.2.8'), 'SHA3-256', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha3-384', gen_uuid_v5(UUID_NAMEBASED_NS_OID, '2.16.840.1.101.3.4.2.9'), 'SHA3-384', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['sha3-512', gen_uuid_v5(UUID_NAMEBASED_NS_OID, '2.16.840.1.101.3.4.2.10'), 'SHA3-512', $category, PHP_VERSION_ID >= 70100];
+	$out[] = ['shake128'/*Currently no PHP core algorithm!*/, gen_uuid_v5(UUID_NAMEBASED_NS_OID, '2.16.840.1.101.3.4.2.11'), 'SHAKE128', $category, file_exists(__DIR__.'/SHA3.php')];
+	$out[] = ['shake256'/*Currently no PHP core algorithm!*/, gen_uuid_v5(UUID_NAMEBASED_NS_OID, '2.16.840.1.101.3.4.2.12'), 'SHAKE256', $category, file_exists(__DIR__.'/SHA3.php')];
+
+	// ---
+
+	// TODO: ViaThinkSoft Hashes should alos be identified by OID instead of custom namespace
+	//       But the problem is that we would need to define dummy OIDs for the algorithms where we cannot find OIDs
+	//       List of OIDs here: https://github.com/ietf-wg-uuidrev/rfc4122bis/issues/143#issuecomment-1709117798
 
 	// The following Hash Space UUIDs are defined by ViaThinkSoft
 	// These Hash Spaces can be calculated as follows:

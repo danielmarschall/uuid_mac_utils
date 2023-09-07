@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
-* Version 2023-09-06
+* Version 2023-09-07
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -348,7 +348,30 @@ NameSpaceUuid&lt;URL&gt;          := "6ba7b811-9dad-11d1-80b4-00c04fd430c8".
 NameSpaceUuid&lt;OID&gt;          := "6ba7b812-9dad-11d1-80b4-00c04fd430c8".
 NameSpaceUuid&lt;X500&gt;         := "6ba7b814-9dad-11d1-80b4-00c04fd430c8".
 
-<u>As defined by <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">draft-ietf-uuidrev-rfc4122bis-11</a> Appendix B:</u><!-- TODO: When new RFC is published, replace the RFC number -->
+<u>As defined by <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">draft-ietf-uuidrev-rfc4122bis-11</a> Appendix B:</u>
+<?php
+
+$tmp = [];
+foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
+	if (strpos($author,'ViaThinkSoft') === false) {
+		$line = str_pad('HashSpaceUuid&lt;'.htmlentities($friendlyName).'&gt;', 34, ' ', STR_PAD_RIGHT);
+		$line .= ':= "'.$space.'".';
+		if (!$available) $line .= " (Currently not available on this system)";
+		$line .= "\n";
+		if (isset($tmp[$friendlyName])) continue; // Ignore "Internet Draft 12 Proposal"
+		$tmp[$friendlyName] = $line;
+	}
+}
+ksort($tmp);
+foreach ($tmp as $line) {
+	echo $line;
+}
+
+?>
+
+<u>As defined in <a href="https://github.com/ietf-wg-uuidrev/rfc4122bis/issues/143#issuecomment-1709117798">Internet Draft 12 Proposal</a>:</u>
+HashSpaceUuid&lt;<i>HashAlgo</i>&gt;     := UUIDv5(NS_OID, OID[<i>HashAlgo</i>]).
+which results in the following UUIDs:
 <?php
 
 $tmp = [];
@@ -405,17 +428,31 @@ label {
 <form method="GET" action="interprete_uuid.php">
 	<label>Hash algorithm:</label><select name="version" id="nb_version" onchange="javascript:nb_version_choose();">
 		<?php
-		$tmp = [];
-		$tmp['MD5'] = '<option value="3">MD5 (UUIDv3)</option>';
-		$tmp['SHA1'] = '<option value="5" selected>SHA1 (UUIDv5)</option>';
+
+		echo "\t\t<option disabled>--- UUIDv3 (RFC 4122) ---</option>\n";
+		echo "\t\t<option value=\"3\">MD5</option>\n";
+		echo "\t\t<option disabled>--- UUIDv5 (RFC 4122) ---</option>\n";
+		echo "\t\t<option value=\"5\" selected>SHA1</option>\n";
+
+		$categories = [];
 		foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
-			if ($available) {
-				$tmp[$friendlyName] = '<option value="8_namebased_'.$space.'">'.htmlentities($friendlyName).' (UUIDv8 defined by '.htmlentities($author).')</option>';
-			}
+			if (!in_array($author, $categories)) $categories[] = $author;
 		}
-		ksort($tmp);
-		foreach ($tmp as $html) {
-			echo "\t\t$html\n";
+		sort($categories);
+
+		foreach ($categories as $category) {
+			echo "\t\t<option disabled>--- UUIDv8 (defined by ".htmlentities($category).") ---</option>\n";
+			$tmp = [];
+			foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
+				if ($author != $category) continue;
+				if ($available) {
+					$tmp[$friendlyName] = '<option value="8_namebased_'.$space.'">'.htmlentities($friendlyName).'</option>';
+				}
+			}
+			ksort($tmp);
+			foreach ($tmp as $html) {
+				echo "\t\t$html\n";
+			}
 		}
 		?>
 	</select><font size="-1"><span id="nb_hash_info"></span></font><br>
