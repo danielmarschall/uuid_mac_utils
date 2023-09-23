@@ -20,7 +20,7 @@
 
 include_once __DIR__.'/includes/uuid_utils.inc.php';
 
-const AUTO_NEW_UUIDS = 10;
+const AUTO_NEW_UUIDS = 15;
 
 ?><!DOCTYPE html>
 <html lang="en">
@@ -63,10 +63,13 @@ const AUTO_NEW_UUIDS = 10;
 
 <h3 id="gen_uuidv7"><font color="green">New:</font> Generate Unix Epoch Time (version 7) UUID &#11088;</h3>
 
-<p><i>A UUIDv7 is made of time and 74 random&nbsp;bits.
-        Since the time is at the beginning, the UUIDs are monotonically increasing.
-        Due to the missing MAC address, this UUID version is recommended due to
-        improved privacy.</i></p>
+<p><i>A UUIDv7 measures time in the Unix Epoch with an accuracy
+between 1ms and 245ns, depending on how many bits are spent for the timestamp (48-60 bits).
+The rest of the UUID (62-74 bits) is filled with random data.
+The timestamp is at the front of the UUID, therefore the UUIDs are monotonically increasing,
+which is good for ordering them and using them for database indexes.
+Since this UUID version does not contain a MAC address, it is
+recommended due to the improved privacy.</i></p>
 
 <script>
 function show_uuidv7_info() {
@@ -97,6 +100,11 @@ for ($num_ms_frac_bits=0; $num_ms_frac_bits<=12; $num_ms_frac_bits++) {
 	echo "$num_ms_frac_bits bits fraction = $resolution_ns_hf\n";
 }
 ?>
+
+This implementation outputs:
+- 12 bits sub-millisecond timestamp (~245ns resolution)
+- no counter
+- 62 bits random data
 </pre></p>
 
 <?php
@@ -121,7 +129,8 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 
 <p><i>Like UUIDv1, this kind of UUID is made of the MAC address of the generating computer,
         the time, and a clock sequence. However, the components in UUIDv6 are reordered (time is at the beginning),
-        so that UUIDs are monotonically increasing.</i></p>
+        so that UUIDs are monotonically increasing,
+	which is good for ordering them and using them for database indexes..</i></p>
 
 <script>
 function show_uuidv6_info() {
@@ -335,7 +344,7 @@ dce_domain_choose();
 
 <p><i>An UUIDv3 is made out of a MD5 hash and an UUIDv5 is made out of a SHA1 hash.
 The revision of RFC4122 also contains an example for a custom UUIDv8 that
-allows SHA2, SHA3 and SHAKE hash algorithms.</i></p>
+uses modern hash algorithms.</i></p>
 
 <script>
 function show_uuidv35_info() {

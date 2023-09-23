@@ -1123,16 +1123,19 @@ function gen_uuid_random() {
 	}
 
 	if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
+		# On Debian Jessie: UUID V4 (Random)
+		if (file_exists($uuidv4_file = '/proc/sys/kernel/random/uuid')) {
+			$uuid = file_get_contents($uuidv4_file);
+			if (uuid_version($uuid) === '4') { // <-- just to make 100% sure that it did output UUIDv4
+				return $uuid;
+			}
+		}
+
 		# On Debian: apt-get install uuid-runtime
 		$out = array();
 		$ec = -1;
 		exec('uuidgen -r 2>/dev/null', $out, $ec);
 		if ($ec == 0) return trim($out[0]);
-
-		# On Debian Jessie: UUID V4 (Random)
-		if (file_exists('/proc/sys/kernel/random/uuid')) {
-			return trim(file_get_contents('/proc/sys/kernel/random/uuid'));
-		}
 	}
 
 	# Make the UUID by ourselves
