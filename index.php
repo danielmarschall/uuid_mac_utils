@@ -97,7 +97,6 @@ for ($num_ms_frac_bits=0; $num_ms_frac_bits<=12; $num_ms_frac_bits++) {
 	echo "$num_ms_frac_bits bits fraction = $resolution_ns_hf\n";
 }
 ?>
-
 </pre></p>
 
 <?php

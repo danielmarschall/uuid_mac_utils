@@ -1252,19 +1252,20 @@ function gen_uuid_unix_epoch(int $num_ms_frac_bits=12) {
 
 	// Optional: millisecond fraction (max 12 bits)
 	if (($num_ms_frac_bits < 0) || ($num_ms_frac_bits > 12)) throw new Exception("Invalid msec frac bits (must be 0..12)");
+	$resolution_ns = 1000000 / pow(2,$num_ms_frac_bits);
 	if ($num_ms_frac_bits > 0) {
-		$seconds_fraction = (float)explode(' ',microtime(false))[0];
-		$nanoseconds_fraction = $seconds_fraction * 1000000;
-		$resolution_ns = 1000000 / pow(2,$num_ms_frac_bits);
-		$val = (int)ceil($nanoseconds_fraction / $resolution_ns);
+		$seconds_fraction = (float)explode(' ',microtime(false))[0]; // <sec=0>,<msec>
+
+		$ms_fraction = $seconds_fraction * 1000; // <msec>,<us>
+		$ms_fraction -= floor($ms_fraction); // <msec=0>,<us>
+
+		$ns_fraction = $ms_fraction * 1000000; // <ns>
+		$val = (int)ceil($ns_fraction / $resolution_ns);
 
 		// Currently, for the output we only allow frac bits 0, 4, 8, 12 (0-3 nibbles),
 		// since UUIDs are usually sorted in their hex notation
 		$num_nibbles = (int)ceil($num_ms_frac_bits/4);
-		$nibble_string = str_pad(dechex($val), $num_nibbles, '0', STR_PAD_LEFT);
-		$uuid_nibbles .= $nibble_string;
-	} else {
-		$resolution_ns = 1000000;
+		$uuid_nibbles .= str_pad(dechex($val), $num_nibbles, '0', STR_PAD_LEFT);
 	}
 
 	// TODO Not implemented: Optional counter (to be defined as parameter to this method)
@@ -1276,27 +1277,7 @@ function gen_uuid_unix_epoch(int $num_ms_frac_bits=12) {
 	for ($i=0; $i<strlen($uuid_nibbles); $i++) $uuid[$i] = $uuid_nibbles[$i];
 
 	// Wait to make sure that the time part changes if multiple UUIDs are generated
-	// We don't use usleep(), because it often does not sleep long enough!
-	//       $resolution_us = (int)ceil($resolution_ns/1000);
-	//       if ($resolution_us > 0) usleep($resolution_us);
-	// We use this naive approach instead:
-	if ($num_ms_frac_bits > 0) {
-		$seconds_fraction = (float)explode(' ',microtime(false))[0];
-		$nanoseconds_fraction = $seconds_fraction * 1000000;
-		$resolution_ns = 1000000 / pow(2,$num_ms_frac_bits);
-		$val = (int)ceil($nanoseconds_fraction / $resolution_ns);
-		do {
-			$seconds_fraction = (float)explode(' ',microtime(false))[0];
-			$nanoseconds_fraction = $seconds_fraction * 1000000;
-			$resolution_ns = 1000000 / pow(2,$num_ms_frac_bits);
-			$val2 = (int)ceil($nanoseconds_fraction / $resolution_ns);
-		} while ($val == $val2);
-	} else {
-		$unix_ts = dechex((int)ceil(microtime(true)*1000));
-		do {
-			$unix_ts2 = dechex((int)ceil(microtime(true)*1000));
-		} while ($unix_ts == $unix_ts2);
-	}
+	if (time_nanosleep(0,(int)ceil($resolution_ns)) !== true) usleep((int)ceil($resolution_ns/1000));
 
 	// Output
 	return substr($uuid,  0, 8).'-'.
