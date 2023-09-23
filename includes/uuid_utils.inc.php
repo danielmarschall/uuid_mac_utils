@@ -580,9 +580,17 @@ function uuid_info($uuid, $echo=true) {
 					Variant 1, Version 7 UUID
 					- 48 bit Unix Time in milliseconds
 					-  4 bit Version (fix 0x7)
-					- 12 bit Random
+					- 12 bit Data
 					-  2 bit Variant (fix 0b10)
-					- 62 bit Random
+					- 62 bit Data
+
+					Structure of data (74 bits):
+					- OPTIONAL : Sub-millisecond timestamp fraction (0-12 bits)
+					- OPTIONAL : Carefully seeded counter
+					- Random generated bits for any remaining space
+
+					Since we don't know if timestamp fraction or counters are implemented
+					(and if so, how many bits), we don't decode this information
 					*/
 
 					echo sprintf("%-32s %s\n", "Version:", "[0x7] Unix Epoch Time");
@@ -1221,31 +1229,81 @@ function uuid1_to_uuid6($hex) {
 // Variant 1, Version 7 (Unix Epoch) UUID
 # --------------------------------------
 
-function gen_uuid_v7() {
-	return gen_uuid_unix_epoch();
+function gen_uuid_v7(int $num_ms_frac_bits=12) {
+	return gen_uuid_unix_epoch($num_ms_frac_bits);
 }
-function gen_uuid_unix_epoch() {
-	// Start with an UUIDv4
-	$uuid = gen_uuid_random();
+function gen_uuid_unix_epoch(int $num_ms_frac_bits=12) {
+	$uuid_nibbles = '';
 
-	// Add the timestamp
-	usleep(1000); // Wait 1ms, to make sure that the time part changes if multiple UUIDs are generated
+	// Add the timestamp (milliseconds Unix)
 	if (function_exists('gmp_init')) {
 		list($ms,$sec) = explode(' ', microtime(false));
 		$sec = gmp_init($sec, 10);
 		$ms = gmp_init(substr($ms,2,3), 10);
 		$unix_ts = gmp_strval(gmp_add(gmp_mul($sec, '1000'), $ms),16);
 	} else {
-		$unix_ts = dechex((int)round(microtime(true)*1000));
+		$unix_ts = dechex((int)ceil(microtime(true)*1000));
 	}
 	$unix_ts = str_pad($unix_ts, 12, '0', STR_PAD_LEFT);
-	for ($i=0;$i<8;$i++) $uuid[$i] = substr($unix_ts, $i, 1);
-	for ($i=0;$i<4;$i++) $uuid[9+$i] = substr($unix_ts, 8+$i, 1);
+	$uuid_nibbles = $unix_ts;
 
-	// set version
-	$uuid[14] = '7';
+	// Version = 7
+	$uuid_nibbles .= '7';
 
-	return $uuid;
+	// Optional: millisecond fraction (max 12 bits)
+	if (($num_ms_frac_bits < 0) || ($num_ms_frac_bits > 12)) throw new Exception("Invalid msec frac bits (must be 0..12)");
+	if ($num_ms_frac_bits > 0) {
+		$seconds_fraction = (float)explode(' ',microtime(false))[0];
+		$nanoseconds_fraction = $seconds_fraction * 1000000;
+		$resolution_ns = 1000000 / pow(2,$num_ms_frac_bits);
+		$val = (int)ceil($nanoseconds_fraction / $resolution_ns);
+
+		// Currently, for the output we only allow frac bits 0, 4, 8, 12 (0-3 nibbles),
+		// since UUIDs are usually sorted in their hex notation
+		$num_nibbles = (int)ceil($num_ms_frac_bits/4);
+		$nibble_string = str_pad(dechex($val), $num_nibbles, '0', STR_PAD_LEFT);
+		$uuid_nibbles .= $nibble_string;
+	} else {
+		$resolution_ns = 1000000;
+	}
+
+	// TODO Not implemented: Optional counter (to be defined as parameter to this method)
+	// The counter bits need to be spread before and after the variant bits
+
+	// Fill with random bits (and the variant bits)
+	$uuid = gen_uuid_random();
+	$uuid = str_replace('-', '', $uuid);
+	for ($i=0; $i<strlen($uuid_nibbles); $i++) $uuid[$i] = $uuid_nibbles[$i];
+
+	// Wait to make sure that the time part changes if multiple UUIDs are generated
+	// We don't use usleep(), because it often does not sleep long enough!
+	//       $resolution_us = (int)ceil($resolution_ns/1000);
+	//       if ($resolution_us > 0) usleep($resolution_us);
+	// We use this naive approach instead:
+	if ($num_ms_frac_bits > 0) {
+		$seconds_fraction = (float)explode(' ',microtime(false))[0];
+		$nanoseconds_fraction = $seconds_fraction * 1000000;
+		$resolution_ns = 1000000 / pow(2,$num_ms_frac_bits);
+		$val = (int)ceil($nanoseconds_fraction / $resolution_ns);
+		do {
+			$seconds_fraction = (float)explode(' ',microtime(false))[0];
+			$nanoseconds_fraction = $seconds_fraction * 1000000;
+			$resolution_ns = 1000000 / pow(2,$num_ms_frac_bits);
+			$val2 = (int)ceil($nanoseconds_fraction / $resolution_ns);
+		} while ($val == $val2);
+	} else {
+		$unix_ts = dechex((int)ceil(microtime(true)*1000));
+		do {
+			$unix_ts2 = dechex((int)ceil(microtime(true)*1000));
+		} while ($unix_ts == $unix_ts2);
+	}
+
+	// Output
+	return substr($uuid,  0, 8).'-'.
+	       substr($uuid,  8, 4).'-'.
+	       substr($uuid, 12, 4).'-'.
+	       substr($uuid, 16, 4).'-'.
+	       substr($uuid, 20, 12);
 }
 
 # --------------------------------------

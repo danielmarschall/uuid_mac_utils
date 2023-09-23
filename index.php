@@ -78,16 +78,34 @@ function show_uuidv7_info() {
 <pre id="uuidv7_info" style="display:none">Variant 1, Version 7 UUID:
 - 48 bit <abbr title="Count of 1ms intervals passed since 1 Jan 1970 00:00:00 GMT">Unix Time in milliseconds</abbr>
 -  4 bit Version (fix 0x7)
-- 12 bit Random
+- 12 bit Data
 -  2 bit Variant (fix 0b10)
-- 62 bit Random</pre></p>
+- 62 bit Data
+
+Structure of data (74 bits):
+- OPTIONAL : Sub-millisecond timestamp fraction (0-12 bits)
+- OPTIONAL : Carefully seeded counter
+- Random generated bits for any remaining space
+
+Time resolution for various sub-millisecond bits:
+<?php
+for ($num_ms_frac_bits=0; $num_ms_frac_bits<=12; $num_ms_frac_bits++) {
+	$resolution_ns = 1000000 / pow(2,$num_ms_frac_bits);
+	if ($resolution_ns >= 1000000) $resolution_ns_hf = ($resolution_ns/1000000)." ms";
+	else if ($resolution_ns >= 1000) $resolution_ns_hf = ($resolution_ns/1000)." &micro;s";
+	else $resolution_ns_hf = "$resolution_ns ns";
+	echo "$num_ms_frac_bits bits fraction = $resolution_ns_hf\n";
+}
+?>
+
+</pre></p>
 
 <?php
 if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs that were created just for you! (Reload the page to get more)</p>';
 
 	echo '<pre>';
-	for ($i=0; $i<10; $i++) {
+	for ($i=0; $i<AUTO_NEW_UUIDS; $i++) {
 		$uuid = gen_uuid_v7();
 		echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
 	}
@@ -127,7 +145,7 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs that were created just for you! (Reload the page to get more)</p>';
 
 	echo '<pre>';
-	for ($i=0; $i<10; $i++) {
+	for ($i=0; $i<AUTO_NEW_UUIDS; $i++) {
 		$uuid = gen_uuid_v6();
 		echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
 	}
@@ -163,7 +181,7 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs that were created just for you! (Reload the page to get more)</p>';
 
 	echo '<pre>';
-	for ($i=0; $i<10; $i++) {
+	for ($i=0; $i<AUTO_NEW_UUIDS; $i++) {
 		$uuid = gen_uuid_v4();
 		echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
 	}
@@ -203,7 +221,7 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
     echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs that were created just for you! (Reload the page to get more)</p>';
 
     echo '<pre>';
-    for ($i=0; $i<10; $i++) {
+    for ($i=0; $i<AUTO_NEW_UUIDS; $i++) {
         $uuid = gen_uuid_v1();
         echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
     }
