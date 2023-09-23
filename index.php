@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
-* Version 2023-09-07
+* Version 2023-09-23
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -318,8 +318,7 @@ dce_domain_choose();
 
 <p><i>An UUIDv3 is made out of a MD5 hash and an UUIDv5 is made out of a SHA1 hash.
 The revision of RFC4122 also contains an example for a custom UUIDv8 that
-allows SHA2, SHA3 and SHAKE hash algorithms. ViaThinkSoft added more hash
-algorithms and assigned Hash Space IDs to them.</i></p>
+allows SHA2, SHA3 and SHAKE hash algorithms.</i></p>
 
 <script>
 function show_uuidv35_info() {
@@ -336,31 +335,25 @@ function show_uuidv35_info() {
 - 62 bit Hash Low
 
 
-
-<u>Overview of namebased UUIDs:</u>
-UUIDv3(<i>NamespaceUuid</i>, <i>Data</i>)           := <abbr title="Adds UUID variant 0b10 and version 3">ConvertRawBytesToUuid_v3</abbr>(MD5( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
-UUIDv5(<i>NamespaceUuid</i>, <i>Data</i>)           := <abbr title="Adds UUID variant 0b10 and version 5">ConvertRawBytesToUuid_v5</abbr>(SHA1( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
-UUIDv8(<i>HashAlgo</i>, <i>NameSpaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 8">ConvertRawBytesToUuid_v8</abbr>(<i>HashAlgo</i>( Binary[HashSpaceUuid&lt;<i>HashAlgo</i>&gt;] || Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
-
-<u>As defined by <a href="https://datatracker.ietf.org/doc/rfc4122/">RFC4122</a> Appendix C / <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">draft-ietf-uuidrev-rfc4122bis-11</a> Appendix A:</u><!-- TODO: When new RFC is published, replace the RFC number -->
+<u>As defined by <a href="https://datatracker.ietf.org/doc/rfc4122/">RFC4122</a>:</u>
+UUIDv3(<i>NamespaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 3">ConvertRawBytesToUuid_v3</abbr>(MD5( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
+UUIDv5(<i>NamespaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 5">ConvertRawBytesToUuid_v5</abbr>(SHA1( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
 NameSpaceUuid&lt;DNS&gt;          := "6ba7b810-9dad-11d1-80b4-00c04fd430c8".
 NameSpaceUuid&lt;URL&gt;          := "6ba7b811-9dad-11d1-80b4-00c04fd430c8".
 NameSpaceUuid&lt;OID&gt;          := "6ba7b812-9dad-11d1-80b4-00c04fd430c8".
 NameSpaceUuid&lt;X500&gt;         := "6ba7b814-9dad-11d1-80b4-00c04fd430c8".
 
-<u>As defined by <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">draft-ietf-uuidrev-rfc4122bis-11</a> Appendix B:</u>
+<u>As defined by <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">draft-ietf-uuidrev-rfc4122bis-11</a>:</u>
+UUIDv8(<i>HashAlgo</i>, <i>NameSpaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 8">ConvertRawBytesToUuid_v8</abbr>(<i>HashAlgo</i>( Binary[HashSpaceUuid&lt;<i>HashAlgo</i>&gt;] || Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
 <?php
 
 $tmp = [];
-foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available,$oid)) {
-	if (strpos($author,'ViaThinkSoft') === false) {
-		$line = str_pad('HashSpaceUuid&lt;'.htmlentities($friendlyName).'&gt;', 34, ' ', STR_PAD_RIGHT);
-		$line .= ':= "'.$space.'".';
-		if (!$available) $line .= " (Currently not available on this system)";
-		$line .= "\n";
-		if (isset($tmp[$friendlyName])) continue; // Ignore "Internet Draft 12 Proposal"
-		$tmp[$friendlyName] = $line;
-	}
+foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
+	$line = str_pad('HashSpaceUuid&lt;'.htmlentities($friendlyName).'&gt;', 34, ' ', STR_PAD_RIGHT);
+	$line .= ':= "'.$space.'".';
+	if (!$available) $line .= " (Currently not available on this system)";
+	$line .= "\n";
+	$tmp[$friendlyName] = $line;
 }
 ksort($tmp);
 foreach ($tmp as $line) {
@@ -369,56 +362,8 @@ foreach ($tmp as $line) {
 
 ?>
 
-<u>As defined in <a href="https://github.com/ietf-wg-uuidrev/rfc4122bis/issues/143#issuecomment-1709117798">Internet Draft 12 Proposal</a>:</u>
-HashSpaceUuid&lt;<i>HashAlgo</i>&gt;     := UUIDv5(NS_OID, OID[<i>HashAlgo</i>]).
-which results in the following UUIDs:
-<?php
-
-$tmp = [];
-foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available,$oid)) {
-	if (strpos($author,'ViaThinkSoft') === false) {
-		$line = str_pad('HashSpaceUuid&lt;'.htmlentities($friendlyName).'&gt;', 34, ' ', STR_PAD_RIGHT);
-		if ($oid != null) $line .= str_pad(':= UUIDv5(NS_OID, "'.$oid.'")', 46, ' ', STR_PAD_RIGHT);
-		if ($oid == null) $line .= str_pad(':= UUIDv5(NS_PHPNAME, "'.$algo.'")', 46, ' ', STR_PAD_RIGHT);
-		$line .= '= "'.$space.'".';
-		if (!$available) $line .= " (Currently not available on this system)";
-		$line .= "\n";
-		$tmp[$friendlyName] = $line;
-	}
-}
-ksort($tmp);
-foreach ($tmp as $line) {
-	echo $line;
-}
-
-?>
-
-<u>As defined by ViaThinkSoft for all other algorithms:</u>
-HashSpaceUuid&lt;<i>HashAlgo</i>&gt;     := UUIDv5(NS_OID, OID[<i>HashAlgo</i>]).
-or in case no OID can be found:
-HashSpaceUuid&lt;<i>HashAlgo</i>&gt;     := UUIDv5(NS_PHPNAME="1ee317e2-1853-64b2-8fe9-3c4a92df8582", <a href="https://www.php.net/manual/de/function.hash-algos.php">PhpName</a>[<i>HashAlgo</i>]).
-which results in the following UUIDs:
-<?php
-
-$tmp = [];
-foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available,$oid)) {
-	if (strpos($author,'ViaThinkSoft') !== false) {
-		$line = str_pad('HashSpaceUuid&lt;'.htmlentities($friendlyName).'&gt;', 34, ' ', STR_PAD_RIGHT);
-		if ($oid != null) $line .= str_pad(':= UUIDv5(NS_OID,     "'.$oid.'")', 53, ' ', STR_PAD_RIGHT);
-		if ($oid == null) $line .= str_pad(':= UUIDv5(NS_PHPNAME, "'.$algo.'")', 53, ' ', STR_PAD_RIGHT);
-		$line .= '= "'.$space.'".';
-		if (!$available) $line .= " (Currently not available on this system)";
-		$line .= "\n";
-		$tmp[$friendlyName] = $line;
-	}
-}
-ksort($tmp);
-foreach ($tmp as $line) {
-	echo $line;
-}
-
-?>
-
+<u>Custom implementation ("Raw Hash"):</u>
+UUIDv8(<i>HashAlgo</i>, <i>NameSpaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 8">ConvertRawBytesToUuid_v8</abbr>(<i>HashAlgo</i>( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
 
 </pre></p>
 
@@ -460,6 +405,30 @@ label {
 				echo "\t\t$html\n";
 			}
 		}
+
+		echo "\t\t<option disabled>--- UUIDv8 (Raw Hash) ---</option>\n";
+		$tmp = [];
+		$algos = hash_algos();
+		$algos[] = 'shake128';
+		$algos[] = 'shake256';
+		foreach ($algos as $algo) {
+			if ($algo == 'md5') continue; // use UUIDv3 instead
+			if ($algo == 'sha1') continue; // use UUIDv5 instead
+			$friendlyName = strtoupper($algo);
+
+			if ($algo == 'shake128') $bits = 999;
+			else if ($algo == 'shake256') $bits = 999;
+			else $bits = strlen(hash($algo, '', true)) * 8;
+			if ($bits < 128) $friendlyName .= " (Small hash size! $bits bits)";
+
+			$space = $algo;
+			$tmp[$friendlyName] = '<option value="8_namebased_'.$space.'">'.htmlentities($friendlyName).'</option>';
+		}
+		natsort($tmp);
+		foreach ($tmp as $html) {
+			echo "\t\t$html\n";
+		}
+
 		?>
 	</select><font size="-1"><span id="nb_hash_info"></span></font><br>
 	<label>Namespace:</label><select name="namespace_choose" id="nb_nsc" onchange="javascript:nb_ns_choose();">
@@ -482,7 +451,7 @@ function nb_version_choose() {
 	var ver = document.getElementById('nb_version').value;
 	document.getElementById('nb_create_btn').value = 'Create UUIDv' + ver.substr(0,1);
 	var x = ver.split('_namebased_');
-	if (x.length == 2) {
+	if ((x.length == 2) && (x[1].length == 36)) {
 		document.getElementById('nb_hash_info').innerHTML = ' (UUIDv8 Hash Space ID: ' + x[1] + ')';
 	} else {
 		document.getElementById('nb_hash_info').innerHTML = '';
