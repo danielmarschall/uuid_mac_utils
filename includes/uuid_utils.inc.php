@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-09-23
+ * Version 2023-09-24
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1266,7 +1266,8 @@ function gen_uuid_unix_epoch(int $num_ms_frac_bits=12) {
 		$val = (int)ceil($ns_fraction / $resolution_ns);
 
 		// Currently, for the output we only allow frac bits 0, 4, 8, 12 (0-3 nibbles),
-		// since UUIDs are usually sorted in their hex notation
+		// since UUIDs are usually sorted in their hex notation, and one of the main
+		// reasons for using the sub-millisecond fractions it to increase monotonicity
 		$num_nibbles = (int)ceil($num_ms_frac_bits/4);
 		$uuid_nibbles .= str_pad(dechex($val), $num_nibbles, '0', STR_PAD_LEFT);
 	}
@@ -1342,11 +1343,11 @@ function gen_uuid_v8_namebased($hash_algo, $namespace_uuid, $name) {
 	else if ($hash_algo == 'shake256') $hash = shake256($payload, 16/*min. required bytes*/, false);
 	else $hash = hash($hash_algo, $payload, false);
 
-	$hash = str_pad($hash, 32, '0', STR_PAD_RIGHT); // fill short hashes with zeros to the right
-
 	if ($hash == null) {
 		throw new Exception("Unknown Hash Algorithm $hash_algo");
 	}
+
+	$hash = str_pad($hash, 32, '0', STR_PAD_RIGHT); // fill short hashes with zeros to the right
 
 	$hash[12] = '8'; // Set version: 8 = Custom
 	$hash[16] = dechex(hexdec($hash[16]) & 0b0011 | 0b1000); // Set variant to "0b10__" (RFC4122/DCE1.1)
