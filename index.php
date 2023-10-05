@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
-* Version 2023-09-23
+* Version 2023-10-05
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -369,7 +369,7 @@ NameSpaceUuid&lt;URL&gt;          := "6ba7b811-9dad-11d1-80b4-00c04fd430c8".
 NameSpaceUuid&lt;OID&gt;          := "6ba7b812-9dad-11d1-80b4-00c04fd430c8".
 NameSpaceUuid&lt;X500&gt;         := "6ba7b814-9dad-11d1-80b4-00c04fd430c8".
 
-<u>As defined by <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">draft-ietf-uuidrev-rfc4122bis-11</a>:</u>
+<u>As defined by <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/11/">draft-ietf-uuidrev-rfc4122bis-11</a>:</u>
 UUIDv8(<i>HashAlgo</i>, <i>NameSpaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 8">ConvertRawBytesToUuid_v8</abbr>(<i>HashAlgo</i>( Binary[HashSpaceUuid&lt;<i>HashAlgo</i>&gt;] || Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
 <?php
 
@@ -388,7 +388,7 @@ foreach ($tmp as $line) {
 
 ?>
 
-<u>Custom implementation ("Raw Hash"):</u>
+<u>As defined by <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">draft-ietf-uuidrev-rfc4122bis-12</a>:</u>
 UUIDv8(<i>HashAlgo</i>, <i>NameSpaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 8">ConvertRawBytesToUuid_v8</abbr>(<i>HashAlgo</i>( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
 
 </pre></p>
@@ -432,7 +432,7 @@ label {
 			}
 		}
 
-		echo "\t\t<option disabled>--- UUIDv8 (Raw Hash) ---</option>\n";
+		echo "\t\t<option disabled>--- UUIDv8 (defined by Internet Draft 12, Appendix C.2) ---</option>\n";
 		$tmp = [];
 		$algos = hash_algos();
 		$algos[] = 'shake128';
@@ -445,7 +445,7 @@ label {
 			if ($algo == 'shake128') $bits = 999;
 			else if ($algo == 'shake256') $bits = 999;
 			else $bits = strlen(hash($algo, '', true)) * 8;
-			if ($bits < 128) $friendlyName .= " (Small hash size! $bits bits)";
+			if ($bits < 128) $friendlyName .= " (Small hash size! $bits bits)"; // <-- this is not described in Appendix B.2
 
 			$space = $algo;
 			$tmp[$friendlyName] = '<option value="8_namebased_'.$space.'">'.htmlentities($friendlyName).'</option>';
