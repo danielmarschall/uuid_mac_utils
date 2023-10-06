@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
-* Version 2023-10-05
+* Version 2023-10-06
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -42,10 +42,10 @@ const AUTO_NEW_UUIDS = 15;
 
 <ul>
     <li><a href="#gen_uuid">Generate random and/or time-based UUIDs</a><ul>
-            <li><a href="#gen_uuidv7"><font color="green">New:</font> Generate Unix Epoch Time (version 7) UUID</a></li>
-            <li><a href="#gen_uuidv6"><font color="green">New:</font> Generate reordered time-based (version 6) UUID</a></li>
+            <li><a href="#gen_uuidv7"><font color="green">New:</font> Generate Unix Epoch time-based (version 7) UUID</a></li>
+            <li><a href="#gen_uuidv6"><font color="green">New:</font> Generate reordered Gregorian time-based (version 6) UUID</a></li>
             <li><a href="#gen_uuidv4">Generate random (version 4) UUID</a></li>
-            <li><a href="#gen_uuidv1">Generate time-based (version 1) UUID</a></li>
+            <li><a href="#gen_uuidv1">Generate Gregorian time-based (version 1) UUID</a></li>
         </ul></li>
     <li><a href="#gen_other_uuid">Generate other UUID types</a><ul>
             <li><a href="#gen_uuid_ncs">NCS (variant 0) UUID</a></li>
@@ -61,14 +61,14 @@ const AUTO_NEW_UUIDS = 15;
 
 <h2 id="gen_uuid">Generate random and/or time-based UUIDs</h2>
 
-<h3 id="gen_uuidv7"><font color="green">New:</font> Generate Unix Epoch Time (version 7) UUID &#11088;</h3>
+<h3 id="gen_uuidv7"><font color="green">New:</font> Generate Unix Epoch time-based (version 7) UUID &#11088;</h3>
 
 <p><i>A UUIDv7 measures time in the Unix Epoch with an accuracy
 between 1ms and 245ns, depending on how many bits are spent for the timestamp (48-60 bits).
 The rest of the UUID (62-74 bits) is filled with random data.
 The timestamp is at the front of the UUID, therefore the UUIDs are monotonically increasing,
-which is good for ordering them and using them for database indexes.
-Since this UUID version does not contain a MAC address, it is
+which is good for using them in database indexes.
+Since this UUID version does not contain a MAC address, it is also
 recommended due to the improved privacy.</i></p>
 
 <script>
@@ -125,12 +125,11 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
 </form>
 
-<h3 id="gen_uuidv6"><font color="green">New:</font> Generate reordered time-based (version 6) UUID &#9200;</h3>
+<h3 id="gen_uuidv6"><font color="green">New:</font> Generate reordered Gregorian time-based (version 6) UUID &#9200;</h3>
 
 <p><i>Like UUIDv1, this kind of UUID is made of the MAC address of the generating computer,
         the time, and a clock sequence. However, the components in UUIDv6 are reordered (time is at the beginning),
-        so that UUIDs are monotonically increasing,
-	which is good for ordering them and using them for database indexes..</i></p>
+        so that UUIDs are monotonically increasing, which is good for using them in database indexes.</i></p>
 
 <script>
 function show_uuidv6_info() {
@@ -202,7 +201,7 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
 </form>
 
-<h3 id="gen_uuidv1">Generate time-based (version 1) UUID &#9200;</h3>
+<h3 id="gen_uuidv1">Generate Gregorian time-based (version 1) UUID &#9200;</h3>
 
 <p><i>A UUIDv1 is made of the MAC address of the generating computer,
 the time, and a clock sequence.</i></p>
@@ -361,34 +360,7 @@ function show_uuidv35_info() {
 - 62 bit Hash Low
 
 
-<u>As defined by <a href="https://datatracker.ietf.org/doc/rfc4122/">RFC4122</a>:</u>
-UUIDv3(<i>NamespaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 3">ConvertRawBytesToUuid_v3</abbr>(MD5( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
-UUIDv5(<i>NamespaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 5">ConvertRawBytesToUuid_v5</abbr>(SHA1( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
-NameSpaceUuid&lt;DNS&gt;          := "6ba7b810-9dad-11d1-80b4-00c04fd430c8".
-NameSpaceUuid&lt;URL&gt;          := "6ba7b811-9dad-11d1-80b4-00c04fd430c8".
-NameSpaceUuid&lt;OID&gt;          := "6ba7b812-9dad-11d1-80b4-00c04fd430c8".
-NameSpaceUuid&lt;X500&gt;         := "6ba7b814-9dad-11d1-80b4-00c04fd430c8".
-
-<u>As defined by <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/11/">draft-ietf-uuidrev-rfc4122bis-11</a>:</u>
-UUIDv8(<i>HashAlgo</i>, <i>NameSpaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 8">ConvertRawBytesToUuid_v8</abbr>(<i>HashAlgo</i>( Binary[HashSpaceUuid&lt;<i>HashAlgo</i>&gt;] || Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
-<?php
-
-$tmp = [];
-foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
-	$line = str_pad('HashSpaceUuid&lt;'.htmlentities($friendlyName).'&gt;', 34, ' ', STR_PAD_RIGHT);
-	$line .= ':= "'.$space.'".';
-	if (!$available) $line .= " (Currently not available on this system)";
-	$line .= "\n";
-	$tmp[$friendlyName] = $line;
-}
-ksort($tmp);
-foreach ($tmp as $line) {
-	echo $line;
-}
-
-?>
-
-<u>As defined by <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">draft-ietf-uuidrev-rfc4122bis-12</a>:</u>
+<u>As shown in <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">draft-ietf-uuidrev-rfc4122bis-12</a> Appendix C.2:</u>
 UUIDv8(<i>HashAlgo</i>, <i>NameSpaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 8">ConvertRawBytesToUuid_v8</abbr>(<i>HashAlgo</i>( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
 
 </pre></p>
@@ -406,33 +378,11 @@ label {
 	<label>Hash algorithm:</label><select name="version" id="nb_version" onchange="javascript:nb_version_choose();">
 		<?php
 
-		echo "\t\t<option disabled>--- UUIDv3 (RFC 4122) ---</option>\n";
+		echo "\t\t<option disabled>--- UUIDv3 (defined in RFC 4122) ---</option>\n";
 		echo "\t\t<option value=\"3\">MD5</option>\n";
-		echo "\t\t<option disabled>--- UUIDv5 (RFC 4122) ---</option>\n";
+		echo "\t\t<option disabled>--- UUIDv5 (defined in RFC 4122) ---</option>\n";
 		echo "\t\t<option value=\"5\" selected>SHA1</option>\n";
-
-		$categories = [];
-		foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
-			if (!in_array($author, $categories)) $categories[] = $author;
-		}
-		sort($categories);
-
-		foreach ($categories as $category) {
-			echo "\t\t<option disabled>--- UUIDv8 (defined by ".htmlentities($category).") ---</option>\n";
-			$tmp = [];
-			foreach (get_uuidv8_hash_space_ids() as list($algo,$space,$friendlyName,$author,$available)) {
-				if ($author != $category) continue;
-				if ($available) {
-					$tmp[$friendlyName] = '<option value="8_namebased_'.$space.'">'.htmlentities($friendlyName).'</option>';
-				}
-			}
-			ksort($tmp);
-			foreach ($tmp as $html) {
-				echo "\t\t$html\n";
-			}
-		}
-
-		echo "\t\t<option disabled>--- UUIDv8 (defined by Internet Draft 12, Appendix C.2) ---</option>\n";
+		echo "\t\t<option disabled>--- UUIDv8 (shown in Internet Draft 12, Appendix C.2) ---</option>\n";
 		$tmp = [];
 		$algos = hash_algos();
 		$algos[] = 'shake128';
@@ -445,7 +395,7 @@ label {
 			if ($algo == 'shake128') $bits = 999;
 			else if ($algo == 'shake256') $bits = 999;
 			else $bits = strlen(hash($algo, '', true)) * 8;
-			if ($bits < 128) $friendlyName .= " (Small hash size! $bits bits)"; // <-- this is not described in Appendix B.2
+			if ($bits < 128) $friendlyName .= " (Small hash size! $bits bits)"; // <-- this is not described in Appendix C.2
 
 			$space = $algo;
 			$tmp[$friendlyName] = '<option value="8_namebased_'.$space.'">'.htmlentities($friendlyName).'</option>';
@@ -456,7 +406,7 @@ label {
 		}
 
 		?>
-	</select><font size="-1"><span id="nb_hash_info"></span></font><br>
+	</select><br>
 	<label>Namespace:</label><select name="namespace_choose" id="nb_nsc" onchange="javascript:nb_ns_choose();">
 		<option value="dns">DNS</option>
 		<option value="url">URL</option>
@@ -476,13 +426,6 @@ label {
 function nb_version_choose() {
 	var ver = document.getElementById('nb_version').value;
 	document.getElementById('nb_create_btn').value = 'Create UUIDv' + ver.substr(0,1);
-	var x = ver.split('_namebased_');
-	if ((x.length == 2) && (x[1].length == 36)) {
-		document.getElementById('nb_hash_info').innerHTML = ' (UUIDv8 Hash Space ID: ' + x[1] + ')';
-	} else {
-		document.getElementById('nb_hash_info').innerHTML = '';
-	}
-
 }
 function nb_ns_textchange() {
 	var ns = document.getElementById('nb_ns').value.toLowerCase();
@@ -714,7 +657,6 @@ by applications or an administrator. Unlike the EUI, an AAI is NOT worldwide uni
     <input type="hidden" name="aai_gen_multicast" value="1">
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Generate Multicast AAI-64">
 </form>
-
 
 <br><br><br>
 
