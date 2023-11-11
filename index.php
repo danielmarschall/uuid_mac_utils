@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
-* Version 2023-10-06
+* Version 2023-11-10
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -412,6 +412,7 @@ label {
 		<option value="url">URL</option>
 		<option value="oid">OID</option>
 		<option value="x500">X.500 DN</option>
+		<option value="r74n">R74n Namespace</option>
 		<!-- <option value="oidplus_ns">OIDplus ns only</option> -->
 		<!-- <option value="oidplus_ns_val">OIDplus ns+val</option> -->
 		<!-- <option value="oidplus_pubkey">OIDplus pubkey</option> -->
@@ -453,6 +454,12 @@ function nb_ns_textchange() {
 			document.getElementById('nb_val').value = "UID=jsmith,DC=example,DC=net";
 		}
 	}
+	else if (ns == "ca069732-780c-11ee-b962-000000000074") { // https://r74n.com/id/uuid
+		if (document.getElementById('nb_nsc').value != "r74n") {
+			document.getElementById('nb_nsc').value = "r74n";
+			document.getElementById('nb_val').value = "ants";
+		}
+	}
 	else {
 		if (document.getElementById('nb_nsc').value != "other") {
 			document.getElementById('nb_nsc').value = "other";
@@ -477,6 +484,10 @@ function nb_ns_choose() {
 	else if (ns == "x500") {
 		document.getElementById('nb_ns').value = "6ba7b814-9dad-11d1-80b4-00c04fd430c8";
 		document.getElementById('nb_val').value = "UID=jsmith,DC=example,DC=net";
+	}
+	else if (ns == "r74n") { // https://r74n.com/id/uuid
+		document.getElementById('nb_ns').value = "ca069732-780c-11ee-b962-000000000074";
+		document.getElementById('nb_val').value = "ants";
 	}
 	/*
 	else if (ns == "oidplus_ns") {
