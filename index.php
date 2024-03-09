@@ -2,8 +2,8 @@
 
 /*
 * UUID & MAC Utils
-* Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
-* Version 2023-11-10
+* Copyright 2017 - 2024 Daniel Marschall, ViaThinkSoft
+* Version 2024-03-09
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ const AUTO_NEW_UUIDS = 15;
             <li><a href="#gen_uuidv6"><font color="green">New:</font> Generate reordered Gregorian time-based (version 6) UUID</a></li>
             <li><a href="#gen_uuidv4">Generate random (version 4) UUID</a></li>
             <li><a href="#gen_uuidv1">Generate Gregorian time-based (version 1) UUID</a></li>
+            <li><a href="#gen_uuidv8_sqlserver"><font color="green">New:</font> Generate SQL server sortable time-based (version 8) UUID</a></li>
         </ul></li>
     <li><a href="#gen_other_uuid">Generate other UUID types</a><ul>
             <li><a href="#gen_uuid_ncs">NCS (variant 0) UUID</a></li>
@@ -241,6 +242,73 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
 </form>
 
+<h3 id="gen_uuidv8_sqlserver">Generate SQL server sortable time-based (version 8) UUID</h3>
+
+<p><i>The sorting of SQL Server is rather confusing and incompatible with UUIDv6 and UUIDv7.<br>
+Therefore this method developed by <a href="https://www.hickelsoft.de/">HickelSOFT</a>
+generates UUID which are sortable by SQL Server.<br>
+Version 1: Resolution of 1 milliseconds, random part of 16 bits, local timezone, NOT UUIDv8 conform.<br>
+Version 2: Resolution of 1 milliseconds, random part of 18 bits, UTC time, UUIDv8 conform.</i><br>
+<a href="https://gist.github.com/danielmarschall/7fafd270a3bc107d38e8449ce7420c25">C# implementation</a> |
+<a href="https://github.com/danielmarschall/uuid_mac_utils/blob/master/includes/uuid_utils.inc.php">PHP implementation</a>
+</p>
+
+<script>
+function show_uuidv8_sqlserver_info() {
+	document.getElementById("uuidv8_sqlserver_info_button").style.display = "none";
+	document.getElementById("uuidv8_sqlserver_info").style.display = "block";
+}
+</script>
+<p><a id="uuidv8_sqlserver_info_button" href="javascript:show_uuidv8_sqlserver_info()">Show format</a>
+<pre id="uuidv8_sqlserver_info" style="display:none">Version 2: Resolution of 1 milliseconds, random part of 18 bits, UTC time, UUIDv8 conform:
+- 16 bit Random data
+-  8 bit UTC Milliseconds transformed from 1000ms to 0..255 (hex encoded)
+-  8 bit UTC Seconds (hex encoded)
+- 16 bit UTC Minute of the day (1..1440, hex encoded)
+-  4 bit UUID version 8
+- 12 bit UTC Day of the year (1..366, hex encoded)
+-  2 bit UUID Variant (0b10)
+-  2 bit Random data
+- 12 bit UTC Year (hex encoded)
+- 48 bit Signature "HICKEL" = 0x4849434B454C
+
+Version 1: Resolution of 1 milliseconds, random part of 16 bits, local timezone, NOT UUIDv8 conform.
+- 16 bit Random data
+-  8 bit Generator's local timezone Milliseconds transformed from 1000ms to 0..255 (hex encoded)
+-  8 bit Generator's local timezone Seconds (BCD encoded)
+-  8 bit Generator's local timezone Minute (BCD encoded)
+-  8 bit Generator's local timezone Hour (BCD encoded)
+-  8 bit Generator's local timezone Day (BCD encoded)
+-  8 bit Generator's local timezone Month (BCD encoded)
+-  8 bit Generator's local timezone 2-digit year (BCD encoded)
+-  8 bit Generator's local timezone 2-digit century (BCD encoded)
+- 48 bit Signature 0x000000000000</pre></p>
+
+<?php
+if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
+    echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs that were created just for you! (Reload the page to get more)</p>';
+
+    echo '<pre>';
+    for ($i=0; $i<AUTO_NEW_UUIDS; $i++) {
+        $uuid = gen_uuid_v8_sqlserver_sortable();
+        echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
+    }
+    echo '</pre>';
+}
+?>
+
+<form method="GET" action="interprete_uuid.php">
+    <input type="hidden" name="version" value="8_sqlserver_v2">
+    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID (new version)">
+</form><br>
+
+<form method="GET" action="interprete_uuid.php">
+    <input type="hidden" name="version" value="8_sqlserver_v1">
+    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID (old version)">
+</form>
+
+
+
 <h2 id="gen_other_uuid">Generate other UUID types</h2>
 
 <p><i>The following types of UUIDs are less common and/or require special knowledge. Please only use the following
@@ -397,8 +465,7 @@ label {
 			else $bits = strlen(hash($algo, '', true)) * 8;
 			if ($bits < 128) $friendlyName .= " (Small hash size! $bits bits)"; // <-- this is not described in Appendix C.2
 
-			$space = $algo;
-			$tmp[$friendlyName] = '<option value="8_namebased_'.$space.'">'.htmlentities($friendlyName).'</option>';
+			$tmp[$friendlyName] = '<option value="8_namebased_'.$algo.'">'.htmlentities($friendlyName).'</option>';
 		}
 		natsort($tmp);
 		foreach ($tmp as $html) {

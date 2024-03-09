@@ -1548,6 +1548,75 @@ function gen_uuid_v8_namebased($hash_algo, $namespace_uuid, $name) {
 	       substr($hash, 20, 12);
 }
 
+/**
+ * The sorting of SQL Server is rather confusing and incompatible with UUIDv6 and UUIDv7.
+ * Therefore this method generates UUID which are sortable by SQL Server.
+ * Version 1: Resolution of 1 milliseconds, random part of 16 bits, local timezone, NOT UUIDv8 conform.
+ * Version 2: Resolution of 1 milliseconds, random part of 18 bits, UTC time, UUIDv8 conform.
+ * C# implementation: https://gist.github.com/danielmarschall/7fafd270a3bc107d38e8449ce7420c25
+ * PHP implementation: https://github.com/danielmarschall/uuid_mac_utils/blob/master/includes/uuid_utils.inc.php
+ *
+ * @param int      $hickelUuidVersion (optional)
+ * @param DateTime $dt                (optional)
+ * @return string The UUID
+ */
+function gen_uuid_v8_sqlserver_sortable(int $hickelUuidVersion = 2, DateTime $dt = null): string {
+	// The sorting in SQL Server is like this:
+
+	if ($dt == null) $dt = new DateTime();
+
+	// First Sort block 5, nibbles from left to right (i.e. 000000000001 < 000000000010 < ... < 010000000000 < 100000000000)
+	if ($hickelUuidVersion == 1) {
+		$block5 = "000000000000";
+	} else if ($hickelUuidVersion == 2) {
+		$block5 = "4849434B454C"/*Hex:"HICKEL"*/;
+	} else {
+		throw new Exception("Invalid version");
+	}
+
+	// Then: Sort block 4, nibbles from left to right
+	if ($hickelUuidVersion == 1) {
+		$year = $dt->format('Y');
+		$block4 = substr($year, 2, 2).substr($year, 0, 2); // Example: 0x2420 = 2024
+	} else {
+		$variant = 0x8; // First nibble needs to be 0b10_ (0x8-0xB) for "RFC 4122bis". We use it to store 2 more random bits.
+		$rnd2bits = rand(0x0, 0x3);
+		$year = $dt->format('Y');
+		$block4 = sprintf('%01x%03x', $variant + ($rnd2bits & 0x3), $year);
+	}
+
+	// Then: Sort block 3, bytes from right to left (i.e. 0100 < 1000 < 0001 < 0010)
+	if ($hickelUuidVersion == 1) {
+		$block3 = $dt->format('dm');
+	} else {
+		$uuidVersion = 8; // First nibble needs to be "8" for "UUIDv8 = Custom UUID"
+		$dayOfYear = intval($dt->format('z')) + 1; /* 1..366 */
+		$block3 = sprintf('%01x%03x', $uuidVersion, $dayOfYear);
+	}
+
+	// Then: Sort block 2, bytes from right to left
+	if ($hickelUuidVersion == 1) {
+		$block2 = $dt->format('ih');
+	} else {
+		$minuteOfDay = (intval($dt->format('i')) + intval($dt->format('h')) * 60) + 1; // 1..1440
+		$block2 = sprintf('%04x', $minuteOfDay);
+	}
+
+	// Then: Sort block 1, bytes from right to left
+	$millisecond8bits = ceil(($dt->format('v') / 999) * 255);
+	if ($hickelUuidVersion == 1) {
+		$rnd16bits = rand(0x0000, 0xFFFF-1);
+		$block1 = sprintf('%04x%02x', $rnd16bits, $millisecond8bits).$dt->format('s');
+	} else {
+		$rnd16bits = rand(0x0000, 0xFFFF);
+		$block1 = sprintf('%04x%02x%02x', $rnd16bits, $millisecond8bits, $dt->format('s'));
+	}
+
+	// Now build and parse UUID
+	usleep((int)ceil(999 / 255)); // Make sure that "millisecond" is not repeated on this system
+	return "$block1-$block2-$block3-$block4-$block5";
+}
+
 # --------------------------------------
 
 // http://php.net/manual/de/function.hex2bin.php#113057

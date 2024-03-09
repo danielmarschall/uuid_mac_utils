@@ -2,8 +2,8 @@
 
 /*
  * UUID interpreter for PHP
- * Copyright 2017 - 2023 Daniel Marschall, ViaThinkSoft
- * Version 2023-08-02
+ * Copyright 2017 - 2024 Daniel Marschall, ViaThinkSoft
+ * Version 2024-03-09
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,16 @@
 $uuid = isset($_GET['uuid']) ? trim($_GET['uuid']) : 'CREATE';
 
 $version = $_REQUEST['version'] ?? null;
+$hash_sqlserver_version = null;
+$hash_algo = null;
 if (!is_null($version)) {
-	if (preg_match('@^(8)_namebased_(.+)$@', $version, $m)) {
+	if (preg_match('@^(8)_sqlserver_v(.+)$@', $version, $m)) {
 		$version = $m[1];
-		$hash_uuid = $m[2];
-	} else {
-		$hash_uuid = null;
+		$hash_sqlserver_version = $m[2];
+	} else if (preg_match('@^(8)_namebased_(.+)$@', $version, $m)) {
+		$version = $m[1];
+		$hash_algo = $m[2];
 	}
-} else {
-	$hash_uuid = null;
 }
 if (!is_numeric($version) || (strlen($version)!=1)) $version = 1; // default: Version 1 / time based
 
@@ -85,8 +86,10 @@ try {
 		} else if ($version == '7') {
 			$uuid = gen_uuid_unix_epoch();
 		} else if ($version == '8') {
-			if ($hash_uuid != null) {
-				$uuid = gen_uuid_v8_namebased($hash_uuid, trim($_REQUEST['nb_ns']??''), trim($_REQUEST['nb_val']??''));
+			if ($hash_sqlserver_version != null) {
+				$uuid = gen_uuid_v8_sqlserver_sortable(intval($hash_sqlserver_version));
+			} else if ($hash_algo != null) {
+				$uuid = gen_uuid_v8_namebased($hash_algo, trim($_REQUEST['nb_ns']??''), trim($_REQUEST['nb_val']??''));
 			} else {
 				$uuid = gen_uuid_custom(trim($_REQUEST['block1']??'0'), trim($_REQUEST['block2']??'0'), trim($_REQUEST['block3']??'0'), trim($_REQUEST['block4']??'0'), trim($_REQUEST['block5']??'0'));
 			}
