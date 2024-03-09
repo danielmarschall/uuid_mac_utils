@@ -845,13 +845,13 @@ function uuid_info($uuid, $echo=true) {
 		$rnd2bits = hexdec(substr($uuid,16,1)) & 0x3;
 		$year = hexdec(substr($uuid,17,3));
 		// Block 3
-		$dayOfYear = hexdec(substr($uuid,13,3));
-		$day = intval(getDateFromDay($year, $dayOfYear)->format('d'));
-		$month = intval(getDateFromDay($year, $dayOfYear)->format('m'));
+		$dayOfYear = hexdec(substr($uuid,13,3)); // 1..366
+		$day = (($dayOfYear < 1) || ($dayOfYear > 366)) ? "XX" : intval(getDateFromDay($year, $dayOfYear)->format('d'));
+		$month = (($dayOfYear < 1) || ($dayOfYear > 366)) ? "XX" : intval(getDateFromDay($year, $dayOfYear)->format('m'));
 		// Block 2
-		$minuteOfDay = hexdec(substr($uuid,8,4));
-		$minutes = $minuteOfDay % 60;
-		$hours = (int)floor($minuteOfDay / 60);
+		$minuteOfDay = hexdec(substr($uuid,8,4)); // 1..1440
+		$minutes = (($minuteOfDay < 1) || ($minuteOfDay > 1440)) ? "XX" : ($minuteOfDay-1) % 60;
+		$hours = (($minuteOfDay < 1) || ($minuteOfDay > 1440)) ? "XX" : (int)floor(($minuteOfDay-1) / 60);
 		// Block 1
 		$rnd16bits = substr($uuid,0,4);
 		$millisecond8bits = hexdec(substr($uuid,4,2));
@@ -866,39 +866,41 @@ function uuid_info($uuid, $echo=true) {
 			str_pad("$minutes",2,'0',STR_PAD_LEFT).':'.
 			str_pad("$seconds",2,'0',STR_PAD_LEFT)."'".
 			str_pad("$milliseconds",2,'0',STR_PAD_LEFT);
-		echo "\n<u>Interpretation of <a href=\"https://gist.github.com/danielmarschall/7fafd270a3bc107d38e8449ce7420c25\">HickelSOFT \"SQL Server Sortable Custom UUID\", Version 2</a></u>\n\n";
-		echo sprintf("%-32s %s\n", "Random 16 bits:", "[0x$rnd16bits] 0b".str_pad("".base_convert($rnd16bits, 16, 2), 16, '0', STR_PAD_LEFT));
-		echo sprintf("%-32s %s\n", "Milliseconds:", "[0x".substr($uuid,4,2)."] $milliseconds");
-		echo sprintf("%-32s %s\n", "Seconds:", "[0x".substr($uuid,6,2)."] $seconds");
-		echo sprintf("%-32s %s\n", "Minute of day:", "[0x".substr($uuid,8,4)."] $minuteOfDay (".str_pad("$hours",2,'0',STR_PAD_LEFT).":".str_pad("$minutes",2,'0',STR_PAD_LEFT).")");
-		echo sprintf("%-32s %s\n", "Day of year:", "[0x".substr($uuid,13,3)."] $dayOfYear (Day=$day, Month=$month)");
-		echo sprintf("%-32s %s\n", "Random 2 bits:", "[$rnd2bits] 0b".str_pad("".base_convert("$rnd2bits", 16, 2), 2, '0', STR_PAD_LEFT));
-		echo sprintf("%-32s %s\n", "Year:", "[0x".substr($uuid,17,3)."] $year)");
-		echo sprintf("%-32s %s\n", "Signature:", "[0x".substr($uuid,20,12)."] HICKEL");
-		echo sprintf("%-32s %s\n", "UTC Date Time:", $utc_time);
+		if (strpos($utc_time,'X') === false) {
+			echo "\n<u>Interpretation of <a href=\"https://gist.github.com/danielmarschall/7fafd270a3bc107d38e8449ce7420c25\">HickelSOFT \"SQL Server Sortable Custom UUID\", Version 2</a></u>\n\n";
+			echo sprintf("%-32s %s\n", "Random 16 bits:", "[0x$rnd16bits] 0b".str_pad("".base_convert($rnd16bits, 16, 2), 16, '0', STR_PAD_LEFT));
+			echo sprintf("%-32s %s\n", "Milliseconds:", "[0x".substr($uuid,4,2)."] $milliseconds");
+			echo sprintf("%-32s %s\n", "Seconds:", "[0x".substr($uuid,6,2)."] $seconds");
+			echo sprintf("%-32s %s\n", "Minute of day:", "[0x".substr($uuid,8,4)."] $minuteOfDay (".str_pad("$hours",2,'0',STR_PAD_LEFT).":".str_pad("$minutes",2,'0',STR_PAD_LEFT).")");
+			echo sprintf("%-32s %s\n", "Day of year:", "[0x".substr($uuid,13,3)."] $dayOfYear (Day=$day, Month=$month)");
+			echo sprintf("%-32s %s\n", "Random 2 bits:", "[$rnd2bits] 0b".str_pad("".base_convert("$rnd2bits", 16, 2), 2, '0', STR_PAD_LEFT));
+			echo sprintf("%-32s %s\n", "Year:", "[0x".substr($uuid,17,3)."] $year)");
+			echo sprintf("%-32s %s\n", "Signature:", "[0x".substr($uuid,20,12)."] HICKEL");
+			echo sprintf("%-32s %s\n", "UTC Date Time:", $utc_time);
+		}
 	} else if (strtolower($signature) == '000000000000') {
 		// HickelSOFT "SQL Server sortable UUID in C#"
 		// Version 1: Resolution of 1 milliseconds, random part of 16 bits, local timezone, NOT UUIDv8 conform.
 		// Example: ff38da51-1301-0903-2420-000000000000
 		// Block 4
 		$year = substr($uuid,18,2) . substr($uuid,16,2);
-		if (!is_numeric($year) || ($year < 2000) || ($year > 2999)) $year = 'XXXX'; else $year = intval($year);
+		$year = (!is_numeric($year) || ($year < 2000) || ($year > 2999)) ? "XXXX" : $year = intval($year);
 		// Block 3
 		$day = substr($uuid,12,2);
-		if (!is_numeric($day) || ($day < 0) || ($day >= 60)) $day = 'XX'; else $day = intval($day);
+		$day = (!is_numeric($day) || ($day < 0) || ($day >= 60)) ? "XX" : intval($day);
 		$month = substr($uuid,14,2);
-		if (!is_numeric($month) || ($month < 0) || ($month >= 60)) $month = 'XX'; else $month = intval($month);
+		$month = (!is_numeric($month) || ($month < 0) || ($month >= 60)) ? "XX" : intval($month);
 		// Block 2
 		$minutes = substr($uuid,8,2);
-		if (!is_numeric($minutes) || ($minutes < 0) || ($minutes >= 60)) $minutes = 'XX'; else $minutes = intval($minutes);
+		$minutes = (!is_numeric($minutes) || ($minutes < 0) || ($minutes >= 60)) ? "XX" : intval($minutes);
 		$hours = substr($uuid,10,2);
-		if (!is_numeric($hours) || ($hours < 0) || ($hours >= 60)) $hours = 'XX'; else $hours = intval($hours);
+		$hours = (!is_numeric($hours) || ($hours < 0) || ($hours >= 60)) ? "XX" : intval($hours);
 		// Block 1
 		$rnd16bits = substr($uuid,0,4);
 		$millisecond8bits = hexdec(substr($uuid,4,2));
 		$milliseconds = round($millisecond8bits / 255 * 999);
 		$seconds = substr($uuid,6,2);
-		if (!is_numeric($seconds) || ($seconds < 0) || ($seconds >= 60)) $seconds = 'XX'; else $seconds = intval($seconds);
+		$seconds = (!is_numeric($seconds) || ($seconds < 0) || ($seconds >= 60)) ? "XX" : intval($seconds);
 		// Verbose info
 		$local_time =
 			str_pad("$year",4,'0',STR_PAD_LEFT).'-'.
