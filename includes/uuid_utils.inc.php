@@ -837,7 +837,7 @@ function uuid_info($uuid, $echo=true) {
 
 	// Block 5
 	$signature = substr($uuid,20,12);
-	if (strtolower($signature) == '4849434b454c'/*HICKEL*/) {
+	if (strtolower($signature) == '5ce32bd83b96') {
 		// HickelSOFT "SQL Server sortable UUID in C#"
 		// Version 2: Resolution of 1 milliseconds, random part of 18 bits, UTC time, UUIDv8 conform.
 		// Example: 2088dc33-000d-8045-87e8-4849434b454c
@@ -874,8 +874,8 @@ function uuid_info($uuid, $echo=true) {
 			echo sprintf("%-32s %s\n", "Minute of day:", "[0x".substr($uuid,8,4)."] $minuteOfDay (".str_pad("$hours",2,'0',STR_PAD_LEFT).":".str_pad("$minutes",2,'0',STR_PAD_LEFT).")");
 			echo sprintf("%-32s %s\n", "Day of year:", "[0x".substr($uuid,13,3)."] $dayOfYear (Day=$day, Month=$month)");
 			echo sprintf("%-32s %s\n", "Random 2 bits:", "[$rnd2bits] 0b".str_pad("".base_convert("$rnd2bits", 16, 2), 2, '0', STR_PAD_LEFT));
-			echo sprintf("%-32s %s\n", "Year:", "[0x".substr($uuid,17,3)."] $year)");
-			echo sprintf("%-32s %s\n", "Signature:", "[0x".substr($uuid,20,12)."] HICKEL");
+			echo sprintf("%-32s %s\n", "Year:", "[0x".substr($uuid,17,3)."] $year");
+			echo sprintf("%-32s %s\n", "Signature:", "[0x".substr($uuid,20,12)."] HickelSOFT \"SQL Server Sortable Custom UUID\", Version 2 (very likely)");
 			echo sprintf("%-32s %s\n", "UTC Date Time:", $utc_time);
 		}
 	} else if (strtolower($signature) == '000000000000') {
@@ -920,7 +920,7 @@ function uuid_info($uuid, $echo=true) {
 			echo sprintf("%-32s %s\n", "Day:", "[0x".substr($uuid,12,2)."] $day");
 			echo sprintf("%-32s %s\n", "Month:", "[0x".substr($uuid,14,2)."] $month");
 			echo sprintf("%-32s %s\n", "Year:", "[0x".substr($uuid,16,4)."] $year");
-			echo sprintf("%-32s %s\n", "Signature:", "[0x".substr($uuid,20,12)."]");
+			echo sprintf("%-32s %s\n", "Signature:", "[0x".substr($uuid,20,12)."] HickelSOFT \"SQL Server Sortable Custom UUID\", Version 1 (maybe)");
 			echo sprintf("%-32s %s\n", "Generator's Local Date Time:", $local_time);
 		}
 	}
@@ -1569,7 +1569,7 @@ function gen_uuid_v8_sqlserver_sortable(int $hickelUuidVersion = 2, DateTime $dt
 	if ($hickelUuidVersion == 1) {
 		$block5 = "000000000000";
 	} else if ($hickelUuidVersion == 2) {
-		$block5 = "4849434B454C"/*Hex:"HICKEL"*/;
+		$block5 = "5ce32bd83b96";
 	} else {
 		throw new Exception("Invalid version");
 	}
@@ -1580,7 +1580,7 @@ function gen_uuid_v8_sqlserver_sortable(int $hickelUuidVersion = 2, DateTime $dt
 		$block4 = substr($year, 2, 2).substr($year, 0, 2); // Example: 0x2420 = 2024
 	} else {
 		$variant = 0x8; // First nibble needs to be 0b10_ (0x8-0xB) for "RFC 4122bis". We use it to store 2 more random bits.
-		$rnd2bits = rand(0x0, 0x3);
+		$rnd2bits = _random_int(0x0, 0x3);
 		$year = $dt->format('Y');
 		$block4 = sprintf('%01x%03x', $variant + ($rnd2bits & 0x3), $year);
 	}
@@ -1605,16 +1605,16 @@ function gen_uuid_v8_sqlserver_sortable(int $hickelUuidVersion = 2, DateTime $dt
 	// Then: Sort block 1, bytes from right to left
 	$millisecond8bits = ceil(($dt->format('v') / 999) * 255);
 	if ($hickelUuidVersion == 1) {
-		$rnd16bits = rand(0x0000, 0xFFFF-1);
+		$rnd16bits = _random_int(0x0000, 0xFFFF-1);
 		$block1 = sprintf('%04x%02x', $rnd16bits, $millisecond8bits).$dt->format('s');
 	} else {
-		$rnd16bits = rand(0x0000, 0xFFFF);
+		$rnd16bits = _random_int(0x0000, 0xFFFF);
 		$block1 = sprintf('%04x%02x%02x', $rnd16bits, $millisecond8bits, $dt->format('s'));
 	}
 
 	// Now build and parse UUID
 	usleep((int)ceil(999 / 255)); // Make sure that "millisecond" is not repeated on this system
-	return "$block1-$block2-$block3-$block4-$block5";
+	return strtolower("$block1-$block2-$block3-$block4-$block5");
 }
 
 # --------------------------------------

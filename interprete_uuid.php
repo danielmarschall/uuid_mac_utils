@@ -21,15 +21,15 @@
 $uuid = isset($_GET['uuid']) ? trim($_GET['uuid']) : 'CREATE';
 
 $version = $_REQUEST['version'] ?? null;
-$hash_sqlserver_version = null;
-$hash_algo = null;
+$v8_sqlserver_version = null;
+$v8_hash_algo = null;
 if (!is_null($version)) {
 	if (preg_match('@^(8)_sqlserver_v(.+)$@', $version, $m)) {
 		$version = $m[1];
-		$hash_sqlserver_version = $m[2];
+		$v8_sqlserver_version = $m[2];
 	} else if (preg_match('@^(8)_namebased_(.+)$@', $version, $m)) {
 		$version = $m[1];
-		$hash_algo = $m[2];
+		$v8_hash_algo = $m[2];
 	}
 }
 if (!is_numeric($version) || (strlen($version)!=1)) $version = 1; // default: Version 1 / time based
@@ -61,7 +61,7 @@ if ($uuid != 'CREATE') {
 	echo '<form method="GET" action="interprete_uuid.php">';
 	echo '	UUID: <input style="font-family:Courier,Courier New,Serif;width:325px" type="text" name="uuid" value="'.htmlentities($uuid).'"> <input type="submit" value="Interprete">';
 	echo '</form>';
-} else if (($version!=3) && ($version!=5) && ($version!=8)) {
+} else if (($version!=3) && ($version!=5) && (($version!=8) || ($v8_sqlserver_version!=null))) {
 	echo '<p><i>Reload the page to receive another UUID.</i></p>';
 }
 
@@ -86,10 +86,10 @@ try {
 		} else if ($version == '7') {
 			$uuid = gen_uuid_unix_epoch();
 		} else if ($version == '8') {
-			if ($hash_sqlserver_version != null) {
-				$uuid = gen_uuid_v8_sqlserver_sortable(intval($hash_sqlserver_version));
-			} else if ($hash_algo != null) {
-				$uuid = gen_uuid_v8_namebased($hash_algo, trim($_REQUEST['nb_ns']??''), trim($_REQUEST['nb_val']??''));
+			if ($v8_sqlserver_version != null) {
+				$uuid = gen_uuid_v8_sqlserver_sortable(intval($v8_sqlserver_version));
+			} else if ($v8_hash_algo != null) {
+				$uuid = gen_uuid_v8_namebased($v8_hash_algo, trim($_REQUEST['nb_ns']??''), trim($_REQUEST['nb_val']??''));
 			} else {
 				$uuid = gen_uuid_custom(trim($_REQUEST['block1']??'0'), trim($_REQUEST['block2']??'0'), trim($_REQUEST['block3']??'0'), trim($_REQUEST['block4']??'0'), trim($_REQUEST['block5']??'0'));
 			}
