@@ -840,7 +840,7 @@ function uuid_info($uuid, $echo=true) {
 	if (strtolower($signature) == '5ce32bd83b96') {
 		// HickelSOFT "SQL Server sortable UUID in C#"
 		// Version 2: Resolution of 1 milliseconds, random part of 18 bits, UTC time, UUIDv8 conform.
-		// Example: 2088dc33-000d-8045-87e8-4849434b454c
+		// Example: 2088dc33-000d-8045-87e8-5ce32bd83b96
 		// Block 4
 		$rnd2bits = hexdec(substr($uuid,16,1)) & 0x3;
 		$year = hexdec(substr($uuid,17,3));
