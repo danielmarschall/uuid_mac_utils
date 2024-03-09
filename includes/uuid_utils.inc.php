@@ -842,7 +842,7 @@ function uuid_info($uuid, $echo=true) {
 		// Version 2: Resolution of 1 milliseconds, random part of 18 bits, UTC time, UUIDv8 conform.
 		// Example: 2088dc33-000d-8045-87e8-5ce32bd83b96
 		// Block 4
-		$rnd2bits = hexdec(substr($uuid,16,1)) & 0x3;
+		$unused2bits = hexdec(substr($uuid,16,1)) & 0x3;
 		$year = hexdec(substr($uuid,17,3));
 		// Block 3
 		$dayOfYear = hexdec(substr($uuid,13,3)); // 1..366
@@ -874,7 +874,7 @@ function uuid_info($uuid, $echo=true) {
 			echo sprintf("%-32s %s\n", "Seconds:", "[0x".substr($uuid,6,2)."] $seconds");
 			echo sprintf("%-32s %s\n", "Minute of day:", "[0x".substr($uuid,8,4)."] $minuteOfDay (".str_pad("$hours",2,'0',STR_PAD_LEFT).":".str_pad("$minutes",2,'0',STR_PAD_LEFT).")");
 			echo sprintf("%-32s %s\n", "Day of year:", "[0x".substr($uuid,13,3)."] $dayOfYear (Day=$day, Month=$month)");
-			echo sprintf("%-32s %s\n", "Random 2 bits:", "[$rnd2bits] 0b".str_pad("".base_convert("$rnd2bits", 16, 2), 2, '0', STR_PAD_LEFT));
+			echo sprintf("%-32s %s\n", "Unused 2 bits:", "[$unused2bits] 0b".str_pad("".base_convert("$unused2bits", 16, 2), 2, '0', STR_PAD_LEFT));
 			echo sprintf("%-32s %s\n", "Year:", "[0x".substr($uuid,17,3)."] $year");
 			echo sprintf("%-32s %s\n", "Signature:", "[0x".substr($uuid,20,12)."] HickelSOFT \"SQL Server Sortable Custom UUID\", Version 2 (very likely)");
 			echo sprintf("%-32s %s\n", "UTC Date Time:", "$utc_time $deviation");
@@ -1553,8 +1553,8 @@ function gen_uuid_v8_namebased($hash_algo, $namespace_uuid, $name) {
 /**
  * The sorting of SQL Server is rather confusing and incompatible with UUIDv6 and UUIDv7.
  * Therefore this method generates UUID which are sortable by SQL Server.
- * Version 1: Resolution of 1 milliseconds, random part of 16 bits, local timezone, NOT UUIDv8 conform.
- * Version 2: Resolution of 1 milliseconds, random part of 18 bits, UTC time, UUIDv8 conform.
+ * Version 1: Resolution of 1 milliseconds, random part of 16 bits, local timezone, 48 zero bits "signature", NOT UUIDv8 conform.
+ * Version 2: Resolution of 1 milliseconds, random part of 16 bits, UTC time, 48 bit random "signature", UUIDv8 conform.
  * C# implementation: https://gist.github.com/danielmarschall/7fafd270a3bc107d38e8449ce7420c25
  * PHP implementation: https://github.com/danielmarschall/uuid_mac_utils/blob/master/includes/uuid_utils.inc.php
  *
@@ -1582,9 +1582,9 @@ function gen_uuid_v8_sqlserver_sortable(int $hickelUuidVersion = 2, DateTime $dt
 		$block4 = substr($year, 2, 2).substr($year, 0, 2); // Example: 0x2420 = 2024
 	} else {
 		$variant = 0x8; // First nibble needs to be 0b10_ (0x8-0xB) for "RFC 4122bis". We use it to store 2 more random bits.
-		$rnd2bits = _random_int(0x0, 0x3);
+		$unused2bits = 0; // Cannot be used for random, because it would affect the sorting
 		$year = $dt->format('Y');
-		$block4 = sprintf('%01x%03x', $variant + ($rnd2bits & 0x3), $year);
+		$block4 = sprintf('%01x%03x', $variant + ($unused2bits & 0x3), $year);
 	}
 
 	// Then: Sort block 3, bytes from right to left (i.e. 0100 < 1000 < 0001 < 0010)
@@ -1615,8 +1615,9 @@ function gen_uuid_v8_sqlserver_sortable(int $hickelUuidVersion = 2, DateTime $dt
 		$block1 = sprintf('%04x%02x%02x', $rnd16bits, $millisecond8bits, $dt->format('s'));
 	}
 
-	// Now build and parse UUID
-	usleep((int)ceil(999 / 255)); // Make sure that "millisecond" is not repeated on this system
+	$sleep_ms = (int)ceil(999 / 255); // Make sure that "millisecond" is not repeated on this system
+	if (time_nanosleep(0,$sleep_ms*1000*1000) !== true) usleep($sleep_ms*1000);
+
 	return strtolower("$block1-$block2-$block3-$block4-$block5");
 }
 
