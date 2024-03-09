@@ -867,16 +867,17 @@ function uuid_info($uuid, $echo=true) {
 			str_pad("$seconds",2,'0',STR_PAD_LEFT)."'".
 			str_pad("$milliseconds",2,'0',STR_PAD_LEFT);
 		if (strpos($utc_time,'X') === false) {
+			$deviation = "(deviation -2ms..2ms)";
 			echo "\n<u>Interpretation of <a href=\"https://gist.github.com/danielmarschall/7fafd270a3bc107d38e8449ce7420c25\">HickelSOFT \"SQL Server Sortable Custom UUID\", Version 2</a></u>\n\n";
 			echo sprintf("%-32s %s\n", "Random 16 bits:", "[0x$rnd16bits] 0b".str_pad("".base_convert($rnd16bits, 16, 2), 16, '0', STR_PAD_LEFT));
-			echo sprintf("%-32s %s\n", "Milliseconds:", "[0x".substr($uuid,4,2)."] $milliseconds");
+			echo sprintf("%-32s %s\n", "Milliseconds:", "[0x".substr($uuid,4,2)."] $milliseconds $deviation");
 			echo sprintf("%-32s %s\n", "Seconds:", "[0x".substr($uuid,6,2)."] $seconds");
 			echo sprintf("%-32s %s\n", "Minute of day:", "[0x".substr($uuid,8,4)."] $minuteOfDay (".str_pad("$hours",2,'0',STR_PAD_LEFT).":".str_pad("$minutes",2,'0',STR_PAD_LEFT).")");
 			echo sprintf("%-32s %s\n", "Day of year:", "[0x".substr($uuid,13,3)."] $dayOfYear (Day=$day, Month=$month)");
 			echo sprintf("%-32s %s\n", "Random 2 bits:", "[$rnd2bits] 0b".str_pad("".base_convert("$rnd2bits", 16, 2), 2, '0', STR_PAD_LEFT));
 			echo sprintf("%-32s %s\n", "Year:", "[0x".substr($uuid,17,3)."] $year");
 			echo sprintf("%-32s %s\n", "Signature:", "[0x".substr($uuid,20,12)."] HickelSOFT \"SQL Server Sortable Custom UUID\", Version 2 (very likely)");
-			echo sprintf("%-32s %s\n", "UTC Date Time:", $utc_time);
+			echo sprintf("%-32s %s\n", "UTC Date Time:", "$utc_time $deviation");
 		}
 	} else if (strtolower($signature) == '000000000000') {
 		// HickelSOFT "SQL Server sortable UUID in C#"
@@ -911,9 +912,10 @@ function uuid_info($uuid, $echo=true) {
 			str_pad("$seconds",2,'0',STR_PAD_LEFT)."'".
 			str_pad("$milliseconds",2,'0',STR_PAD_LEFT);
 		if (strpos($local_time,'X') === false) {
+			$deviation = "(deviation -4ms..0ms)";
 			echo "\n<u>Interpretation of <a href=\"https://gist.github.com/danielmarschall/7fafd270a3bc107d38e8449ce7420c25\">HickelSOFT \"SQL Server Sortable Custom UUID\", Version 1</a></u>\n\n";
 			echo sprintf("%-32s %s\n", "Random 16 bits:", "[0x$rnd16bits] 0b".str_pad(base_convert($rnd16bits, 16, 2), 16, '0', STR_PAD_LEFT));
-			echo sprintf("%-32s %s\n", "Milliseconds:", "[0x".substr($uuid,4,2)."] $milliseconds");
+			echo sprintf("%-32s %s\n", "Milliseconds:", "[0x".substr($uuid,4,2)."] $milliseconds $deviation");
 			echo sprintf("%-32s %s\n", "Seconds:", "[0x".substr($uuid,6,2)."] $seconds");
 			echo sprintf("%-32s %s\n", "Minutes:", "[0x".substr($uuid,8,2)."] $minutes");
 			echo sprintf("%-32s %s\n", "Hours:", "[0x".substr($uuid,10,2)."] $hours");
@@ -921,7 +923,7 @@ function uuid_info($uuid, $echo=true) {
 			echo sprintf("%-32s %s\n", "Month:", "[0x".substr($uuid,14,2)."] $month");
 			echo sprintf("%-32s %s\n", "Year:", "[0x".substr($uuid,16,4)."] $year");
 			echo sprintf("%-32s %s\n", "Signature:", "[0x".substr($uuid,20,12)."] HickelSOFT \"SQL Server Sortable Custom UUID\", Version 1 (maybe)");
-			echo sprintf("%-32s %s\n", "Generator's Local Date Time:", $local_time);
+			echo sprintf("%-32s %s\n", "Generator's Local Date Time:", "$local_time $deviation");
 		}
 	}
 
@@ -1603,11 +1605,12 @@ function gen_uuid_v8_sqlserver_sortable(int $hickelUuidVersion = 2, DateTime $dt
 	}
 
 	// Then: Sort block 1, bytes from right to left
-	$millisecond8bits = ceil(($dt->format('v') / 999) * 255);
 	if ($hickelUuidVersion == 1) {
+		$millisecond8bits = ceil(($dt->format('v') / 999) * 255); // deviation -4ms..0ms
 		$rnd16bits = _random_int(0x0000, 0xFFFF-1);
 		$block1 = sprintf('%04x%02x', $rnd16bits, $millisecond8bits).$dt->format('s');
 	} else {
+		$millisecond8bits = round(($dt->format('v') / 999) * 255); // deviation -2ms..2ms
 		$rnd16bits = _random_int(0x0000, 0xFFFF);
 		$block1 = sprintf('%04x%02x%02x', $rnd16bits, $millisecond8bits, $dt->format('s'));
 	}

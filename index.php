@@ -261,7 +261,7 @@ function show_uuidv8_sqlserver_info() {
 <p><a id="uuidv8_sqlserver_info_button" href="javascript:show_uuidv8_sqlserver_info()">Show format</a>
 <pre id="uuidv8_sqlserver_info" style="display:none">Version 2: Resolution of 1 milliseconds, random part of 18 bits, UTC time, 48 bit random "signature", UUIDv8 conform:
 - 16 bit Random data
--  8 bit UTC Milliseconds transformed from 1000ms to 0..255 (hex encoded)
+-  8 bit UTC Milliseconds transformed from 1000ms to 0..255, deviation -2ms..2ms (hex encoded)
 -  8 bit UTC Seconds (hex encoded)
 - 16 bit UTC Minute of the day (1..1440, hex encoded)
 -  4 bit UUID version 8
@@ -273,7 +273,7 @@ function show_uuidv8_sqlserver_info() {
 
 Version 1: Resolution of 1 milliseconds, random part of 16 bits, local timezone, 48 zero bit "signature", NOT UUIDv8 conform.
 - 16 bit Random data
--  8 bit Generator's local timezone Milliseconds transformed from 1000ms to 0..255 (hex encoded)
+-  8 bit Generator's local timezone Milliseconds transformed from 1000ms to 0..255, deviation -4ms..0ms (hex encoded)
 -  8 bit Generator's local timezone Seconds (BCD encoded)
 -  8 bit Generator's local timezone Minute (BCD encoded)
 -  8 bit Generator's local timezone Hour (BCD encoded)
