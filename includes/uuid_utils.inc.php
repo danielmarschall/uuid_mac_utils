@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2024 Daniel Marschall, ViaThinkSoft
- * Version 2024-03-09
+ * Version 2024-04-03
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -865,7 +865,7 @@ function uuid_info($uuid, $echo=true) {
 			str_pad("$hours",2,'0',STR_PAD_LEFT).':'.
 			str_pad("$minutes",2,'0',STR_PAD_LEFT).':'.
 			str_pad("$seconds",2,'0',STR_PAD_LEFT)."'".
-			str_pad("$milliseconds",2,'0',STR_PAD_LEFT);
+			str_pad("$milliseconds",3/*ms*/,'0',STR_PAD_LEFT);
 		if (strpos($utc_time,'X') === false) {
 			$deviation = "(deviation -2ms..2ms)";
 			echo "\n<u>Interpretation of <a href=\"https://gist.github.com/danielmarschall/7fafd270a3bc107d38e8449ce7420c25\">HickelSOFT \"SQL Server Sortable Custom UUID\", Version 2</a></u>\n\n";
@@ -910,7 +910,7 @@ function uuid_info($uuid, $echo=true) {
 			str_pad("$hours",2,'0',STR_PAD_LEFT).':'.
 			str_pad("$minutes",2,'0',STR_PAD_LEFT).':'.
 			str_pad("$seconds",2,'0',STR_PAD_LEFT)."'".
-			str_pad("$milliseconds",2,'0',STR_PAD_LEFT);
+			str_pad("$milliseconds",3/*ms*/,'0',STR_PAD_LEFT);
 		if (strpos($local_time,'X') === false) {
 			$deviation = "(deviation -4ms..0ms)";
 			echo "\n<u>Interpretation of <a href=\"https://gist.github.com/danielmarschall/7fafd270a3bc107d38e8449ce7420c25\">HickelSOFT \"SQL Server Sortable Custom UUID\", Version 1</a></u>\n\n";
@@ -1566,6 +1566,7 @@ function gen_uuid_v8_sqlserver_sortable(int $hickelUuidVersion = 2, DateTime $dt
 	// The sorting in SQL Server is like this:
 
 	if ($dt == null) $dt = new DateTime();
+	if ($hickelUuidVersion >= 2) $dt->setTimeZone(new DateTimeZone("UTC"));
 
 	// First Sort block 5, nibbles from left to right (i.e. 000000000001 < 000000000010 < ... < 010000000000 < 100000000000)
 	if ($hickelUuidVersion == 1) {
@@ -1598,9 +1599,9 @@ function gen_uuid_v8_sqlserver_sortable(int $hickelUuidVersion = 2, DateTime $dt
 
 	// Then: Sort block 2, bytes from right to left
 	if ($hickelUuidVersion == 1) {
-		$block2 = $dt->format('ih');
+		$block2 = $dt->format('iH');
 	} else {
-		$minuteOfDay = (intval($dt->format('i')) + intval($dt->format('h')) * 60) + 1; // 1..1440
+		$minuteOfDay = (intval($dt->format('i')) + intval($dt->format('H')) * 60) + 1; // 1..1440
 		$block2 = sprintf('%04x', $minuteOfDay);
 	}
 
