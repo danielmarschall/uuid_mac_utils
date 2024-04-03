@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2024 Daniel Marschall, ViaThinkSoft
-* Version 2024-03-09
+* Version 2024-04-04
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ const AUTO_NEW_UUIDS = 15;
             <li><a href="#gen_uuidv6"><font color="green">New:</font> Generate reordered Gregorian time-based (version 6) UUID</a></li>
             <li><a href="#gen_uuidv4">Generate random (version 4) UUID</a></li>
             <li><a href="#gen_uuidv1">Generate Gregorian time-based (version 1) UUID</a></li>
-            <li><a href="#gen_uuidv8_sqlserver"><font color="green">New:</font> Generate SQL server sortable time-based (version 8) UUID</a></li>
+            <li><a href="#gen_uuidv8_sqlserver"><font color="green">New:</font> Generate SQL Server sortable time-based (version 8) UUID</a></li>
         </ul></li>
     <li><a href="#gen_other_uuid">Generate other UUID types</a><ul>
             <li><a href="#gen_uuid_ncs">NCS (variant 0) UUID</a></li>
@@ -242,7 +242,7 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
 </form>
 
-<h3 id="gen_uuidv8_sqlserver">Generate SQL server sortable time-based (version 8) UUID</h3>
+<h3 id="gen_uuidv8_sqlserver">Generate SQL Server sortable time-based (version 8) UUID</h3>
 
 <p><i>The sorting of UUIDs in SQL Server is rather confusing and incompatible with UUIDv6 and UUIDv7.<br>
 Therefore this method developed by <a href="https://www.hickelsoft.de/">HickelSOFT</a>
@@ -376,12 +376,12 @@ function show_uuidv2_info() {
 
 <form method="GET" action="interprete_uuid.php">
 	<input type="hidden" name="version" value="2">
-	<label>Domain (8&nbsp;bits):</label><select name="domain_choose" id="dce_domain_choice" onchange="javascript:dce_domain_choose();">
+	<label>Domain (8&nbsp;bits):</label><select name="domain_choose" id="dce_domain_choice" onchange="javascript:dce_domain_choice_choose();">
 		<option value="uid">Person (e.g. POSIX UID)</option>
 		<option value="gid">Group (e.g. POSIX GID)</option>
 		<option value="org">Organization</option>
 		<option value="site">Site-defined</option>
-	</select> = Address Family ID: <input type="number" min="0" max="255" name="dce_domain" value="" id="dce_domain" style="width:50px" pattern="[0-9]+"> (decimal notation)<br>
+	</select> = Address Family ID: <input type="number" min="0" max="255" name="dce_domain" value="0" id="dce_domain" style="width:50px" pattern="[0-9]+" onchange="javascript:dce_domain_choose();"> (decimal notation)<br>
 	<label>Value (32&nbsp;bits):</label><input type="number" min="0" max="4294967295" name="dce_id" value="0" id="dce_id" style="width:200px" pattern="[0-9]+"> (decimal notation)<br>
 	<font color="red">Warning</font>: The timestamp has an accuracy of 7:10 minutes,
 	therefore the uniqueness of these UUIDs is not guaranteed!<br><br>
@@ -389,17 +389,26 @@ function show_uuidv2_info() {
 </form>
 <script>
 function dce_domain_choose() {
+	var ns = document.getElementById('dce_domain').value;
+	if (ns == "0") {
+		document.getElementById('dce_domain_choice').value = "uid";
+	} else if (ns == "1") {
+		document.getElementById('dce_domain_choice').value = "gid";
+	} else if (ns == "2") {
+		document.getElementById('dce_domain_choice').value = "org";
+	} else {
+		document.getElementById('dce_domain_choice').value = "site";
+	}
+}
+function dce_domain_choice_choose() {
 	var ns = document.getElementById('dce_domain_choice').value;
 	if (ns == "uid") {
 		document.getElementById('dce_domain').value = "0";
-	}
-	if (ns == "gid") {
+	} else if (ns == "gid") {
 		document.getElementById('dce_domain').value = "1";
-	}
-	if (ns == "org") {
+	} else if (ns == "org") {
 		document.getElementById('dce_domain').value = "2";
-	}
-	if (ns == "site") {
+	} else if (ns == "site") {
 		document.getElementById('dce_domain').value = "";
 	}
 }
