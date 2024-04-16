@@ -3,7 +3,7 @@
 /*
 * UUID & MAC Utils
 * Copyright 2017 - 2024 Daniel Marschall, ViaThinkSoft
-* Version 2024-04-04
+* Version 2024-04-16
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -418,7 +418,7 @@ dce_domain_choose();
 <h3 id="gen_uuidv35">Generate name-based (version 3 / 5 / <font color="green">New: 8</font>) UUID</h3>
 
 <p><i>An UUIDv3 is made out of a MD5 hash and an UUIDv5 is made out of a SHA1 hash.
-The revision of RFC4122 also contains an example for a custom UUIDv8 that
+RFC 9562 also contains an example for a custom UUIDv8 implementation that
 uses modern hash algorithms.</i></p>
 
 <script>
@@ -436,7 +436,7 @@ function show_uuidv35_info() {
 - 62 bit Hash Low
 
 
-<u>As shown in <a href="https://datatracker.ietf.org/doc/draft-ietf-uuidrev-rfc4122bis/">draft-ietf-uuidrev-rfc4122bis-12</a> Appendix C.2:</u>
+<u>As shown in <a href="https://www.ietf.org/rfc/rfc9562.txt">RFC 9562</a> Appendix B.2:</u>
 UUIDv8(<i>HashAlgo</i>, <i>NameSpaceUuid</i>, <i>Data</i>) := <abbr title="Adds UUID variant 0b10 and version 8">ConvertRawBytesToUuid_v8</abbr>(<i>HashAlgo</i>( Binary[<i>NameSpaceUuid</i>] || <i>Data</i> )).
 
 </pre></p>
@@ -454,11 +454,11 @@ label {
 	<label>Hash algorithm:</label><select name="version" id="nb_version" onchange="javascript:nb_version_choose();">
 		<?php
 
-		echo "\t\t<option disabled>--- UUIDv3 (defined in RFC 4122) ---</option>\n";
+		echo "\t\t<option disabled>--- UUIDv3 (defined in RFC 4122/9562) ---</option>\n";
 		echo "\t\t<option value=\"3\">MD5</option>\n";
-		echo "\t\t<option disabled>--- UUIDv5 (defined in RFC 4122) ---</option>\n";
+		echo "\t\t<option disabled>--- UUIDv5 (defined in RFC 4122/9562) ---</option>\n";
 		echo "\t\t<option value=\"5\" selected>SHA1</option>\n";
-		echo "\t\t<option disabled>--- UUIDv8 (shown in Internet Draft 12, Appendix C.2) ---</option>\n";
+		echo "\t\t<option disabled>--- UUIDv8 (shown in RFC 9562, Appendix B.2) ---</option>\n";
 		$tmp = [];
 		$algos = hash_algos();
 		$algos[] = 'shake128';
