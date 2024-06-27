@@ -6,3 +6,6 @@ parameters:
 		analyseAndScan:
 			- .phpstan.tmp
 	tmpDir: .phpstan.tmp
+	ignoreErrors:
+		- '#Call to function assert\(\) with false will always evaluate to false\.#'
+
