@@ -442,13 +442,13 @@ function decode_mac(string $mac) {
 
 	echo "\n";
 
-	$is_eli_unicast = (hexdec($mac[1]) & 0xF) == 0xA;  // ELI = 1010 (unicast)
-	$is_eli         = (hexdec($mac[1]) & 0xE) == 0xA;  // ELI = 101x (unicast and multicast)
+	$is_eli_unicast = (hexdec($mac[1]) & 0b1111) == 0b1010;  // ELI = 1010 (unicast)
+	$is_eli         = (hexdec($mac[1]) & 0b1110) == 0b1010;  // ELI = 101x (unicast and multicast)
 
-	$is_eui_unicast = (hexdec($mac[1]) & 0x3) == 0x0;  // EUI = xx00 (unicast)
-	$is_eui         = (hexdec($mac[1]) & 0x2) == 0x0;  // EUI = xx0x (unicast and multicast)
+	$is_eui_unicast = (hexdec($mac[1]) & 0b0011) == 0b0000;  // EUI = xx00 (unicast)
+	$is_eui         = (hexdec($mac[1]) & 0b0010) == 0b0000;  // EUI = xx0x (unicast and multicast)
 
-	$is_sai         = (hexdec($mac[1]) & 0b1110) != 0;
+	$is_sai         = (hexdec($mac[1]) & 0b1110) == 0b1110;  // SAI = 111x (unicast and multicast)
 
 	// Show various representations
 	if ($is_sai) {
@@ -520,10 +520,10 @@ function decode_mac(string $mac) {
 			echo sprintf("%-32s %s\n", "BARC Semantic Prefix:", "[__:_$n3:$n4$n5:__:__:__] Semantic Prefix");
 			echo sprintf("%-32s %s\n", "BARC Data:", "[__:__:__:$n6$n7:$n8$n9:$n10$n11] Prefix Dependant Data");
 		} else {
-			echo sprintf("%-32s %s\n", "SAI Standard:", "[__:{$n2}_:__:__:__:__] Unknown IEEE 802 Standard #$n2");
+			echo sprintf("%-32s %s\n", "SAI Standard:", "[__:{$n2}_:__:__:__:__] Unknown IEEE 802 Standard #".hexdec($n2));
 		}
 		echo "\n";
-	} if ($is_eli) {
+	} else if ($is_eli) {
 		// Note: There does not seem to exist an algorithm for encapsulating/converting ELI-48 <=> ELI-64
 		echo sprintf("%-32s %s\n", "ELI-".eui_bits($mac).":", mac_canonize($mac));
 		$mac48 = eui64_to_eui48($mac);
