@@ -3,7 +3,7 @@
 /*
  * MAC (EUI-48 and EUI-64) utils for PHP
  * Copyright 2017 - 2024 Daniel Marschall, ViaThinkSoft
- * Version 2024-06-27
+ * Version 2024-06-30
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -452,75 +452,53 @@ function decode_mac(string $mac) {
 
 	// Show various representations
 	if ($is_sai) {
-		$b0 = substr($mac,0,2);
-			$n0 = substr($mac,0,1);
-			$n1 = substr($mac,1,1);
-		$b1 = substr($mac,2,2);
-			$n2 = substr($mac,2,1);
-			$n3 = substr($mac,3,1);
-		$b2 = substr($mac,4,2);
-			$n4 = substr($mac,4,1);
-			$n5 = substr($mac,5,1);
-		$b3 = substr($mac,6,2);
-			$n6 = substr($mac,6,1);
-			$n7 = substr($mac,7,1);
-		$b4 = substr($mac,8,2);
-			$n8 = substr($mac,8,1);
-			$n9 = substr($mac,9,1);
-		$b5 = substr($mac,10,2);
-			$n10= substr($mac,10,1);
-			$n11= substr($mac,11,1);
-
 		// Information taken from this paper:
 		// https://www.techrxiv.org/users/684395/articles/678862-link-layer-software-defined-addressing-using-block-address-registration-and-claiming-barc
 		// DOI: 10.36227/techrxiv.19105118.v1
-		if ($n2 == "0") {
-			echo sprintf("%-32s %s\n", "SAI Standard:", "[__:{$n2}_:__:__:__:__] BARC (IEEE 802.1CQ)"); // Block Address Registration and Claiming (BARC)
-			$size = hexdec($n0) & 0b11; // j,k=size
-			// size=0 means N3=X3, N4=X4, ..., N11=X11
-			// size=1 means N3=X3, N4=X4, ..., N10=X10, N11=a where a is 0 for Unicast and any for Multicast
-			// size=2 means N3=X3, N4=X4, ..., N9=X9, N10..N11=a where a is 0 for Unicast and any for Multicast
-			// size=3 means N3=X3, N4=X4, ..., N8=X8, N9..N11=a where a is 0 for Unicast and any for Multicast
-			if ((hexdec($n0) >= 0) && (hexdec($n0) <= 3)) { // r,i=01
-				if ($n1 == 'F') {
-					/*
-					when r=0, i=0 (N0=0b00xx=0x0-0x3) and m=1 (N1=F), the address is a Claimable Address Block Address (CABA) that identifies the associated CAB with i=1;
-					*/
-					echo sprintf("%-32s %s\n", "BARC Address Type:", "[$n0$n1:__:__:__:__:__] Claimable Address Block Address (CABA) that identifies the associated Claimable Address Block (CAB) with i=1. CAB size is $size");
-				} else if ($n1 == 'E') {
-					/*
-					when r=0, i=0 (N0=0b00xx=0x0-0x3) and m=0 (N1=E), the address is a temporary unicast address (TUA) for use in BARC messaging only.
-					*/
-					echo sprintf("%-32s %s\n", "BARC Address Type:", "[$n0$n1:__:__:__:__:__] Temporary Unicast Address (TUA) for use in BARC messaging only");
-				} else assert(false);
-			} else if ((hexdec($n0) >= 4) && (hexdec($n0) <= 7)) { // r,i=01
-				/*
-				when r=0 and i=1 (N0=0b01xx=0x4-0x7), the address is a Claimable Address (CA) in a Claimable Address Block (CAB) of size jk;
-				*/
-				echo sprintf("%-32s %s\n", "BARC Address Type:", "[{$n0}_:__:__:__:__:__] Claimable Address (CA) in a Claimable Address Block (CAB) of size $size");
-			} else if ((hexdec($n0) >= 8) && (hexdec($n0) <= 0xF)) { // r=1
-				/*
-				when r=1 (N0=0b1xxx=0x8-0xF), the address is a Registrable Address (RA) in a Registrable Address Block (RAB);
-				*/
-				echo sprintf("%-32s %s\n", "BARC Address Type:", "[{$n0}_:__:__:__:__:__] Registrable Address (RA) in a Registrable Address Block (RAB)");
+		// and
+		// https://datatracker.ietf.org/meeting/112/materials/slides-112-intarea-p8021cq-00
 
-			/* not 100% sure about this interpretation, because the paper does not describe it:
-			} else if ((hexdec($n0) >= 8) && (hexdec($n0) <= 0xB)) { // r,i=10
-				if ($n1 == 'F') {
-					echo sprintf("%-32s %s\n", "BARC Address Type:", "[$n0$n1:__:__:__:__:__] Registrable Address (RA), RAB size $size");
-				} else if ($n1 == 'E') {
-					echo sprintf("%-32s %s\n", "BARC Address Type:", "[$n0$n1:__:__:__:__:__] Undefined!");
-				}
-			} else if ((hexdec($n0) >= 0xC) && (hexdec($n0) <= 0xF)) { // r,i=11
-				echo sprintf("%-32s %s\n", "BARC Address Type:", "[{$n0}_:__:__:__:__:__] Registrable Address Block (RAB), RAB size $size");
-			*/
-			} else {
-				assert(false);
-			}
-			echo sprintf("%-32s %s\n", "BARC Semantic Prefix:", "[__:_$n3:$n4$n5:__:__:__] Semantic Prefix");
-			echo sprintf("%-32s %s\n", "BARC Data:", "[__:__:__:$n6$n7:$n8$n9:$n10$n11] Prefix Dependant Data");
+		$n0 = substr($mac,0,1);
+		$n1 = substr($mac,1,1);
+		$n2 = substr($mac,2,1);
+		$r = (hexdec($n0)&0b1000) ? 1 : 0;
+		$i = (hexdec($n0)&0b0100) ? 1 : 0;
+		$jk = hexdec($n0)&0b0011;
+		$m = ($n1=='F') ? 1 : 0;
+
+		if (($n2=="0") && ($r==0) && ($i==1)) {
+			$barc_type = 'CA';
+		} else if (($n2=="0"/*Only CA or also CABA?*/) && ($r==0) && ($i==0) && ($m==1)) {
+			$barc_type = 'CABA';
+		} else if (($n2=="0") && ($r==0) && ($i==0) && ($jk==0) && ($m==0)) {
+			$barc_type = 'TUA';
+		} else if ($r==1) {
+			$barc_type = 'RA';
 		} else {
-			echo sprintf("%-32s %s\n", "SAI Standard:", "[__:{$n2}_:__:__:__:__] Unknown IEEE 802 Standard #".hexdec($n2));
+			$barc_type = '';
+		}
+
+		if ($barc_type == '') {
+			echo sprintf("%-32s %s\n", "SAI Standard:", "Unknown IEEE 802 Standard");
+		} else {
+			echo sprintf("%-32s %s\n", "SAI Standard:", "BARC (IEEE 802.1CQ)"); // Block Address Registration and Claiming (BARC)
+			if ($barc_type == 'CA') {
+				echo sprintf("%-32s %s\n", "BARC Address Type:", "Claimable Address (CA)");
+				echo sprintf("%-32s %s\n", "BARC CAB Size:", $jk);
+			} else if ($barc_type == 'CABA') {
+				echo sprintf("%-32s %s\n", "BARC Address Type:", "Claimable Address Block Address (CABA)");
+				echo sprintf("%-32s %s\n", "BARC CAB Size:", $jk);
+			} else if ($barc_type == 'TUA') {
+				echo sprintf("%-32s %s\n", "BARC Address Type:", "Temporary Unicast Address (TUA)");
+			} else if ($barc_type == 'RA') { /** @phpstan-ignore-line */
+				echo sprintf("%-32s %s\n", "BARC Address Type:", "Registrable Address (RA)");
+				echo sprintf("%-32s %s\n", "BARC RABI Option:", $i);
+				echo sprintf("%-32s %s\n", "BARC RABI Size:", $jk);
+			} else {
+				assert(false); /** @phpstan-ignore-line */
+			}
+			echo sprintf("%-32s %s\n", "BARC Semantic Prefix:", "0x".strtoupper(substr($mac,0,5)));
+			echo sprintf("%-32s %s\n", "BARC Data:", "0x".strtoupper(substr($mac,5)));
 		}
 		echo "\n";
 	} else if ($is_eli) {
