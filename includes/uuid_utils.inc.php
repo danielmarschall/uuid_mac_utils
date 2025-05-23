@@ -2,8 +2,8 @@
 
 /*
  * UUID utils for PHP
- * Copyright 2011 - 2024 Daniel Marschall, ViaThinkSoft
- * Version 2024-08-01
+ * Copyright 2011 - 2025 Daniel Marschall, ViaThinkSoft
+ * Version 2025-05-03
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -794,6 +794,8 @@ function uuid_info($uuid, $echo=true) {
 								'1.3.6.1.4.1.37476.2.5.2.4.8.11' => 'aid (ViaThinkSoft plugin)',
 								'1.3.6.1.4.1.37476.2.5.2.4.8.12' => 'php (ViaThinkSoft plugin)',
 								'1.3.6.1.4.1.37476.2.5.2.4.8.13' => 'mac (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.14' => 'x500dn (ViaThinkSoft plugin)',
+								'1.3.6.1.4.1.37476.2.5.2.4.8.15' => 'urn (ViaThinkSoft plugin)',
 								'1.3.6.1.4.1.37553.8.1.8.8.53354196964.27255728261' => 'circuit (Frdlweb plugin)',
 								'1.3.6.1.4.1.37476.9000.108.19361.856' => 'ns (Frdlweb plugin)',
 								'1.3.6.1.4.1.37553.8.1.8.8.53354196964.32927' => 'pen (Frdlweb plugin)',
