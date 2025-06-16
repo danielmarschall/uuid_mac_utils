@@ -926,15 +926,15 @@ function uuid_info($uuid, $echo=true) {
 			str_pad("$milliseconds",3/*ms*/,'0',STR_PAD_LEFT);
 		if ((strpos($utc_time,'X') === false) && checkdate($month, $day, $year)) {
 			$deviation = "(deviation -2ms..2ms)";
-			echo "\n<u>Interpretation of <a href=\"https://gist.github.com/danielmarschall/7fafd270a3bc107d38e8449ce7420c25\">HickelSOFT \"SQL Server Sortable Custom UUID\", Version 2</a></u>\n\n";
+			echo "\n<u>Interpretation of <a href=\"https://gist.github.com/danielmarschall/7fafd270a3bc107d38e8449ce7420c25\">HickelSOFT \"SQL Server Sortable Custom UUID\", Version 3</a></u>\n\n";
 			echo sprintf("%-32s %s\n", "Random 16 bits:", "[0x$rnd16bits] 0b".str_pad("".base_convert($rnd16bits, 16, 2), 16, '0', STR_PAD_LEFT));
 			echo sprintf("%-32s %s\n", "Milliseconds:", "[0x".substr($uuid,4,2)."] $milliseconds $deviation");
 			echo sprintf("%-32s %s\n", "Seconds:", "[0x".substr($uuid,6,2)."] $seconds");
-			echo sprintf("%-32s %s\n", "Minute of day:", "[0x".substr($uuid,8,4)."] $minuteOfDay (".str_pad("$hours",2,'0',STR_PAD_LEFT).":".str_pad("$minutes",2,'0',STR_PAD_LEFT).")");
-			echo sprintf("%-32s %s\n", "Day of year:", "[0x".substr($uuid,13,3)."] $dayOfYear (Day=$day, Month=$month)");
+			echo sprintf("%-32s %s\n", "Minute of day:", "[0x".substr($uuid,10,2).substr($uuid,8,2)."] $minuteOfDay (".str_pad("$hours",2,'0',STR_PAD_LEFT).":".str_pad("$minutes",2,'0',STR_PAD_LEFT).")");
+			echo sprintf("%-32s %s\n", "Day of year:", "[0x".substr($uuid,14,2).substr($uuid,13,1)."] $dayOfYear (Day=$day, Month=$month)");
 			echo sprintf("%-32s %s\n", "Unused 2 bits:", "[$unused2bits] 0b".str_pad("".base_convert("$unused2bits", 16, 2), 2, '0', STR_PAD_LEFT));
 			echo sprintf("%-32s %s\n", "Year:", "[0x".substr($uuid,17,3)."] $year");
-			echo sprintf("%-32s %s\n", "Signature:", "[0x".substr($uuid,20,12)."] HickelSOFT \"SQL Server Sortable Custom UUID\", Version 2 (very likely)");
+			echo sprintf("%-32s %s\n", "Signature:", "[0x".substr($uuid,20,12)."] HickelSOFT \"SQL Server Sortable Custom UUID\", Version 3 (very likely)");
 			echo sprintf("%-32s %s\n", "UTC Date Time:", "$utc_time $deviation");
 		}
 	} else if (strtolower($signature) == '5ce32bd83b96') {
