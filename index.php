@@ -115,13 +115,13 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 	echo '<pre>';
 	for ($i=0; $i<AUTO_NEW_UUIDS; $i++) {
 		$uuid = gen_uuid_v7();
-		echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
+		echo '<a href="interpret_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
 	}
 	echo '</pre>';
 }
 ?>
 
-<form method="GET" action="interprete_uuid.php">
+<form method="GET" action="interpret_uuid.php">
     <input type="hidden" name="version" value="7">
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
 </form>
@@ -155,13 +155,13 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 	echo '<pre>';
 	for ($i=0; $i<AUTO_NEW_UUIDS; $i++) {
 		$uuid = gen_uuid_v6();
-		echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
+		echo '<a href="interpret_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
 	}
 	echo '</pre>';
 }
 ?>
 
-<form method="GET" action="interprete_uuid.php">
+<form method="GET" action="interpret_uuid.php">
     <input type="hidden" name="version" value="6">
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
 </form>
@@ -191,13 +191,13 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 	echo '<pre>';
 	for ($i=0; $i<AUTO_NEW_UUIDS; $i++) {
 		$uuid = gen_uuid_v4();
-		echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
+		echo '<a href="interpret_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
 	}
 	echo '</pre>';
 }
 ?>
 
-<form method="GET" action="interprete_uuid.php">
+<form method="GET" action="interpret_uuid.php">
     <input type="hidden" name="version" value="4">
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
 </form>
@@ -231,13 +231,13 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
     echo '<pre>';
     for ($i=0; $i<AUTO_NEW_UUIDS; $i++) {
         $uuid = gen_uuid_v1();
-        echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
+        echo '<a href="interpret_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
     }
     echo '</pre>';
 }
 ?>
 
-<form method="GET" action="interprete_uuid.php">
+<form method="GET" action="interpret_uuid.php">
     <input type="hidden" name="version" value="1">
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
 </form>
@@ -290,18 +290,18 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
     echo '<pre>';
     for ($i=0; $i<AUTO_NEW_UUIDS; $i++) {
         $uuid = gen_uuid_v8_sqlserver_sortable();
-        echo '<a href="interprete_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
+        echo '<a href="interpret_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
     }
     echo '</pre>';
 }
 ?>
 
-<form method="GET" action="interprete_uuid.php">
+<form method="GET" action="interpret_uuid.php">
     <input type="hidden" name="version" value="8_sqlserver_v2">
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID (new version)">
 </form><br>
 
-<form method="GET" action="interprete_uuid.php">
+<form method="GET" action="interpret_uuid.php">
     <input type="hidden" name="version" value="8_sqlserver_v1">
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID (old version)">
 </form>
@@ -319,7 +319,7 @@ generators if you know what you are doing.</i></p>
 initially designed by Apollo Computer that cannot be generated anymore, because the
 amount of available timestamp bits was exhausted on <strong>5 September 2015</strong>.
 As an example, here is the last possible NCS UUID (all bits of the timestamp are set to 1) for IP address 127.0.0.1:
-<a href="interprete_uuid.php?uuid=ffffffff-ffff-0000-027f-000001000000"><code>ffffffff-ffff-0000-027f-000001000000</code></a>.</p>
+<a href="interpret_uuid.php?uuid=ffffffff-ffff-0000-027f-000001000000"><code>ffffffff-ffff-0000-027f-000001000000</code></a>.</p>
 
 <script>
 function show_uuidnce_info() {
@@ -374,7 +374,7 @@ function show_uuidv2_info() {
 3-255 = site-defined">Local Domain</abbr>
 - 48 bit MAC Address</pre></p>
 
-<form method="GET" action="interprete_uuid.php">
+<form method="GET" action="interpret_uuid.php">
 	<input type="hidden" name="version" value="2">
 	<label>Domain (8&nbsp;bits):</label><select name="domain_choose" id="dce_domain_choice" onchange="javascript:dce_domain_choice_choose();">
 		<option value="uid">Person (e.g. POSIX UID)</option>
@@ -450,7 +450,7 @@ label {
 }
 </style>
 
-<form method="GET" action="interprete_uuid.php">
+<form method="GET" action="interpret_uuid.php">
 	<label>Hash algorithm:</label><select name="version" id="nb_version" onchange="javascript:nb_version_choose();">
 		<?php
 
@@ -629,7 +629,7 @@ function uuidv8_changehex(block, len) {
 -  2 bit Variant (fix 0b10)
 - 62 bit Custom data [Block 4+5]</pre></p>
 
-<form method="GET" action="interprete_uuid.php">
+<form method="GET" action="interpret_uuid.php">
 	<input type="hidden" name="version" value="8">
 
 	<label>Block&nbsp;1 (32&nbsp;bits):</label>0x<input type="text" name="block1" value="00000000" maxlength="8" id="v8_block1_hex" onkeyup="uuidv8_changehex(1, 0)" style="width:150px" pattern="[0-9a-fA-F]+"> = Decimal
@@ -670,8 +670,8 @@ function uuidv8_changehex(block, len) {
 
 <p>Please enter a UUID or UUID OID:</p>
 
-<form method="GET" action="interprete_uuid.php">
-	<input type="text" name="uuid" value="" style="width:300px"> <input type="submit" value="Interprete">
+<form method="GET" action="interpret_uuid.php">
+	<input type="text" name="uuid" value="" style="width:300px"> <input type="submit" value="Interpret">
 </form>
 
 <h2 id="interpret_mac">Interpret a MAC address (<abbr title="Media Access Control">MAC</abbr> /
@@ -701,8 +701,8 @@ function uuidv8_changehex(block, len) {
 
 <p>Please enter a MAC (EUI, ELI, SAI, AAI), or IPv6-Link-Local address:</p>
 
-<form method="GET" action="interprete_mac.php">
-	<input type="text" name="mac" value="" style="width:250px"> <input type="submit" value="Interprete">
+<form method="GET" action="interpret_mac.php">
+	<input type="text" name="mac" value="" style="width:250px"> <input type="submit" value="Interpret">
 </form>
 
 <h3 id="gen_aai">Generate an <abbr title="Administratively Assigned Identifier">AAI</abbr></h3>
@@ -710,7 +710,7 @@ function uuidv8_changehex(block, len) {
 <p><i>An Administratively Assigned Identifier (AAI) is a MAC address which can be locally defined
 by applications or an administrator. Unlike the EUI, an AAI is NOT worldwide unique.</i></p>
 
-<form method="GET" action="interprete_mac.php">
+<form method="GET" action="interpret_mac.php">
     <input type="hidden" name="aai_gen" value="1">
     <input type="hidden" name="aai_gen_bits" value="48">
     <input type="hidden" name="aai_gen_multicast" value="0">
@@ -719,7 +719,7 @@ by applications or an administrator. Unlike the EUI, an AAI is NOT worldwide uni
 
 <br>
 
-<form method="GET" action="interprete_mac.php">
+<form method="GET" action="interpret_mac.php">
     <input type="hidden" name="aai_gen" value="1">
     <input type="hidden" name="aai_gen_bits" value="64">
     <input type="hidden" name="aai_gen_multicast" value="0">
@@ -728,7 +728,7 @@ by applications or an administrator. Unlike the EUI, an AAI is NOT worldwide uni
 
 <p>The following options are rather unusual, but are implemented for the sake of completeness:</p>
 
-<form method="GET" action="interprete_mac.php">
+<form method="GET" action="interpret_mac.php">
     <input type="hidden" name="aai_gen" value="1">
     <input type="hidden" name="aai_gen_bits" value="48">
     <input type="hidden" name="aai_gen_multicast" value="1">
@@ -737,7 +737,7 @@ by applications or an administrator. Unlike the EUI, an AAI is NOT worldwide uni
 
 <br>
 
-<form method="GET" action="interprete_mac.php">
+<form method="GET" action="interpret_mac.php">
     <input type="hidden" name="aai_gen" value="1">
     <input type="hidden" name="aai_gen_bits" value="64">
     <input type="hidden" name="aai_gen_multicast" value="1">
