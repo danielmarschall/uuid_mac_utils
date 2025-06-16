@@ -2,8 +2,8 @@
 
 /*
 * UUID & MAC Utils
-* Copyright 2017 - 2024 Daniel Marschall, ViaThinkSoft
-* Version 2024-04-16
+* Copyright 2017 - 2025 Daniel Marschall, ViaThinkSoft
+* Version 2025-06-16
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -259,19 +259,31 @@ function show_uuidv8_sqlserver_info() {
 }
 </script>
 <p><a id="uuidv8_sqlserver_info_button" href="javascript:show_uuidv8_sqlserver_info()">Show format</a>
-<pre id="uuidv8_sqlserver_info" style="display:none">Version 2: Resolution of 1 milliseconds, random part of 16 bits, UTC time, 48 bit random "signature", UUIDv8 conform:
+<pre id="uuidv8_sqlserver_info" style="display:none">Version 3: Resolution of 1 milliseconds, random part of 16 bits, UTC time, 48 bit random "signature", UUIDv8 compliant:
 - 16 bit Random data
 -  8 bit UTC Milliseconds transformed from 1000ms to 0..255, deviation -2ms..2ms (hex encoded)
 -  8 bit UTC Seconds (hex encoded)
-- 16 bit UTC Minute of the day (1..1440, hex encoded)
+- 16 bit UTC Minute of the day (1..1440, hex encoded) LITTLE ENDIAN (CD AB = 0xABCD)
 -  4 bit UUID version 8
-- 12 bit UTC Day of the year (1..366, hex encoded)
+- 12 bit UTC Day of the year (1..366, hex encoded) LITTLE ENDIAN (8C AB = 0xABC)
 -  2 bit UUID Variant (0b10)
 -  2 bit Unused (must be zero)
 - 12 bit UTC Year (hex encoded)
-- 48 bit Signature 0x5ce32bd83b96
+- 48 bit Signature 0x5ce32bd83b97
 
-Version 1: Resolution of 1 milliseconds, random part of 16 bits, local timezone, 48 zero bits "signature", NOT UUIDv8 conform:
+<s>Version 2: Resolution of 1 milliseconds, random part of 16 bits, UTC time, 48 bit random "signature", UUIDv8 compliant:
+- 16 bit Random data
+-  8 bit UTC Milliseconds transformed from 1000ms to 0..255, deviation -2ms..2ms (hex encoded)
+-  8 bit UTC Seconds (hex encoded)
+- 16 bit UTC Minute of the day (1..1440, hex encoded) BIG ENDIAN (AB CD = 0xABCD) = WRONG!!!
+-  4 bit UUID version 8
+- 12 bit UTC Day of the year (1..366, hex encoded) BIG ENDIAN (8A BC = 0xABC) = WRONG!!!
+-  2 bit UUID Variant (0b10)
+-  2 bit Unused (must be zero)
+- 12 bit UTC Year (hex encoded)
+- 48 bit Signature 0x5ce32bd83b96</s>
+
+Version 1: Resolution of 1 milliseconds, random part of 16 bits, local timezone, 48 zero bits "signature", *NOT* UUIDv8 compliant:
 - 16 bit Random data
 -  8 bit Generator's local timezone Milliseconds transformed from 1000ms to 0..255, deviation -4ms..0ms (hex encoded)
 -  8 bit Generator's local timezone Seconds (BCD encoded)
@@ -297,9 +309,14 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 ?>
 
 <form method="GET" action="interpret_uuid.php">
-    <input type="hidden" name="version" value="8_sqlserver_v2">
+    <input type="hidden" name="version" value="8_sqlserver_v3">
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID (new version)">
 </form><br>
+
+<!--<form method="GET" action="interpret_uuid.php">
+    <input type="hidden" name="version" value="8_sqlserver_v2">
+    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID (broken version)">
+</form><br>-->
 
 <form method="GET" action="interpret_uuid.php">
     <input type="hidden" name="version" value="8_sqlserver_v1">
