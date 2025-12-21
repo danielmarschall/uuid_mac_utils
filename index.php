@@ -368,7 +368,7 @@ socket_$dds (0xD)">Family</abbr>
 
 <h3 id="gen_uuidv2">Generate DCE Security (version 2) UUID</h3>
 
-<p><i>An UUIDv2 contains information about the creator (person, group, or organization), the generating system (MAC address), and time.
+<p><i>A UUIDv2 contains information about the creator (person, group, or organization), the generating system (MAC address), and time.
 The creator information replaced parts of the time bits, therefore the time resolution is very low.</i></p>
 
 <script>
@@ -434,7 +434,7 @@ dce_domain_choose();
 
 <h3 id="gen_uuidv35">Generate name-based (version 3 / 5 / <font color="green">New: 8</font>) UUID</h3>
 
-<p><i>An UUIDv3 is made out of a MD5 hash and an UUIDv5 is made out of a SHA1 hash.
+<p><i>A UUIDv3 is made out of a MD5 hash and a UUIDv5 is made out of a SHA1 hash.
 RFC 9562 also contains an example for a custom UUIDv8 implementation that
 uses modern hash algorithms.</i></p>
 

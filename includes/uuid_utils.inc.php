@@ -153,7 +153,7 @@ function uuid_info($uuid, $echo=true) {
 			- 56 bit Node
 			*/
 
-			// Example of an UUID: 333a2276-0000-0000-0d00-00809c000000
+			// Example of a UUID: 333a2276-0000-0000-0d00-00809c000000
 
 			// TODO: also show legacy format, e.g. 458487b55160.02.c0.64.02.03.00.00.00
 

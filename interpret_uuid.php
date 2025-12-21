@@ -37,7 +37,7 @@ if (!is_numeric($version) || (strlen($version)!=1)) $version = 1; // default: Ve
 if ($uuid == 'CREATE') {
 	$title = 'Generate a UUIDv'.$version;
 } else {
-	$title = 'Interprete a UUID';
+	$title = 'Interpret a UUID';
 }
 
 ?><html>
@@ -58,8 +58,8 @@ if ($uuid == 'CREATE') {
 <?php
 
 if ($uuid != 'CREATE') {
-	echo '<form method="GET" action="interprete_uuid.php">';
-	echo '	UUID: <input style="font-family:Courier,Courier New,Serif;width:325px" type="text" name="uuid" value="'.htmlentities($uuid).'"> <input type="submit" value="Interprete">';
+	echo '<form method="GET" action="interpret_uuid.php">';
+	echo '	UUID: <input style="font-family:Courier,Courier New,Serif;width:325px" type="text" name="uuid" value="'.htmlentities($uuid).'"> <input type="submit" value="Interpret">';
 	echo '</form>';
 } else if (($version!=3) && ($version!=5) && (($version!=8) || ($v8_sqlserver_version!=null))) {
 	echo '<p><i>Reload the page to receive another UUID.</i></p>';
