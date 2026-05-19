@@ -2,8 +2,8 @@
 
 /*
 * UUID & MAC Utils
-* Copyright 2017 - 2025 Daniel Marschall, ViaThinkSoft
-* Version 2025-06-16
+* Copyright 2017 - 2026 Daniel Marschall, ViaThinkSoft
+* Version 2026-05-19
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -41,14 +41,16 @@ const AUTO_NEW_UUIDS = 15;
 <h2>Overview</h2>
 
 <ul>
-    <li><a href="#gen_uuid">Generate random and/or time-based UUIDs</a><ul>
+    <li>Generate time-based UUIDs<ul>
             <li><a href="#gen_uuidv7"><font color="green">New:</font> Generate Unix Epoch time-based (version 7) UUID</a></li>
             <li><a href="#gen_uuidv6"><font color="green">New:</font> Generate reordered Gregorian time-based (version 6) UUID</a></li>
-            <li><a href="#gen_uuidv4">Generate random (version 4) UUID</a></li>
             <li><a href="#gen_uuidv1">Generate Gregorian time-based (version 1) UUID</a></li>
             <li><a href="#gen_uuidv8_sqlserver"><font color="green">New:</font> Generate SQL Server sortable time-based (version 8) UUID</a></li>
         </ul></li>
-    <li><a href="#gen_other_uuid">Generate other UUID types</a><ul>
+    <li>Generate random UUIDs<ul>
+            <li><a href="#gen_uuidv4">Generate random (version 4) UUID</a></li>
+        </ul></li>
+    <li><!--<a href="#gen_other_uuid">-->Generate other UUID types<!--</a>--><ul>
             <li><a href="#gen_uuid_ncs">NCS (variant 0) UUID</a></li>
             <li><a href="#gen_uuidv2">Generate DCE Security (version 2) UUID</a></li>
             <li><a href="#gen_uuidv35">Generate name-based (version 3 / 5 / <font color="green">New: 8</font>) UUID</a></li>
@@ -166,42 +168,6 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
 </form>
 
-<h3 id="gen_uuidv4">Generate random (version 4) UUID &#x1F3B2;</h3>
-
-<p><i>A UUIDv4 is made of 122 random&nbsp;bits. No other information is encoded in this kind of UUID.</i></p>
-
-<script>
-function show_uuidv4_info() {
-	document.getElementById("uuidv4_info_button").style.display = "none";
-	document.getElementById("uuidv4_info").style.display = "block";
-}
-</script>
-<p><a id="uuidv4_info_button" href="javascript:show_uuidv4_info()">Show format</a>
-<pre id="uuidv4_info" style="display:none">Variant 1, Version 4 UUID:
-- 48 bit Random High
--  4 bit Version (fix 0x4)
-- 12 bit Random Mid
--  2 bit Variant (fix 0b10)
-- 62 bit Random Low</pre></p>
-
-<?php
-if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
-	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs that were created just for you! (Reload the page to get more)</p>';
-
-	echo '<pre>';
-	for ($i=0; $i<AUTO_NEW_UUIDS; $i++) {
-		$uuid = gen_uuid_v4();
-		echo '<a href="interpret_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
-	}
-	echo '</pre>';
-}
-?>
-
-<form method="GET" action="interpret_uuid.php">
-    <input type="hidden" name="version" value="4">
-    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
-</form>
-
 <h3 id="gen_uuidv1">Generate Gregorian time-based (version 1) UUID &#9200;</h3>
 
 <p><i>A UUIDv1 is made of the MAC address of the generating computer,
@@ -265,10 +231,10 @@ function show_uuidv8_sqlserver_info() {
 -  8 bit UTC Seconds (hex encoded)
 - 16 bit UTC Minute of the day (1..1440, hex encoded) LITTLE ENDIAN (CD AB = 0xABCD)
 -  4 bit UUID version 8
-- 12 bit UTC Day of the year (1..366, hex encoded) LITTLE ENDIAN (8C AB = 0xABC)
+- 12 bit UTC Day of the year (1..366, hex encoded) LITTLE ENDIAN (8C AB = 0xABC, whereas 8 is the version)
 -  2 bit UUID Variant (0b10)
 -  2 bit Unused (must be zero)
-- 12 bit UTC Year (hex encoded)
+- 12 bit UTC Year (hex encoded) BIG ENDIAN
 - 48 bit Signature 0x5ce32bd83b97
 
 <s>Version 2: Resolution of 1 milliseconds, random part of 16 bits, UTC time, 48 bit random "signature", UUIDv8 compliant:
@@ -277,10 +243,10 @@ function show_uuidv8_sqlserver_info() {
 -  8 bit UTC Seconds (hex encoded)
 - 16 bit UTC Minute of the day (1..1440, hex encoded) BIG ENDIAN (AB CD = 0xABCD) = WRONG!!!
 -  4 bit UUID version 8
-- 12 bit UTC Day of the year (1..366, hex encoded) BIG ENDIAN (8A BC = 0xABC) = WRONG!!!
+- 12 bit UTC Day of the year (1..366, hex encoded) BIG ENDIAN (8A BC = 0xABC, whereas 8 is the version) = WRONG!!!
 -  2 bit UUID Variant (0b10)
 -  2 bit Unused (must be zero)
-- 12 bit UTC Year (hex encoded)
+- 12 bit UTC Year (hex encoded) BIG ENDIAN
 - 48 bit Signature 0x5ce32bd83b96</s>
 
 Version 1: Resolution of 1 milliseconds, random part of 16 bits, local timezone, 48 zero bits "signature", *NOT* UUIDv8 compliant:
@@ -310,20 +276,61 @@ if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
 
 <form method="GET" action="interpret_uuid.php">
     <input type="hidden" name="version" value="8_sqlserver_v3">
+    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
+</form>
+
+<!--
+<form method="GET" action="interpret_uuid.php">
+    <input type="hidden" name="version" value="8_sqlserver_v3">
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID (new version)">
 </form><br>
 
-<!--<form method="GET" action="interpret_uuid.php">
+<form method="GET" action="interpret_uuid.php">
     <input type="hidden" name="version" value="8_sqlserver_v2">
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID (broken version)">
-</form><br>-->
+</form><br>
 
 <form method="GET" action="interpret_uuid.php">
     <input type="hidden" name="version" value="8_sqlserver_v1">
     <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID (old version)">
 </form>
+-->
 
+<h3 id="gen_uuidv4">Generate random (version 4) UUID &#x1F3B2;</h3>
 
+<p><i>A UUIDv4 is made of 122 random&nbsp;bits. No other information is encoded in this kind of UUID.</i></p>
+
+<script>
+function show_uuidv4_info() {
+	document.getElementById("uuidv4_info_button").style.display = "none";
+	document.getElementById("uuidv4_info").style.display = "block";
+}
+</script>
+<p><a id="uuidv4_info_button" href="javascript:show_uuidv4_info()">Show format</a>
+<pre id="uuidv4_info" style="display:none">Variant 1, Version 4 UUID:
+- 48 bit Random High
+-  4 bit Version (fix 0x4)
+- 12 bit Random Mid
+-  2 bit Variant (fix 0b10)
+- 62 bit Random Low</pre></p>
+
+<?php
+if (AUTO_NEW_UUIDS > 0) { /** @phpstan-ignore-line */
+	echo '<p>Here are '.AUTO_NEW_UUIDS.' UUIDs that were created just for you! (Reload the page to get more)</p>';
+
+	echo '<pre>';
+	for ($i=0; $i<AUTO_NEW_UUIDS; $i++) {
+		$uuid = gen_uuid_v4();
+		echo '<a href="interpret_uuid.php?uuid='.$uuid.'">'.$uuid.'</a><br>';
+	}
+	echo '</pre>';
+}
+?>
+
+<form method="GET" action="interpret_uuid.php">
+    <input type="hidden" name="version" value="4">
+    <input type="hidden" name="uuid" value="CREATE"> <input type="submit" value="Create and display another UUID">
+</form>
 
 <h2 id="gen_other_uuid">Generate other UUID types</h2>
 

@@ -1094,8 +1094,9 @@ function uuid_info($uuid, $echo=true) {
 				}
 			}
 		}
-		if ($matches == 0) echo sprintf("%-32s %s\n", "Timestamp Match:", "None found. Possibly random (non-sequential) UUID");
-
+		if ($matches == 0) {
+			echo sprintf("%-32s %s\n", "Timestamp Match:", "None found. Possibly random (non-sequential) UUID");
+		}
 	}
 
 	// END: UUIDv9 (unofficial)
