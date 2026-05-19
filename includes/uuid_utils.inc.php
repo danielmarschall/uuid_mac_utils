@@ -110,7 +110,7 @@ function uuid_info($uuid, $echo=true) {
 	$uuid = preg_replace('@[^0-9A-F]@i', '', $uuid);
 
 	$x = hexdec(substr($uuid, 16, 1));
-	     if ($x >= 14 /* 0b1110 */) $variant = 3;
+	     if ($x >= 14 /* 0b111_ */) $variant = 3;
 	else if ($x >= 12 /* 0b110_ */) $variant = 2;
 	else if ($x >=  8 /* 0b10__ */) $variant = 1;
 	else if ($x >=  0 /* 0b0___ */) $variant = 0;
@@ -875,77 +875,6 @@ function uuid_info($uuid, $echo=true) {
 
 					break;
 
-				case 9:
-
-
-					echo sprintf("%-32s %s\n", "Version:", "[0x".dechex($version)."] Unknown, possibly inofficial UUIDv9 ( https://uuidv9.jhunt.dev/ )");
-
-					// BEGIN: UUIDv9 (inofficial)
-
-					$data = str_split(substr($uuid, 0, 30), 2);
-					$polynomial = 0x07;
-					$crc = 0x00;
-					foreach ($data as $byte) {
-						$byteValue = hexdec($byte);
-						$crc ^= $byteValue;
-						for ($i = 0; $i < 8; $i++) {
-							if ($crc & 0x80) {
-								$crc = ($crc << 1) ^ $polynomial;
-							} else {
-								$crc <<= 1;
-							}
-							// $crc &= 0xFF;
-						}
-					}
-					$calculated = str_pad(dechex($crc & 0xFF), 2, '0', STR_PAD_LEFT);
-					echo sprintf("%-32s %s\n", "", "");
-					if (substr($uuid, 30, 2) === $calculated) {
-						echo sprintf("%-32s %s\n", "CRC-8 Checksum:", "Present and valid");
-					} else {
-						echo sprintf("%-32s %s\n", "CRC-8 Checksum:", "Not available or invalid");
-					}
-
-					$matches = 0;
-					$maxTs = time() + 600; // 600s leeway for generating systems
-					$raw_var0 = substr($uuid, 0, 12) . substr($uuid, 13);
-					$raw_var1 = substr($uuid, 0, 12) . substr($uuid, 13, 3) . substr($uuid, 17);
-					$minTs_var0 = strtotime('2024-01-01 00:00:00'); // UUIDv9 v0.0.1 Release in 2024
-					$minTs_var1 = strtotime('2026-05-17 00:00:00'); // Start of UUIDv9 generating versions with valid UUID variant
-					for ($offset = 0; $offset <= 8; $offset++) {
-						for ($var=0; $var<=1; $var++) {
-							// PHP generates this:
-							$candidate = substr(${"raw_var$var"}, $offset, 8);
-							$ts = hexdec($candidate);
-							if ($ts >= ${"minTs_var$var"} && $ts <= $maxTs) {
-								$prefix = substr(${"raw_var$var"}, 0, $offset);
-								$matches++;
-								echo sprintf("%-32s %s\n", "", "");
-								echo sprintf("%-32s %s\n", "Timestamp Match $matches Prefix:", "$offset byte prefix".rtrim(" $prefix"));
-								echo sprintf("%-32s %s\n", "Timestamp Match $matches Timestamp:", "$ts (".gmdate('Y-m-d H:i:s O',$ts).")");
-								echo sprintf("%-32s %s\n", "Timestamp Match $matches Resolution:", "1 second");
-								echo sprintf("%-32s %s\n", "Timestamp Match $matches Version:", "Version 9, ".($var ? "with" : "without")." variant bits");
-							}
-							// JS generates this:
-							$candidate = substr(${"raw_var$var"}, $offset, 11);
-							$ts = hexdec($candidate)/1000;
-							if ($ts >= ${"minTs_var$var"} && $ts <= $maxTs) {
-								$prefix = substr(${"raw_var$var"}, 0, $offset);
-								$matches++;
-								echo sprintf("%-32s %s\n", "", "");
-								echo sprintf("%-32s %s\n", "Timestamp Match $matches Prefix:", "$offset byte prefix".rtrim(" $prefix"));
-								echo sprintf("%-32s %s\n", "Timestamp Match $matches Timestamp:", "$ts (".gmdate('Y-m-d H:i:s O',$ts).")");
-								echo sprintf("%-32s %s\n", "Timestamp Match $matches Resolution:", "0.001 seconds");
-								echo sprintf("%-32s %s\n", "Timestamp Match $matches Version:", "Version 9, ".($var ? "with" : "without")." variant bits");
-							}
-						}
-					}
-
-					if ($matches == 0) echo sprintf("%-32s %s\n", "Timestamp Match:", "None found. Possibly random (non-sequential) UUID");
-
-					// END: UUIDv9 (inofficial)
-
-					break;
-
 				default:
 					echo sprintf("%-32s %s\n", "Version:", "[0x".dechex($version)."] Unknown");
 					break;
@@ -1012,6 +941,7 @@ function uuid_info($uuid, $echo=true) {
 	} else if (strtolower($signature) == '5ce32bd83b96') {
 		// HickelSOFT "SQL Server sortable UUID in C#"
 		// Version 2: Resolution of 1 milliseconds, random part of 18 bits, UTC time, UUIDv8 compliant.
+		// Do not use, it does not sort correctly!
 		// Example: 2088dc33-000d-8045-87e8-5ce32bd83b96
 		// Block 4
 		$unused2bits = hexdec(substr($uuid,16,1)) & 0x3;
@@ -1100,6 +1030,75 @@ function uuid_info($uuid, $echo=true) {
 	}
 
 	// END: HickelSOFT UUID
+
+	// START: UUIDv9 (unofficial)
+
+	$version = hexdec(substr($uuid, 12, 1));
+	if ($version == 9) {
+		echo "\n<u>Interpretation of <a href=\"https://uuidv9.jhunt.dev/\">unofficial UUIDv9 by J. Hunt</a> (only if version feature is enabled)</u>\n\n";
+
+		$data = str_split(substr($uuid, 0, 30), 2);
+		$polynomial = 0x07;
+		$crc = 0x00;
+		foreach ($data as $byte) {
+			$byteValue = hexdec($byte);
+			$crc ^= $byteValue;
+			for ($i = 0; $i < 8; $i++) {
+				if ($crc & 0x80) {
+					$crc = ($crc << 1) ^ $polynomial;
+				} else {
+					$crc <<= 1;
+				}
+				// $crc &= 0xFF;
+			}
+		}
+		$calculated = str_pad(dechex($crc & 0xFF), 2, '0', STR_PAD_LEFT);
+		if (substr($uuid, 30, 2) === $calculated) {
+			echo sprintf("%-32s %s\n", "CRC-8 Checksum:", "Present and valid");
+		} else {
+			echo sprintf("%-32s %s\n", "CRC-8 Checksum:", "Not available or invalid");
+		}
+
+		$matches = 0;
+		$maxTs = time() + 600; // 600s leeway for generating systems
+		$raw_var0 = substr($uuid, 0, 12) . substr($uuid, 13);
+		$raw_var1 = substr($uuid, 0, 12) . substr($uuid, 13, 3) . substr($uuid, 17);
+		$minTs_var0 = strtotime('2024-01-01 00:00:00'); // UUIDv9 v0.0.1 Release in 2024
+		$minTs_var1 = strtotime('2026-05-17 00:00:00'); // Start of UUIDv9 generating versions with valid UUID variant
+		for ($offset = 0; $offset <= 8; $offset++) {
+			for ($test_var=0; $test_var<=1; $test_var++) {
+				if (($test_var == 1) && ($variant != 1)) continue; // only check variant if we have a variant
+				// PHP generates 1-second timestamp in 8 nibbles
+				$candidate = substr(${"raw_var$test_var"}, $offset, 8);
+				$ts = hexdec($candidate);
+				if ($ts >= ${"minTs_var$test_var"} && $ts <= $maxTs) {
+					$prefix = substr(${"raw_var$test_var"}, 0, $offset);
+					$matches++;
+					echo sprintf("%-32s %s\n", "", "");
+					echo sprintf("%-32s %s\n", "Timestamp Match $matches Prefix:", "$offset byte prefix".rtrim(" $prefix"));
+					echo sprintf("%-32s %s\n", "Timestamp Match $matches Timestamp:", "$ts (".gmdate('Y-m-d H:i:s O',$ts).")");
+					echo sprintf("%-32s %s\n", "Timestamp Match $matches Resolution:", "1 second");
+					echo sprintf("%-32s %s\n", "Timestamp Match $matches Version:", "Version 9, ".($test_var ? "with" : "without")." variant bits");
+				}
+				// JS generates 0.001-second timestamp in 11 nibbles
+				$candidate = substr(${"raw_var$test_var"}, $offset, 11);
+				$ts = hexdec($candidate)/1000;
+				if ($ts >= ${"minTs_var$test_var"} && $ts <= $maxTs) {
+					$prefix = substr(${"raw_var$test_var"}, 0, $offset);
+					$matches++;
+					echo sprintf("%-32s %s\n", "", "");
+					echo sprintf("%-32s %s\n", "Timestamp Match $matches Prefix:", "$offset byte prefix".rtrim(" $prefix"));
+					echo sprintf("%-32s %s\n", "Timestamp Match $matches Timestamp:", "$ts (".gmdate('Y-m-d H:i:s O',$ts).")");
+					echo sprintf("%-32s %s\n", "Timestamp Match $matches Resolution:", "0.001 seconds");
+					echo sprintf("%-32s %s\n", "Timestamp Match $matches Version:", "Version 9, ".($test_var ? "with" : "without")." variant bits");
+				}
+			}
+		}
+		if ($matches == 0) echo sprintf("%-32s %s\n", "Timestamp Match:", "None found. Possibly random (non-sequential) UUID");
+
+	}
+
+	// END: UUIDv9 (unofficial)
 
 	if (!$echo) {
 		$out = ob_get_contents();
