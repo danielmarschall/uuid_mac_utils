@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2026 Daniel Marschall, ViaThinkSoft
- * Version 2026-05-19
+ * Version 2026-05-21
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,20 @@
  * limitations under the License.
  */
 
-# This library requires either the GMP extension (or BCMath if gmp_supplement.inc.php is present)
+// This library requires either the GMP extension (or BCMath if gmp_supplement.inc.php is present)
 // TODO: If we are on 64 bit PHP (PHP_INT_SIZE > 4), then replace GMP with normal PHP operations
+
+$LEGACY_GUID_REGISTRY = [];
+$tmpfil = __DIR__ . '/../web-data/legacy_guid.txt';
+if (file_exists($tmpfil)) {
+	foreach (file($tmpfil) as $tmp) {
+		$tmp = trim($tmp);
+		if ($tmp == '') continue;
+		$ary = explode('=',$tmp,2);
+		$tmp_uuid = strtolower(substr(str_replace('-','',$ary[0]),1,32));
+		$LEGACY_GUID_REGISTRY[$tmp_uuid] = $ary[1];
+	}
+}
 
 if (file_exists($f = __DIR__ . '/mac_utils.inc.php')) include_once $f;
 else if (file_exists($f = __DIR__ . '/mac_utils.inc.phps')) include_once $f;
@@ -882,10 +894,15 @@ function uuid_info($uuid, $echo=true) {
 
 			break;
 		case 2:
-			// TODO: Show byte order: 00112233-4455-6677-8899-aabbccddeeff => 33 22 11 00 55 44 77 66 88 99 aa bb cc dd ee ff
+			// TODO: Show byte order: 00112233-4455-6677-8899-aabbccddeeff => 33 22 11 00 55 44 77 66 88 99 aa bb cc dd ee ff (is this the reason for the weird SQL server order?)
 
-			// TODO: Is there any scheme in that legacy Microsoft GUIDs?
 			echo sprintf("%-32s %s\n", "Variant:", "[0b110] Reserved for Microsoft Corporation");
+
+			global $LEGACY_GUID_REGISTRY;
+			if (isset($LEGACY_GUID_REGISTRY[$uuid])) {
+				echo sprintf("%-32s %s\n", "Known GUID:", $LEGACY_GUID_REGISTRY[$uuid]);
+			}
+
 			break;
 		case 3:
 			echo sprintf("%-32s %s\n", "Variant:", "[0b111] Reserved for future use");

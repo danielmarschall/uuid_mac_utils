@@ -39,3 +39,9 @@ if [ $? -ne 0 ]; then
 	sleep 300
 	wget https://standards-oui.ieee.org/cid/cid.txt -q -O "$DIR"/web-data/cid.txt
 fi
+
+curl https://raw.githubusercontent.com/danielmarschall/LegacyGuidFinder/refs/heads/main/FoundGUIDs.txt --silent --output "$DIR"/web-data/legacy_guid.txt
+if [ $? -ne 0 ]; then
+	sleep 300
+	wget https://raw.githubusercontent.com/danielmarschall/LegacyGuidFinder/refs/heads/main/FoundGUIDs.txt -q -O "$DIR"/web-data/legacy_guid.txt
+fi
