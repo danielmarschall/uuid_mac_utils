@@ -3,7 +3,7 @@
 /*
  * UUID utils for PHP
  * Copyright 2011 - 2026 Daniel Marschall, ViaThinkSoft
- * Version 2026-05-21
+ * Version 2026-05-23
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1131,7 +1131,7 @@ function uuid_info($uuid, $echo=true) {
 	if (preg_match('/^([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-c000-000000000046$/i', $guid, $m)) {
 		echo "\n<u>Interpretation of Microsoft GUID</u>\n\n";
 		echo sprintf("%-32s %s\n", "Microsoft Type:", "OLE GUID (xxxxxxxx-yyyy-zzzz-c000-000000000046)");
-		echo sprintf("%-32s DEFINE_OLEGUID(..., 0x%sL, 0x%s, 0x%s)\n", "Win32 API Definition:",
+		echo sprintf("%-32s DEFINE_OLEGUID(..., 0x%sL, 0x%s, 0x%s)\n", "Win32 API Notation:",
 			strtoupper($m[1]),
 			strtoupper($m[2]),
 			strtoupper($m[3])
@@ -1145,7 +1145,7 @@ function uuid_info($uuid, $echo=true) {
 	if (preg_match('/^([0-9a-f]{8})-0000-0010-8000-00aa006d2ea4$/i', $guid, $m)) {
 		echo "\n<u>Interpretation of Microsoft GUID</u>\n\n";
 		echo sprintf("%-32s %s\n", "Microsoft Type:", "DAO GUID (xxxxxxxx-0000-0010-8000-00aa006d2ea4)");
-		echo sprintf("%-32s DEFINE_DAOGUID(..., 0x%sL)\n", "Win32 API Definition:",
+		echo sprintf("%-32s DEFINE_DAOGUID(..., 0x%sL)\n", "Win32 API Notation:",
 			strtoupper($m[1])
 		);
 	}
@@ -1172,7 +1172,7 @@ function uuid_info($uuid, $echo=true) {
 				chr($bytes[2]) .
 				chr($bytes[3]);
 			echo sprintf("%-32s %s\n", "Subtype FourCC:", $fourcc);
-			echo sprintf("%-32s %s\n", "Win32 API Definition:", guidToCppDefine($guid, 'WMMEDIASUBTYPE_'.$fourcc));
+			echo sprintf("%-32s %s\n", "Win32 API Notation:", guidToCppDefine($guid, 'WMMEDIASUBTYPE_'.$fourcc));
 		} else {
 			$magic =
 				  ($bytes[3] << 24)
@@ -1180,16 +1180,17 @@ function uuid_info($uuid, $echo=true) {
 				| ($bytes[1] << 8)
 				|  $bytes[0];
 			echo sprintf("%-32s %u (0x%X)\n", "Subtype Number:", $magic, $magic);
-			echo sprintf("%-32s %s\n", "Win32 API Definition:", guidToCppDefine($guid, 'WMMEDIASUBTYPE_...'));
+			echo sprintf("%-32s %s\n", "Win32 API Notation:", guidToCppDefine($guid, 'WMMEDIASUBTYPE_...'));
 		}
 	}
 
+	// END: Microsoft UUIDs
+
 	global $LEGACY_GUID_REGISTRY;
 	if (isset($LEGACY_GUID_REGISTRY[$uuid])) {
-		echo sprintf("%-32s %s\n", "Known GUID:", $LEGACY_GUID_REGISTRY[$uuid]." (<a href=\"https://github.com/danielmarschall/LegacyGuidFinder/tree/main\">Source</a>)");
+		echo "\n<u>References: <a href=\"https://github.com/danielmarschall/LegacyGuidFinder/tree/main\">Known GUID List</a></u>\n\n";
+		echo sprintf("%-32s %s\n", "Known GUID:", $LEGACY_GUID_REGISTRY[$uuid]);
 	}
-
-	// END: Microsoft UUIDs
 
 	echo "\nLookup this UUID at <a target=\"_blank\" href=\"https://www.magnumdb.com/search?q=$guid\">MagnumDB</a>, <a target=\"_blank\" href=\"https://google.com/search?q=$guid\">Google</a>, <a target=\"_blank\" href=\"https://bing.com/search?q=$guid\">Bing</a>\n";
 
