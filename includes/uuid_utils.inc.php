@@ -212,13 +212,13 @@ function uuid_info($uuid, $echo=true) {
 				# Microsoft's AdressFamily: Unspecified	0	Unspecified address family.
 				# AIX 3.0 Manual:  0   unspec = Unspecified
 				$family_name = 'socket_$unspec (Unspecified)';
-				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+				$nodeid_desc = ''; // TODO: how to interpret the Node-ID of that family?
 			}
 			else if ($family_dec == 1) {
 				# Microsoft's AdressFamily: Unix	1	Unix local to host address.
 				# AIX 3.0 Manual:  1   unix = Local to host (pipes, portals)
 				$family_name = 'socket_$unix (Local to host, e.g. pipes, portals)';
-				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+				$nodeid_desc = ''; // TODO: how to interpret the Node-ID of that family?
 			}
 			else if ($family_dec == 2) {
 				# Microsoft's AdressFamily: InterNetwork	2	Address for IP version 4.
@@ -245,63 +245,63 @@ function uuid_info($uuid, $echo=true) {
 				# Microsoft's AdressFamily: ImpLink	3	ARPANET IMP address.
 				# AIX 3.0 Manual:  3   implink = ARPANET imp addresses
 				$family_name = 'socket_$implink (ARPANET imp addresses)';
-				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+				$nodeid_desc = ''; // TODO: how to interpret the Node-ID of that family?
 			}
 			else if ($family_dec == 4) {
 				# Microsoft's AdressFamily: Pup	4	Address for PUP protocols.
 				# AIX 3.0 Manual:  4   pup = Pup protocols (for example, BSP)
 				$family_name = 'socket_$pup (Pup protocols, e.g. BSP)';
-				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+				$nodeid_desc = ''; // TODO: how to interpret the Node-ID of that family?
 			}
 			else if ($family_dec == 5) {
 				# Microsoft's AdressFamily: Chaos	5	Address for MIT CHAOS protocols.
 				# AIX 3.0 Manual:  5   chaos = MIT CHAOS protocols
 				$family_name = 'socket_$chaos (MIT CHAOS protocols)';
-				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+				$nodeid_desc = ''; // TODO: how to interpret the Node-ID of that family?
 			}
 			else if ($family_dec == 6) {
 				# Microsoft's AdressFamily: NS	6	Address for Xerox NS protocols.
 				# Microsoft's AdressFamily: Ipx	6	IPX or SPX address.
 				# AIX 3.0 Manual:  6   ns = XEROX NS protocols
 				$family_name = 'socket_$ns (XEROX NS protocols)';
-				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+				$nodeid_desc = ''; // TODO: how to interpret the Node-ID of that family?
 			}
 			else if ($family_dec == 7) {
 				# Microsoft's AdressFamily: Osi	7	Address for OSI protocols.
 				# Microsoft's AdressFamily: Iso	7	Address for ISO protocols.
 				# AIX 3.0 Manual:  7   nbs = NBS protocols
 				$family_name = 'socket_$nbs (NBS protocols)';
-				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+				$nodeid_desc = ''; // TODO: how to interpret the Node-ID of that family?
 			}
 			else if ($family_dec == 8) {
 				# Microsoft's AdressFamily: Ecma	8	European Computer Manufacturers Association (ECMA) address.
 				# AIX 3.0 Manual:  8   ecma = European computer manufacturers
 				$family_name = 'socket_$ecma (European computer manufacturers protocols)';
-				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+				$nodeid_desc = ''; // TODO: how to interpret the Node-ID of that family?
 			}
 			else if ($family_dec == 9) {
 				# Microsoft's AdressFamily: DataKit	9	Address for Datakit protocols.
 				# AIX 3.0 Manual:  9   datakit = Datakit protocols
 				$family_name = 'socket_$datakit (Datakit protocols)';
-				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+				$nodeid_desc = ''; // TODO: how to interpret the Node-ID of that family?
 			}
 			else if ($family_dec == 10) {
 				# Microsoft's AdressFamily: Ccitt	10	Addresses for CCITT protocols, such as X.25.
 				# AIX 3.0 Manual:  A   ccitt = CCITT protocols (for example, X.25)
 				$family_name = 'socket_$ccitt (CCITT protocols, e.g. X.25)';
-				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+				$nodeid_desc = ''; // TODO: how to interpret the Node-ID of that family?
 			}
 			else if ($family_dec == 11) {
 				# Microsoft's AdressFamily: Sna	11	IBM SNA address.
 				# AIX 3.0 Manual:  B   sna = IBM SNA
 				$family_name = 'socket_$sna (IBM SNA)';
-				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+				$nodeid_desc = ''; // TODO: how to interpret the Node-ID of that family?
 			}
 			else if ($family_dec == 12) {
 				# Microsoft's AdressFamily: DecNet	12	DECnet address.
 				# AIX 3.0 Manual:  C   unspec2 = Unspecified
 				$family_name = 'socket_$unspec2 (Unspecified)';
-				$nodeid_desc = ''; // TODO: how to interprete the Node-ID of that family?
+				$nodeid_desc = ''; // TODO: how to interpret the Node-ID of that family?
 			}
 			else if ($family_dec == 13) {
 				# Microsoft's AdressFamily: DataLink	13	Direct data-link interface address.

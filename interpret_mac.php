@@ -30,7 +30,7 @@ if ($gen_aai = (($_REQUEST['aai_gen'] ?? '0') == '1')) {
 	$title = 'Generate a MAC address (AAI)';
 } else {
 	$mac = isset($_REQUEST['mac']) ? trim($_REQUEST['mac']) : '';
-	$title = 'Interprete a MAC address';
+	$title = 'Interpret a MAC address';
 }
 
 ?><html>
@@ -53,7 +53,7 @@ if ($gen_aai = (($_REQUEST['aai_gen'] ?? '0') == '1')) {
 if ($gen_aai) {
 	echo '<p><i>Reload the page to receive another AAI.</i></p>';
 } else {
-	echo '<form method="GET" action="interprete_mac.php">';
+	echo '<form method="GET" action="interpret_mac.php">';
 	echo '	MAC: <input type="text" name="mac" value="'.htmlentities($mac).'" style="width:250px"> <input type="submit" value="Interprete">';
 	echo '</form>';
 }

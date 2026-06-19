@@ -2,8 +2,8 @@
 
 /*
  * MAC (EUI-48 and EUI-64) utils for PHP
- * Copyright 2017 - 2024 Daniel Marschall, ViaThinkSoft
- * Version 2024-06-30
+ * Copyright 2017 - 2026 Daniel Marschall, ViaThinkSoft
+ * Version 2026-06-19
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,8 @@ function mac_valid(string $mac): bool {
 	$tmp = ipv6linklocal_to_mac48($mac);
 	if ($tmp !== false) $mac = $tmp;
 
-	$mac = str_replace(array('-', ':'), '', $mac);
+	$mac = trim($mac);
+	$mac = str_replace(array('-', ':', ' '), '', $mac);
 	$mac = strtoupper($mac);
 
 	if ((strlen($mac) != 12) && (strlen($mac) != 16)) return false;
